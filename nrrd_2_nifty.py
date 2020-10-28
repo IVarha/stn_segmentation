@@ -7,7 +7,11 @@
 from bids import BIDSLayout
 from bids.tests import get_test_data_path
 import os
-import nibabel.nifti1
+import sys
+import glob
+import nrrd
+import nibabel as nib
+import numpy as np
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -19,10 +23,17 @@ def print_hi(name):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-    data_path = os.path.join(get_test_data_path(), '7t_trt')
+    nrrd_file = sys.argv[1]
+    nifty_inp = sys.argv[2]
+    outp = sys.argv[3]
 
+
+    nrrd_in = nrrd.read(nrrd_file)
+
+    nif = nib.load(nifty_inp)
+    nif2 = nib.Nifti1Image(nrrd_in[0], np.eye(4))
+    nib.save(nif2,outp)
     # Initialize the layout
-    layout = BIDSLayout(data_path)
     print(1222)
 
     # Print some basic information about the layout
