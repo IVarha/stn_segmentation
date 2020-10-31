@@ -2,8 +2,9 @@ import sys
 import csv
 import nibabel as nib
 import numpy as np
-
+import pickle
 import h5py
+
 
 def write_dh5_np(h5_name, np_array):
     """
@@ -79,6 +80,8 @@ def translate_p(p):
 if __name__ == '__main__':
     inp = sys.argv[1]
     features = sys.argv[2]
+    outp = sys.argv[3]
+    outp_mat = sys.argv[4]
 
     tmp_names = []
     tmp_xyz = []
@@ -93,7 +96,7 @@ if __name__ == '__main__':
                 tmp_xyz.append(row[1:4])
                 tmp_names.append(row[11].lower())
             i = i + 1
-    outp = sys.argv[3]
+
 
     nif = nib.load(inp)
     transform = nif.affine
@@ -111,9 +114,9 @@ if __name__ == '__main__':
     a1 = a1[0:3]
     a2 = a2[0:3]
     a_cross = np.cross(a1, a2)
-    mni_a = np.array([0, 0, 0])#pc
-    mni_b = np.array([0, 0, 25])#mid
-    mni_c = np.array([0, 25, 0])#ac
+    mni_a = np.array([0, 0, 0])  # pc
+    mni_b = np.array([0, 0, 25])  # mid
+    mni_c = np.array([0, 25, 0])  # ac
     mni_a1 = mni_c - mni_a
     mni_a2 = mni_b - mni_a
     mni_across = np.cross(mni_a1, mni_a2)
@@ -125,7 +128,7 @@ if __name__ == '__main__':
     p = res_intr[0]
     N = res_intr[1] / np.linalg.norm(res_intr[1])
     alpha = np.arccos(np.dot(mni_across, a_cross) / (np.linalg.norm(mni_across) * np.linalg.norm(a_cross)))
-    if (alpha > np.pi/2):
+    if (alpha > np.pi / 2):
         alpha = 0 - (np.pi - alpha)
     print(alpha)
     rotA = rotate_axis(N, alpha)
@@ -136,27 +139,39 @@ if __name__ == '__main__':
     combined_aff = np.dot(mov_f, np.dot(rotA, mov_b))
     # rotate AC PC line from file to atlsas
 
-    ac_m = np.dot(combined_aff,ac)
-    pc_m = np.dot(combined_aff , pc)
-    mid_m = np.dot( combined_aff ,mid)
+    ac_m = np.dot(combined_aff, ac)
+    pc_m = np.dot(combined_aff, pc)
+    mid_m = np.dot(combined_aff, mid)
 
     Nr = np.cross(ac_m[:3] - mid_m[:3], pc_m[:3] - mid_m[:3])
     Nr = Nr / np.linalg.norm(Nr)
 
-    alpha = np.arccos(np.dot( mni_c - mni_a, ac_m[:3] - pc_m[:3]) / (
-                np.linalg.norm(mni_c - mni_a) * np.linalg.norm( ac_m[:3] -pc_m[:3])));
+    alpha = np.arccos(np.dot(mni_c - mni_a, ac_m[:3] - pc_m[:3]) / (
+            np.linalg.norm(mni_c - mni_a) * np.linalg.norm(ac_m[:3] - pc_m[:3])));
     print(alpha)
-    if (alpha > np.pi/2):
-        alpha =  (np.pi - alpha)
-    rot_a1 = np.dot(translate_p(pc_m),np.dot(rotate_axis(Nr, alpha),translate_p(-pc_m)))
 
+    if (alpha > np.pi / 2):
+        alpha = (np.pi - alpha)
+    rot_a1 = np.dot(translate_p(pc_m), np.dot(rotate_axis(Nr, alpha), translate_p(-pc_m)))
+    # pick angle
+    ac = np.array([0, 25, 0, 1])
+    pc = np.array([0, 0, 0, 1])
+    ac_new = np.dot(rot_a1, ac_m)
+    pc_new = np.dot(rot_a1, pc_m)
+    l1 = np.linalg.norm(ac_new - ac) + np.linalg.norm(pc_new - pc)
+    rot_a2 = np.dot(translate_p(pc_m), np.dot(rotate_axis(Nr, -alpha), translate_p(-pc_m)))
+    ac_new2 = np.dot(rot_a2, ac_m)
+    pc_new2 = np.dot(rot_a2, pc_m)
+    l2 = np.linalg.norm(ac_new2 - ac) + np.linalg.norm(pc_new2 - pc)
 
+    tr_res = np.dot(combined_aff, np.dot(rotA, transform))
+    #    tr_res = np.dot(combined_aff,transform)
 
-    tr_res = np.dot(rot_a1 ,np.dot(rotA , transform))
-    #tr_res = np.dot(rotA,transform)
-
-    #write_dh5_np(h5_name=outp,np_array=np.dot(rot_a1,rotA))
-    #write_dh5_np(h5_name=outp, np_array=tr_res)
+    #write pickle file
+    f = open(outp_mat,'wb')
+    pickle.dump(np.dot(combined_aff,rotA),f)
+    # write_dh5_np(h5_name=outp,np_array=np.dot(rot_a1,rotA))
+    # write_dh5_np(h5_name=outp, np_array=tr_res)
     nif2 = nib.Nifti1Image(nif.get_fdata(), tr_res)
     nib.save(nif2, outp)
     # Initialize the layout
