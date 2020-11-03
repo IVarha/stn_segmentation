@@ -158,18 +158,22 @@ if __name__ == '__main__':
     pc = np.array([0, 0, 0, 1])
     ac_new = np.dot(rot_a1, ac_m)
     pc_new = np.dot(rot_a1, pc_m)
-    l1 = np.linalg.norm(ac_new - ac) + np.linalg.norm(pc_new - pc)
+    ac_1 = ac_new - pc_new
+    l1 = np.linalg.norm(ac_1 - ac)
     rot_a2 = np.dot(translate_p(pc_m), np.dot(rotate_axis(Nr, -alpha), translate_p(-pc_m)))
     ac_new2 = np.dot(rot_a2, ac_m)
     pc_new2 = np.dot(rot_a2, pc_m)
-    l2 = np.linalg.norm(ac_new2 - ac) + np.linalg.norm(pc_new2 - pc)
+    ac_2 = ac_new2 - pc_new2
+    l2 = np.linalg.norm(ac_2 - ac)
+    if l1>l2:
+        rot_a1 = rot_a2
 
-    tr_res = np.dot(combined_aff, np.dot(rotA, transform))
+    tr_res = np.dot(rot_a1, np.dot(combined_aff, transform))
     #    tr_res = np.dot(combined_aff,transform)
 
     #write pickle file
     f = open(outp_mat,'wb')
-    pickle.dump(np.dot(combined_aff,rotA),f)
+    pickle.dump(np.dot(rot_a1,combined_aff),f)
     # write_dh5_np(h5_name=outp,np_array=np.dot(rot_a1,rotA))
     # write_dh5_np(h5_name=outp, np_array=tr_res)
     nif2 = nib.Nifti1Image(nif.get_fdata(), tr_res)
