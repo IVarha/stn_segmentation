@@ -12,6 +12,8 @@ import glob
 import nrrd
 import nibabel as nib
 import numpy as np
+import skimage.morphology as moph
+import scipy.ndimage.morphology as morph2
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -45,8 +47,11 @@ def create_mask(t2_img,t2_transf,pve_img, pve_transf):
                     res_mask[i,j,k] = t_res
     mn = t2_img[res_mask>0].mean()*0.1
     res_mask[t2_img<mn]=0
-
-    return res_mask
+    res_mask= moph.remove_small_holes(res_mask.astype(np.int),area_threshold=20)
+    res_mask = morph2.binary_fill_holes(res_mask)
+    res_mask = morph2.binary_dilation(res_mask,iterations=1)
+    res_mask = morph2.binary_erosion(res_mask, iterations=1)
+    return res_mask.astype(np.int)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
