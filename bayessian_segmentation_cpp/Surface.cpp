@@ -16,10 +16,10 @@
 #include <sstream>
 
 
-void Surface::read_volume(const std::string& file_positions) {
+void Surface::read_volume(const std::string& file_name ) {
     int s = 1;
     auto reader = vtkSmartPointer<vtkPolyDataReader>::New();
-    reader->SetFileName(file_positions.c_str());
+    reader->SetFileName(file_name.c_str());
     reader->Update();
 
     if (int errorcode = reader->GetErrorCode())

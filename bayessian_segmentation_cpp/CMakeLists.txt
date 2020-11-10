@@ -21,9 +21,18 @@ set(CMAKE_CXX_STANDARD 14)
  message("Skipping ReadTextFile: ${VTK_NOT_FOUND_MESSAGE}")
  return ()
  endif()
+ include_directories(utils)
+ include_directories(segmentation)
+ add_library(Segmentation
+         Surface.cpp Surface.h )
+ add_library( Utils
+         utils/CLIParser.cpp utils/CLIParser.h)
+ set(SOURCES utils/CLIParser.cpp Surface.cpp)
 
-add_executable(bayessian_segmentation_cpp main.cpp Surface.cpp Surface.h)
+add_executable(bayessian_segmentation_cpp main.cpp ${SOURCES})
  target_link_libraries(bayessian_segmentation_cpp PRIVATE ${VTK_LIBRARIES})
+ target_link_libraries(Segmentation PRIVATE ${VTK_LIBRARIES})
+
  # vtk_module_autoinit is needed
  vtk_module_autoinit(
          TARGETS bayessian_segmentation_cpp
