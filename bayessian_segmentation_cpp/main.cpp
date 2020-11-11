@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Surface.h"
 #include "CLIParser.h"
+#include "NiftiImage.h"
 
 using namespace std;
 int main(int argc, char *argv[]) {
@@ -14,6 +15,11 @@ int main(int argc, char *argv[]) {
     vector<string> run_param = parser.getValue("run");
 
     if (run_param[0]=="mesh_shrinkage"){
+        vector<string> input_im = parser.getValue("i");
+        NiftiImage image = NiftiImage();
+        image.read_nifti_image(input_im[0]);
+
+
        cout << 101110;
 
 
