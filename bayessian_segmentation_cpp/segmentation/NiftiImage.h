@@ -37,26 +37,42 @@
 
 #include <string>
 #include "nifti2_io.h"
-
+#include <armadillo>
 using namespace std;
+using namespace arma;
+
+
 class TransformMatrix{
 private:
-    float _data[4][4];
+    Mat<float> matrix;
 protected:
 public:
 
 };
+class Volume{
+
+};
+
 
 class NiftiImage {
 private:
     nifti_image* niimg = nullptr;
+    int type;
+    Mat<double> transform;
+    double xdim;
+    double ydim;
+    double zdim;
+
 protected:
 public:
 
     virtual ~NiftiImage();
 
     void read_nifti_image(string fileName);
+    void* returnImage();
 };
+
+
 
 
 #endif //BAYESSIAN_SEGMENTATION_CPP_NIFTIIMAGE_H

@@ -16,15 +16,19 @@ set(CMAKE_CXX_STANDARD 14)
          vtkFiltersGeometry
 
          QUIET)
- find_package(ZLIB)
+ find_package(ZLIB REQUIRED)
+ find_package(Armadillo REQUIRED)
+
 
  if (NOT VTK_FOUND)
  message("Skipping ReadTextFile: ${VTK_NOT_FOUND_MESSAGE}")
  return ()
  endif()
+ find_package(Armadillo REQUIRED)
  include_directories(utils)
  include_directories(segmentation)
  include_directories(external)
+ include_directories(${ARMADILLO_INCLUDE_DIRS})
  add_library(Segmentation
          Surface.cpp Surface.h
          segmentation/NiftiImage.cpp segmentation/NiftiImage.h)
@@ -41,8 +45,8 @@ set(CMAKE_CXX_STANDARD 14)
          external/laynii_lib.cpp)
 
 add_executable(bayessian_segmentation_cpp main.cpp ${SOURCES})
- target_link_libraries(bayessian_segmentation_cpp PRIVATE ${VTK_LIBRARIES} ZLIB::ZLIB)
- target_link_libraries(Segmentation PRIVATE ${VTK_LIBRARIES})
+ target_link_libraries(bayessian_segmentation_cpp PRIVATE ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES})
+ target_link_libraries(Segmentation PRIVATE ${VTK_LIBRARIES}  ${ARMADILLO_LIBRARIES})
  target_link_libraries(External ZLIB::ZLIB)
  # vtk_module_autoinit is needed
  vtk_module_autoinit(
