@@ -43,14 +43,45 @@ using namespace arma;
 
 
 class TransformMatrix{
+public:
+    const Mat<float> &getMatrix() const;
+
+    void setMatrix(const Mat<float> &matrix);
+
+    const Mat<float> &getInverseMat() const;
+
+
+
 private:
     Mat<float> matrix;
+    Mat<float> inverse_mat;
 protected:
 public:
+    tuple<float, float, float> vox_to_mm(int x, int y,int z);
+    tuple<float, float, float> mm_to_vox(float x,float y,float z);
+
 
 };
 class Volume{
+protected:
+    TransformMatrix transform;
+};
 
+
+
+
+class VolumeInt: Volume{
+    Cube<int> v;
+};
+
+
+class VolumeDouble: Volume{
+
+public:
+    double interpolate_value_mm(float x,float y, float z, string method);
+private:
+    Cube<double> v;
+    TransformMatrix transformation;
 };
 
 

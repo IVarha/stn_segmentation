@@ -33,6 +33,7 @@
 #include "NiftiImage.h"
 #include <armadillo>
 #include "laynii_lib.h"
+#include <tuple>
 using namespace arma;
 void NiftiImage::read_nifti_image(string file) {
     int gzz = nifti_compiled_with_zlib();
@@ -73,39 +74,105 @@ NiftiImage::~NiftiImage() {
 
 
 void* NiftiImage::returnImage() {
+    int i,j,k;
 
-    if ((this->type == NIFTI_TYPE_UINT8) or (this->type == NIFTI_TYPE_UINT16)
-          or (this->type == NIFTI_TYPE_INT32) or (this->type == NIFTI_TYPE_INT64)){
+    switch (this->type){
+        case NIFTI_TYPE_INT64:{
+            auto* nii_columns_data = static_cast<int64_t*>(this->niimg->data);
+            auto* res = new Cube<int>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
 
-        nifti_image* nii_columns = copy_nifti_as_int16(this->niimg);
-        int64_t* nii_columns_data = static_cast<int64_t*>(this->niimg->data);
-        int cnt = 0;
-        auto* res = new Cube<int>(nii_columns->nx,nii_columns->ny,nii_columns->nz,fill::zeros);
-
-        for (int i = 0;i<nii_columns->nx;i++){
-            for (int j = 0;j<nii_columns->ny;j++){
-                for (int k=0;k<nii_columns->nz;k++){
-                    int16_t val;
-                    val = static_cast<int16_t >(*(nii_columns_data + cnt));
-                    res->operator()(i,j,k)= static_cast<int>(val);
-                    if (val == 6){
-                        cout<< i << " " << j << " " << k << endl;
-                    }
-                    cnt++;
-
-
+            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
+                int16_t val;
+                val = static_cast<int16_t >(*(nii_columns_data + cnt));
+                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
+                res->operator()(i,j,k)= static_cast<int>(val);
+                if (val == 6){
+                    cout<< i << " " << j << " " << k << endl;
                 }
+                cnt++;
             }
+            return res;
         }
-        int a = res->max();
-        int b = res->at(108,114,53);
+        case NIFTI_TYPE_INT32:{
+            auto* nii_columns_data = static_cast<int32_t*>(this->niimg->data);
+            auto* res = new Cube<int>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
 
-        return res;
+            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
+                int16_t val;
+                val = static_cast<int16_t >(*(nii_columns_data + cnt));
+                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
+                res->operator()(i,j,k)= static_cast<int>(val);
+                cnt++;
+            }
+            return res;
+        }
+        case NIFTI_TYPE_FLOAT32:
+        {
+            auto* nii_columns_data = static_cast<float*>(this->niimg->data);
+            auto* res = new Cube<double>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
 
+            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
+                double val;
+                val = static_cast<double>(*(nii_columns_data + cnt));
+                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
+                res->operator()(i,j,k)= static_cast<double>(val);
+                cnt++;
+            }
+            return res;
+        }
+        case NIFTI_TYPE_FLOAT64:
+        {
+            auto* nii_columns_data = static_cast<double*>(this->niimg->data);
+            auto* res = new Cube<double>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
 
-
-
+            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
+                double val;
+                val = static_cast<double>(*(nii_columns_data + cnt));
+                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
+                res->operator()(i,j,k)= static_cast<double>(val);
+                cnt++;
+            }
+            return res;
+        }
 
     }
+
     return new Mat<float>(1,1);
+}
+
+const Mat<float> &TransformMatrix::getMatrix() const {
+    return matrix;
+}
+
+void TransformMatrix::setMatrix(const Mat<float> &matrix) {
+    TransformMatrix::matrix = matrix;
+    this->inverse_mat = inv(matrix);
+}
+
+const Mat<float> &TransformMatrix::getInverseMat() const {
+    return inverse_mat;
+}
+
+tuple<float, float, float> TransformMatrix::mm_to_vox(float x, float y, float z) {
+    Mat<float> vect = Mat<float>(4,1);
+    vect(0,0) = x;
+    vect(1,0) = y;
+    vect(2,0) = z;
+    vect(3,0) = 1;
+    Mat<float> ress = this->inverse_mat * vect;
+    return tuple<float, float, float>(ress(0,0),ress(0,1),ress(0,2));
+}
+
+tuple<float, float, float> TransformMatrix::vox_to_mm(int x, int y, int z) {
+    Mat<float> vect = Mat<float>(4,1);
+    vect(0,0) = x;
+    vect(1,0) = y;
+    vect(2,0) = z;
+    vect(3,0) = 1;
+    Mat<float> ress = this->matrix * vect;
+    return tuple<float, float, float>(ress(0,0),ress(0,1),ress(0,2));
+}
+
+double VolumeDouble::interpolate_value_mm(float x, float y, float z, string method) {
+    return 0;
 }
