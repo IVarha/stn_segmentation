@@ -39,26 +39,31 @@
 #include "nifti2_io.h"
 #include <armadillo>
 using namespace std;
-using namespace arma;
 
+
+class NiftiImage;
 
 class TransformMatrix{
 public:
-    const Mat<float> &getMatrix() const;
+    const arma::Mat<double> &getMatrix() const;
 
-    void setMatrix(const Mat<float> &matrix);
+    void setMatrix(const arma::Mat<double> &matrix);
 
-    const Mat<float> &getInverseMat() const;
+    const arma::Mat<double> &getInverseMat() const;
 
+    static TransformMatrix read_matrix(string fileName);
 
+    static TransformMatrix convert_flirt_W_W(TransformMatrix fslMat,NiftiImage source,NiftiImage reference );
 
 private:
-    Mat<float> matrix;
-    Mat<float> inverse_mat;
+    arma::Mat<double> matrix;
+    arma::Mat<double> inverse_mat;
 protected:
 public:
-    tuple<float, float, float> vox_to_mm(int x, int y,int z);
-    tuple<float, float, float> mm_to_vox(float x,float y,float z);
+    tuple<double, double, double> vox_to_mm(int x, int y,int z);
+    tuple<double, double, double> mm_to_vox(double x,double y,double z);
+
+    virtual ~TransformMatrix();
 
 
 };
@@ -71,16 +76,16 @@ protected:
 
 
 class VolumeInt: Volume{
-    Cube<int> v;
+    arma::Cube<int> v;
 };
 
 
 class VolumeDouble: Volume{
 
 public:
-    double interpolate_value_mm(float x,float y, float z, string method);
+    double interpolate_value_mm(double x,double y, double z, string method);
 private:
-    Cube<double> v;
+    arma::Cube<double> v;
     TransformMatrix transformation;
 };
 
@@ -89,7 +94,18 @@ class NiftiImage {
 private:
     nifti_image* niimg = nullptr;
     int type;
-    Mat<double> transform;
+    arma::Mat<double> transform;
+public:
+    const arma::Mat<double> &getTransform() const;
+
+public:
+    double getXdim() const;
+
+    double getYdim() const;
+
+    double getZdim() const;
+
+private:
     double xdim;
     double ydim;
     double zdim;
@@ -101,6 +117,10 @@ public:
 
     void read_nifti_image(string fileName);
     void* returnImage();
+
+    TransformMatrix get_voxel_to_fsl();
+    TransformMatrix get_world_to_fsl();
+    TransformMatrix get_fsl_to_world();
 };
 
 

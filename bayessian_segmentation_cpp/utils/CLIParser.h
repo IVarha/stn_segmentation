@@ -50,7 +50,9 @@ private:
     static std::unordered_map<std::string, int> get_opts(){
         return {
                 {"run", 1},
-                {"i",1}
+                {"i",1},
+                {"labeldesk",1},
+                {"workdir",1}
         };
     }
 

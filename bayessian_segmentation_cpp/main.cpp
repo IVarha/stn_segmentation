@@ -29,9 +29,20 @@ unordered_map<int,string> parse_label_descriptor(string fileName){
     return result;
 }
 
+//TransformMatrix convert_voxel_to_mesh(){}
 
-void convert_mesh_to_labels(unordered_map<int,string> meshes){
+void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,NiftiImage image){
+    auto flirt_transform = TransformMatrix::read_matrix(workdir + "/combined_affine_reverse.mat");
 
+    NiftiImage mni = NiftiImage();
+    mni.read_nifti_image(workdir + "/t1_brain_to_mni_stage2_apply.nii.gz");
+    NiftiImage native = NiftiImage();
+    native.read_nifti_image(workdir + "/t1_acpc_extracted.nii.gz");
+    auto mni2native = TransformMatrix::convert_flirt_W_W(flirt_transform,mni,native);
+    mni2native.getMatrix().print("res ");
+    auto res = mni2native.vox_to_mm(75,77,157);
+    cout << get<0>(res) << "  " << get<1>(res) << " " << get<2> (res) ;
+    int k = 1;
 
 }
 
@@ -52,9 +63,13 @@ int main(int argc, char *argv[]) {
         input_im.clear();
         input_im = parser.getValue("labeldesk");
         auto x = image.returnImage();
+        auto wd = parser.getValue("workdir");
 
         auto labels_mesh = parse_label_descriptor(input_im[0]);
 
+        //read flirt transform
+
+        convert_mesh_to_labels(labels_mesh,wd[0],image);
 
 
 
