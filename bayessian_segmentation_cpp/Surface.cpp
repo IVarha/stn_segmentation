@@ -19,7 +19,9 @@
 #include <vtkPointData.h>
 #include <vtkPolyDataWriter.h>
 #include <iostream>
-#include <vtkOBJExporter.h>
+#include <vtkSTLWriter.h>
+#include <vtkOBJWriter.h>
+
 
 
 
@@ -107,6 +109,16 @@ void Surface::write_volume(const std::string file_name) {
     writer->Write();
 }
 
-//void Surface::write_obj(const std::string file_name) {
-//    auto writer = vtkSmartPointer<vtkOBJE>
-//}
+void Surface::write_obj(const std::string file_name) {
+    auto writer = vtkSmartPointer<vtkOBJWriter>::New();
+    writer->SetFileName(file_name.c_str());
+    writer->SetInputData(this->mesh);
+    writer->Write();
+}
+
+void Surface::write_stl(const std::string file_name) {
+    auto writer = vtkSmartPointer<vtkSTLWriter>::New();
+    writer->SetFileName(file_name.c_str());
+    writer->SetInputData(this->mesh);
+    writer->Write();
+}

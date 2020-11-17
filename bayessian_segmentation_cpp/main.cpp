@@ -35,7 +35,7 @@ void convert_voxel_to_mesh(string workdir, NiftiImage image,pair<int,string> lab
     surface.read_volume(label.second);
     surface.expand_volume(50);
 
-    surface.write_volume(workdir + "/" + std::to_string(label.first) + ".vtk");
+    surface.write_obj(workdir + "/" + std::to_string(label.first) + ".stl");
 }
 
 void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,NiftiImage image){
