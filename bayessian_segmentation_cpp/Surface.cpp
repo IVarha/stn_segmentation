@@ -14,6 +14,13 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <sstream>
+#include <vtkPolyDataNormals.h>
+#include <vtkPolyData.h>
+#include <vtkPointData.h>
+#include <vtkPolyDataWriter.h>
+#include <iostream>
+#include <vtkOBJExporter.h>
+
 
 
 void Surface::read_volume(const std::string& file_name ) {
@@ -37,6 +44,69 @@ void Surface::read_volume(const std::string& file_name ) {
     polys->DeepCopy(origpd->GetPolys());
     newpd->SetPoints(points);
     newpd->SetPolys(polys);
+//    double x = points->GetPoint(1)[0];
+//    double y = points->GetPoint(1)[1];
+//    double z = points->GetPoint(1)[2];
 
+    this->points = points;
+    this->triangles = polys;
+    //auto* list = vtkIdList::New();
+    //this->triangles->GetCellAtId(1,list);
+    //list->Delete();
+    //int a = list->GetId(0);
+    //a = list->GetId(1);
+    //a = list->GetId(2);
+    this->mesh = newpd;
+   // cout << points->GetPoint(1)[0] << points->GetPoint(1)[1] << points->GetPoint(1)[2];
+}
+
+void Surface::expand_volume(double mm) {
+    auto normalsGen =  vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalsGen->SetInputData(this->mesh);
+    normalsGen->ComputeCellNormalsOff();
+    normalsGen->ComputePointNormalsOn();
+    bool a1 = normalsGen->GetAutoOrientNormals();
+    normalsGen->SetAutoOrientNormals(true);
+    normalsGen->Update();
+    auto normals = normalsGen->GetOutput();
+    auto normals4= normals->GetPointData()->GetNormals();
+//    double x = normals4->GetTuple(0)[0];
+//    double y = normals4->GetTuple(0)[1];
+//    double z = normals4->GetTuple(0)[2];
+    normals->GetPointData();
+    cout<< "prtdsffsf";
+    //new points
+    auto new_pts = vtkSmartPointer<vtkPoints>::New();
+    for (int i = 0;i<this->points->GetNumberOfPoints();i++){
+
+        double* vox = new double[3];
+        double* tmp_pt = this->points->GetPoint(i);
+        double* tmp_norm = normals4->GetTuple(i);
+        vox[0] = 0 + tmp_pt[0] + mm* tmp_norm[0];
+        vox[1] = 0 + tmp_pt[1] + mm* tmp_norm[1];
+        vox[2] = 0 + tmp_pt[2] + mm* tmp_norm[2];
+        new_pts->InsertNextPoint(vox);
+    }
+
+    this->mesh->Initialize();
+    this->mesh->SetPolys(this->triangles);
+    this->points->Initialize();
+    this->points->DeepCopy(new_pts);
+    this->mesh->SetPoints(this->points);
+//    this->points->Delete();
+    //this->points = new_pts;
+   // cout << 0  ;
 
 }
+
+void Surface::write_volume(const std::string file_name) {
+    auto writer = vtkSmartPointer<vtkPolyDataWriter>::New();
+    writer->SetFileName(file_name.c_str());
+    writer->DebugOn();
+    writer->SetInputData(this->mesh);
+    writer->Write();
+}
+
+//void Surface::write_obj(const std::string file_name) {
+//    auto writer = vtkSmartPointer<vtkOBJE>
+//}

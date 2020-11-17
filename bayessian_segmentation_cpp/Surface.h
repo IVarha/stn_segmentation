@@ -7,10 +7,23 @@
 
 #include <string>
 #include <list>
+#include <vtkPoints.h>
+#include <vtkCellArray.h>
+#include <vtkPolyData.h>
+#include "vtkSmartPointer.h"
+
 class Surface {
 
+    private:
+
+    vtkSmartPointer<vtkPoints> points;
+    vtkSmartPointer<vtkCellArray> triangles;
+    vtkSmartPointer<vtkPolyData> mesh;
     public:
         void read_volume(const std::string& file_name );
+        void expand_volume(double mm);
+        void write_volume(const std::string file_name);
+        void write_obj(const std::string file_name);
 };
 
 

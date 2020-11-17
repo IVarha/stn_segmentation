@@ -29,7 +29,14 @@ unordered_map<int,string> parse_label_descriptor(string fileName){
     return result;
 }
 
-//TransformMatrix convert_voxel_to_mesh(){}
+void convert_voxel_to_mesh(string workdir, NiftiImage image,pair<int,string> label){
+
+    Surface surface = Surface();
+    surface.read_volume(label.second);
+    surface.expand_volume(50);
+
+    surface.write_volume(workdir + "/" + std::to_string(label.first) + ".vtk");
+}
 
 void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,NiftiImage image){
     auto flirt_transform = TransformMatrix::read_matrix(workdir + "/combined_affine_reverse.mat");
@@ -38,10 +45,23 @@ void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,Nift
     mni.read_nifti_image(workdir + "/t1_brain_to_mni_stage2_apply.nii.gz");
     NiftiImage native = NiftiImage();
     native.read_nifti_image(workdir + "/t1_acpc_extracted.nii.gz");
+
+
+    //get flirt transform from flirt to native
     auto mni2native = TransformMatrix::convert_flirt_W_W(flirt_transform,mni,native);
-    mni2native.getMatrix().print("res ");
+    //mni2native.getMatrix().print("res ");
+
+    //read surface
+    for (auto const& mesh: meshes){
+        convert_voxel_to_mesh(workdir,image,mesh);
+    }
+
+
+
+
     auto res = mni2native.vox_to_mm(75,77,157);
     cout << get<0>(res) << "  " << get<1>(res) << " " << get<2> (res) ;
+
     int k = 1;
 
 }

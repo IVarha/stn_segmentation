@@ -302,8 +302,8 @@ TransformMatrix TransformMatrix::convert_flirt_W_W(TransformMatrix fslMat,NiftiI
     TransformMatrix res = TransformMatrix();
     auto source_WtoFsl = source.get_world_to_fsl();
     auto post_Fsl2W = reference.get_fsl_to_world();
-    source_WtoFsl.getMatrix().print("premat");
-    post_Fsl2W.getMatrix().print(" postmat");
+    //source_WtoFsl.getMatrix().print("premat");
+    //post_Fsl2W.getMatrix().print(" postmat");
     res.setMatrix(post_Fsl2W.matrix*(fslMat.getMatrix() * source_WtoFsl.getMatrix()));
     return res;
 }
