@@ -33,10 +33,16 @@ void convert_voxel_to_mesh(string workdir, NiftiImage image,pair<int,string> lab
 
     Surface surface = Surface();
     surface.read_volume(label.second);
-    auto sphr = Surface::generate_sphere(50,{0,0,0});
-    //surface.expand_volume(50);
 
-    sphr.write_volume(workdir + "/" + std::to_string(label.first) + ".vtk");
+    auto centr_of_mesh = surface.centre_of_mesh();
+    auto sphr = Surface::generate_sphere(50,centr_of_mesh);
+    sphr.expand_volume(30);
+
+    //shrink volume
+
+    sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_1.obj");
+
+
 }
 
 void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,NiftiImage image){

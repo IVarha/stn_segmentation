@@ -39,7 +39,9 @@ private:
         void write_volume(const std::string file_name);
         void write_obj(const std::string file_name);
         void write_stl(const std::string file_name);
+        std::tuple<double, double, double>  centre_of_mesh();
         static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre);
+
 };
 
 

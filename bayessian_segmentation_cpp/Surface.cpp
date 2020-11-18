@@ -24,6 +24,7 @@
 #include <vtkSphere.h>
 #include <vtkSphereSource.h>
 #include <vtkLinearSubdivisionFilter.h>
+#include <vtkCenterOfMass.h>
 
 
 void Surface::read_volume(const std::string& file_name ) {
@@ -172,4 +173,14 @@ const vtkSmartPointer<vtkPolyData> &Surface::getMesh() const {
 
 void Surface::setMesh(const vtkSmartPointer<vtkPolyData> &mesh) {
     Surface::mesh = mesh;
+}
+
+std::tuple<double, double, double> Surface::centre_of_mesh() {
+
+    auto centre = vtkSmartPointer<vtkCenterOfMass>::New();
+    centre->SetInputData(this->mesh);
+    centre->Update();
+    auto res = centre->GetCenter();
+
+    return {res[0],res[1],res[2]};
 }
