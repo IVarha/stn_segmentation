@@ -21,8 +21,9 @@
 #include <iostream>
 #include <vtkSTLWriter.h>
 #include <vtkOBJWriter.h>
-
-
+#include <vtkSphere.h>
+#include <vtkSphereSource.h>
+#include <vtkLinearSubdivisionFilter.h>
 
 
 void Surface::read_volume(const std::string& file_name ) {
@@ -121,4 +122,54 @@ void Surface::write_stl(const std::string file_name) {
     writer->SetFileName(file_name.c_str());
     writer->SetInputData(this->mesh);
     writer->Write();
+}
+
+Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, double> center) {
+
+    vtkSmartPointer<vtkSphereSource> sphereSource =
+            vtkSmartPointer<vtkSphereSource>::New();
+    sphereSource->SetRadius(radius_mm);
+    sphereSource->SetCenter(std::get<0>(center),std::get<1>(center),std::get<2>(center));
+    sphereSource->Update();
+    auto originalMesh = sphereSource->GetOutput();
+    std::cout << "Before subdivision" << std::endl;
+    std::cout << "    There are " << originalMesh->GetNumberOfPoints()
+              << " points." << std::endl;
+    std::cout << "    There are " << originalMesh->GetNumberOfPolys()
+              << " triangles." << std::endl;
+    auto subdivisionFilter = vtkSmartPointer<vtkLinearSubdivisionFilter>::New();
+    subdivisionFilter->SetInputData(originalMesh);
+    subdivisionFilter->SetNumberOfSubdivisions(2);
+    subdivisionFilter->Update();
+    auto mesh = subdivisionFilter->GetOutput();
+    Surface result = Surface();
+    result.setPoints(mesh->GetPoints());
+    result.setTriangles(mesh->GetPolys());
+    result.mesh = mesh;
+
+    return result;
+}
+
+const vtkSmartPointer<vtkPoints> &Surface::getPoints() const {
+    return points;
+}
+
+void Surface::setPoints(const vtkSmartPointer<vtkPoints> &points) {
+    Surface::points = points;
+}
+
+const vtkSmartPointer<vtkCellArray> &Surface::getTriangles() const {
+    return triangles;
+}
+
+void Surface::setTriangles(const vtkSmartPointer<vtkCellArray> &triangles) {
+    Surface::triangles = triangles;
+}
+
+const vtkSmartPointer<vtkPolyData> &Surface::getMesh() const {
+    return mesh;
+}
+
+void Surface::setMesh(const vtkSmartPointer<vtkPolyData> &mesh) {
+    Surface::mesh = mesh;
 }

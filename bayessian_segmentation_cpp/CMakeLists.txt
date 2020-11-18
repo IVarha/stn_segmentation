@@ -5,7 +5,11 @@ set(CMAKE_CXX_STANDARD 14)
  set(VTK_DIR "/home/igorv/vtk/VTK-9.0.1/build" CACHE PATH "VTK directory override" FORCE )
  find_package(VTK COMPONENTS
          vtkCommonCore
+         vtkCommonDataModel
          vtkFiltersGeneral
+         vtkFiltersGeometry
+         vtkFiltersSources
+         vtkFiltersModeling
          vtkInteractionStyle
          vtkIOLegacy
          vtkIOGeometry
@@ -13,7 +17,7 @@ set(CMAKE_CXX_STANDARD 14)
          vtkIOXML
          vtkRenderingCore
          vtkRenderingFreeType
-         vtkFiltersGeometry
+
 
          QUIET)
  find_package(ZLIB REQUIRED)

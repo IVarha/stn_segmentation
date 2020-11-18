@@ -17,6 +17,20 @@ class Surface {
     private:
 
     vtkSmartPointer<vtkPoints> points;
+public:
+    const vtkSmartPointer<vtkPoints> &getPoints() const;
+
+    void setPoints(const vtkSmartPointer<vtkPoints> &points);
+
+    const vtkSmartPointer<vtkCellArray> &getTriangles() const;
+
+    void setTriangles(const vtkSmartPointer<vtkCellArray> &triangles);
+
+    const vtkSmartPointer<vtkPolyData> &getMesh() const;
+
+    void setMesh(const vtkSmartPointer<vtkPolyData> &mesh);
+
+private:
     vtkSmartPointer<vtkCellArray> triangles;
     vtkSmartPointer<vtkPolyData> mesh;
     public:
@@ -25,6 +39,7 @@ class Surface {
         void write_volume(const std::string file_name);
         void write_obj(const std::string file_name);
         void write_stl(const std::string file_name);
+        static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre);
 };
 
 
