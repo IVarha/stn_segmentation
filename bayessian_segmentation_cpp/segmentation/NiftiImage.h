@@ -70,6 +70,8 @@ public:
 class Volume{
 protected:
     TransformMatrix transform;
+    bool has_slab_mask = false;
+    arma::Cube<int> mask;
 };
 
 
@@ -83,7 +85,7 @@ class VolumeInt: Volume{
 class VolumeDouble: Volume{
 
 public:
-    double interpolate_value_mm(double x,double y, double z, string method);
+    double interpolate_value_vox(double x,double y, double z, string method);
 private:
     arma::Cube<double> v;
     TransformMatrix transformation;

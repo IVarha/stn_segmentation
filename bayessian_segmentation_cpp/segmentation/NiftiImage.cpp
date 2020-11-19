@@ -308,7 +308,37 @@ TransformMatrix TransformMatrix::convert_flirt_W_W(TransformMatrix fslMat,NiftiI
     return res;
 }
 
-double VolumeDouble::interpolate_value_mm(double x, double y, double z, string method) {
+double VolumeDouble::interpolate_value_vox(double x, double y, double z, string method) {
+    if (method == "linear"){//linear
+        if (this->has_slab_mask){
+            double x1 = floor(x);
+            double y1 = floor(y);
+            double z1 = floor(z);
+            double xd = x - x1;
+            double yd = y - y1;
+            double zd = z - z1;
+            if ((x>  this->v.n_rows) or (y> this->v.n_cols) or (z> this->v.n_slices) ) return 0;
+            double c000 = this->v(int(x1),int(y1),int(z1));
+            double c001 = this->v(int(x1),int(y1),int(z1 + 1));
+            double c010 = this->v(int(x1),int(y1+1),int(z1));
+            double c011 = this->v(int(x1),int(y1+1),int(z1+1));
+            double c100 = this->v(int(x1+1),int(y1),int(z1));
+            double c101 = this->v(int(x1+1),int(y1),int(z1+1));
+            double c110 = this->v(int(x1+1),int(y1+1),int(z1));
+            double c111 = this->v(int(x1+1),int(y1+1),int(z1+1));
+
+            double c00 = c000*(1 - xd) + c100*xd;
+            double c01 = c001*(1 - xd) + c101*xd;
+            double c10 = c010*(1 - xd) + c110*xd;
+            double c11 = c011*(1 - xd) + c111*xd;
+
+            double c0 = c00*(1-yd) + c10*yd;
+            double c1 = c01*(1-yd) + c11*yd;
+
+            return c0* (1 - zd) + c1*zd;
+        }
+
+    }
     return 0.0;
 }
 
