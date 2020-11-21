@@ -29,17 +29,36 @@ unordered_map<int,string> parse_label_descriptor(string fileName){
     return result;
 }
 
-void convert_voxel_to_mesh(string workdir, NiftiImage image,pair<int,string> label){
+void convert_voxel_to_mesh(string workdir, NiftiImage image,pair<int,string> label, TransformMatrix &from_mni_to_label){
 
     Surface surface = Surface();
     surface.read_volume(label.second);
 
-    auto centr_of_mesh = surface.centre_of_mesh();
-    auto sphr = Surface::generate_sphere(50,centr_of_mesh);
-    sphr.expand_volume(30);
+
+
 
     //shrink volume
+    VolumeInt* lab1_vol = (VolumeInt*)image.returnImage();
 
+    auto label_mask = lab1_vol->label_to_mask(label.first);
+    //calc centre of label
+    Point centr_of_mesh = label_mask.center_of_mass();
+    auto swap_centre = image.get_voxel_to_world().apply_transform(centr_of_mesh.getPt());
+    tuple<double,double,double> ride = {swap_centre[0],swap_centre[1],swap_centre[2]};
+    auto sphr = Surface::generate_sphere(50,ride);
+    sphr.expand_volume(30);
+    //calc c
+    auto mask = label_mask.int_to_double();
+    //apply transformation
+    sphr.apply_transformation(from_mni_to_label);
+    surface.apply_transformation(from_mni_to_label);
+    surface.write_obj(workdir + "/" + std::to_string(label.first) + "_mapped_mesh.obj");
+
+    sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
+    sphr.shrink_mesh(mask,0.9);
+
+    auto trans = image.get_voxel_to_world();
+    sphr.apply_transformation(trans);
     sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_1.obj");
 
 
@@ -60,7 +79,7 @@ void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,Nift
 
     //read surface
     for (auto const& mesh: meshes){
-        convert_voxel_to_mesh(workdir,image,mesh);
+        convert_voxel_to_mesh(workdir,image,mesh,mni2native);
     }
 
 

@@ -25,6 +25,7 @@
 #include <vtkSphereSource.h>
 #include <vtkLinearSubdivisionFilter.h>
 #include <vtkCenterOfMass.h>
+#include <Point.h>
 
 
 void Surface::read_volume(const std::string& file_name ) {
@@ -183,4 +184,49 @@ std::tuple<double, double, double> Surface::centre_of_mesh() {
     auto res = centre->GetCenter();
 
     return {res[0],res[1],res[2]};
+}
+
+void Surface::shrink_mesh(VolumeDouble& mask, double threshold) {
+    auto normalsGen =  vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalsGen->SetInputData(this->mesh);
+    normalsGen->ComputeCellNormalsOff();
+    normalsGen->ComputePointNormalsOn();
+    bool a1 = normalsGen->GetAutoOrientNormals();
+    normalsGen->SetAutoOrientNormals(true);
+    normalsGen->Update();
+    auto normals = normalsGen->GetOutput();
+    auto normals4= normals->GetPointData()->GetNormals();
+
+
+
+    for(int i = 0; i < this->points->GetNumberOfPoints(); i++){
+        auto vox = Point(this->points->GetPoint(i));
+        double* normal = normals4->GetTuple(i);
+
+        normal[0] = -1*normal[0];
+        normal[1] = -1*normal[1];
+        normal[2] = -1*normal[2];
+        auto norm2 = Point(normal);
+        Point res_vox= vox.move_point(mask,norm2,threshold,0.3, 0.01);
+
+        this->points->SetPoint(i,res_vox.getPt());
+    }
+
+    this->mesh->Initialize();
+    this->mesh->SetPoints(this->points);
+    this->mesh->SetPolys(this->triangles);
+}
+
+void Surface::apply_transformation(TransformMatrix& pre_transformation) {
+
+    for (int i = 0;i< this->points->GetNumberOfPoints();i++){
+        double* pt = this->points->GetPoint(i);
+        double * vox = pre_transformation.apply_transform(pt);
+        this->points->SetPoint(i,vox);
+
+    }
+
+    this->mesh->Initialize();
+    this->mesh->SetPoints(this->points);
+    this->mesh->SetPolys(this->triangles);
 }

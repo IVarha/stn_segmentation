@@ -96,6 +96,9 @@ NiftiImage::~NiftiImage() {
 
 void* NiftiImage::returnImage() {
     int i,j,k;
+    auto trans =  TransformMatrix();
+    trans.setMatrix(this->transform);
+
 
     switch (this->type){
         case NIFTI_TYPE_INT64:{
@@ -112,7 +115,10 @@ void* NiftiImage::returnImage() {
                 }
                 cnt++;
             }
-            return res;
+            VolumeInt* volumeInt = new VolumeInt();
+            volumeInt->setVolume(*res);
+            volumeInt->setTransformation(trans);
+            return volumeInt;
         }
         case NIFTI_TYPE_INT32:{
             auto* nii_columns_data = static_cast<int32_t*>(this->niimg->data);
@@ -125,7 +131,31 @@ void* NiftiImage::returnImage() {
                 res->operator()(i,j,k)= static_cast<int>(val);
                 cnt++;
             }
-            return res;
+            VolumeInt* volumeInt = new VolumeInt();
+            volumeInt->setVolume(*res);
+            volumeInt->setTransformation(trans);
+            return volumeInt;
+        }
+        case NIFTI_TYPE_UINT16:{
+            auto* nii_columns_data = static_cast<uint16_t*>(this->niimg->data);
+            auto* res = new Cube<int>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
+            int cn = 0;
+            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
+                uint16_t val;
+                val = static_cast<uint16_t >(*(nii_columns_data + cnt));
+
+                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
+                if (val == 1) {
+                    cout << i << " " << j << " " << k << endl;
+
+                    cn += 1; }
+                res->operator()(i,j,k)= static_cast<int>(val);
+                cnt++;
+            }
+            VolumeInt* volumeInt = new VolumeInt();
+            volumeInt->setVolume(*res);
+            volumeInt->setTransformation(trans);
+            return volumeInt;
         }
         case NIFTI_TYPE_FLOAT32:
         {
@@ -222,6 +252,22 @@ TransformMatrix NiftiImage::get_fsl_to_world() {
     return res;
 }
 
+TransformMatrix NiftiImage::get_fsl_to_voxel() {
+    auto res = this->get_voxel_to_fsl();
+
+    auto result = TransformMatrix();
+    result.setMatrix(res.getInverseMat());
+    return result;
+}
+
+TransformMatrix NiftiImage::get_voxel_to_world() {
+
+    auto res =  TransformMatrix();
+    res.setMatrix(this->transform);
+    return res;
+}
+
+
 const Mat<double> &TransformMatrix::getMatrix() const {
     return matrix;
 }
@@ -308,17 +354,67 @@ TransformMatrix TransformMatrix::convert_flirt_W_W(TransformMatrix fslMat,NiftiI
     return res;
 }
 
-double VolumeDouble::interpolate_value_vox(double x, double y, double z, string method) {
+
+
+TransformMatrix TransformMatrix::convert_flirt_W_V(TransformMatrix fslMat, NiftiImage source, NiftiImage reference) {
+
+    TransformMatrix res = TransformMatrix();
+    auto source_WtoFsl = source.get_world_to_fsl();
+    auto post_Fsl2W = reference.get_fsl_to_voxel();
+    //source_WtoFsl.getMatrix().print("premat");
+    //post_Fsl2W.getMatrix().print(" postmat");
+    res.setMatrix(post_Fsl2W.matrix*(fslMat.getMatrix() * source_WtoFsl.getMatrix()));
+    return res;
+}
+
+TransformMatrix TransformMatrix::copy() {
+
+    auto res = TransformMatrix();
+    res.setMatrix(this->matrix);
+    return res;
+}
+
+double *TransformMatrix::apply_transform(double x, double y, double z) {
+
+    Mat<double> vect = Mat<double>(4,1);
+    vect(0,0) = x;
+    vect(1,0) = y;
+    vect(2,0) = z;
+    vect(3,0) = 1;
+    Mat<double> ress = this->matrix * vect;
+    double res[3];
+    res[0] = ress(0,0);
+    res[1] = ress(0,1);
+    res[2] = ress(0,2);
+    return res;
+}
+
+double *TransformMatrix::apply_transform(const double *pt) {
+    Mat<double> vect = Mat<double>(4,1);
+    vect(0,0) = pt[0];
+    vect(1,0) = pt[1];
+    vect(2,0) = pt[2];
+    vect(3,0) = 1;
+    Mat<double> ress = this->matrix * vect;
+    double* res = new double(3);
+    res[0] = ress(0,0);
+    res[1] = ress(1,0);
+    res[2] = ress(2,0);
+    return res;
+}
+
+
+double VolumeDouble::interpolate_value_vox(double x, double y, double z, const string& method) {
     if (method == "linear"){//linear
-        if (this->has_slab_mask){
+        if (not this->has_slab_mask){
             double x1 = floor(x);
             double y1 = floor(y);
             double z1 = floor(z);
             double xd = x - x1;
             double yd = y - y1;
             double zd = z - z1;
-            if ((x>  this->v.n_rows) or (y> this->v.n_cols) or (z> this->v.n_slices) ) return 0;
-            double c000 = this->v(int(x1),int(y1),int(z1));
+            if (((x + 1) >  this->v.n_rows) or ((y+1)> this->v.n_cols) or ((z+1)> this->v.n_slices) or (x < 0) or (y<0) or (z<0) ) return 0;
+            double c000 = this->v((int)(x1),(int)(y1),(int)(z1));
             double c001 = this->v(int(x1),int(y1),int(z1 + 1));
             double c010 = this->v(int(x1),int(y1+1),int(z1));
             double c011 = this->v(int(x1),int(y1+1),int(z1+1));
@@ -339,7 +435,113 @@ double VolumeDouble::interpolate_value_vox(double x, double y, double z, string 
         }
 
     }
+
+    if (method == "bicubic"){
+        return 0.0;
+    }
     return 0.0;
 }
 
+const Cube<double> &VolumeDouble::getVolume() const {
+    return v;
+}
 
+void VolumeDouble::setVolume(const Cube<double> &v) {
+    VolumeDouble::v = v;
+}
+
+const TransformMatrix &VolumeDouble::getTransformation() const {
+    return transformation;
+}
+
+void VolumeDouble::setTransformation(const TransformMatrix &transformation) {
+    VolumeDouble::transformation = transformation;
+}
+//VOLUMEINT
+
+VolumeInt VolumeInt::copy(){
+    auto res = VolumeInt();
+    res.setVolume(this->v);
+    res.setTransformation(this->transformation.copy());
+    return res;
+}
+
+const Cube<int> &VolumeInt::getVolume() const {
+    return v;
+}
+
+void VolumeInt::setVolume(const Cube<int> &v) {
+    VolumeInt::v = v;
+}
+
+const TransformMatrix &VolumeInt::getTransformation() const {
+    return transformation;
+}
+
+void VolumeInt::setTransformation(const TransformMatrix &transformation) {
+    VolumeInt::transformation = transformation;
+}
+
+VolumeInt::~VolumeInt() {
+    this->v.clear();
+}
+
+VolumeInt VolumeInt::label_to_mask(int value) {
+    auto res = VolumeInt();
+
+    Cube<int> vol = Cube<int>(this->v.n_rows, this->v.n_cols,this->v.n_slices, fill::zeros);
+    int cnt = 0;
+    for (int i = 0; i< this->v.n_rows;i++){
+        for (int j = 0; j< this->v.n_cols;j++){
+            for (int k = 0; k< this->v.n_slices;k++){
+                if (this->v(i,j,k)== value){
+                    vol(i,j,k)=1;
+                    cnt = cnt + 1;
+                }
+            }
+        }
+    }
+
+    res.setVolume(vol);
+    res.setTransformation(this->transformation.copy());
+    return res;
+}
+
+VolumeDouble VolumeInt::int_to_double() {
+    auto res =  VolumeDouble();
+    auto cube = Cube<double>(this->v.n_rows,this->v.n_cols,this->v.n_slices,fill::zeros);
+    for (int i = 0; i< this->v.n_rows;i++){
+        for (int j = 0; j< this->v.n_cols;j++){
+            for (int k = 0; k< this->v.n_slices;k++){
+                cube(i,j,k)=(double)this->v(i,j,k);
+
+            }
+        }
+    }
+    res.setVolume(cube);
+    res.setTransformation(this->transformation.copy());
+    return res;
+}
+
+Point VolumeInt::center_of_mass() {
+    double x_val = 0;double y_val = 0;double z_val = 0;double cnt = 0;
+    for (int i = 0; i < this->v.n_rows;i++){
+        for (int j = 0; j < this->v.n_cols;j++){
+            for (int k = 0; k < this->v.n_slices;k++){
+                x_val +=  i*(this->v(i,j,k));
+                y_val +=  j*(this->v(i,j,k));
+                z_val +=  k*(this->v(i,j,k));
+                if (this->v(i,j,k) == 1) cnt += 1;
+            }
+
+        }
+
+    }
+    auto norm =  arma::accu(this->v);
+    x_val = x_val / cnt;
+    y_val = y_val / cnt;
+    z_val = z_val / cnt;
+//    retu
+
+    return Point(x_val,y_val,z_val);
+}

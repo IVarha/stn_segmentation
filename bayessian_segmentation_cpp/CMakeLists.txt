@@ -35,7 +35,7 @@ set(CMAKE_CXX_STANDARD 14)
  include_directories(${ARMADILLO_INCLUDE_DIRS})
  add_library(Segmentation
          Surface.cpp Surface.h
-         segmentation/NiftiImage.cpp segmentation/NiftiImage.h)
+         segmentation/NiftiImage.cpp segmentation/NiftiImage.h segmentation/Point.cpp segmentation/Point.h)
  add_library(External external/znzlib.cpp external/znzlib.h
          external/nifti2.h external/nifti2_io.cpp external/nifti2_io.h
          external/nifti1.h external/laynii_lib.h external/laynii_lib.cpp)
@@ -46,7 +46,7 @@ set(CMAKE_CXX_STANDARD 14)
          segmentation/NiftiImage.cpp segmentation/NiftiImage.h
          external/nifti2_io.cpp
          external/znzlib.cpp
-         external/laynii_lib.cpp)
+         external/laynii_lib.cpp segmentation/Point.cpp )
 
 add_executable(bayessian_segmentation_cpp main.cpp ${SOURCES})
  target_link_libraries(bayessian_segmentation_cpp PRIVATE ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES})
