@@ -31,6 +31,8 @@ public:
 
     void setMesh(const vtkSmartPointer<vtkPolyData> &mesh);
 
+    void smoothMesh();
+
 private:
     vtkSmartPointer<vtkCellArray> triangles;
     vtkSmartPointer<vtkPolyData> mesh;

@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
     res = clear_labels(t2_img=labels_file.get_fdata())
 
-    nif2 = nib.Nifti1Image(res, pve_transf)
+    nif2 = nib.Nifti1Image(res.astype(np.int), pve_transf)
     nib.save(nif2,outp)
     # Initialize the layout
     print(1222)

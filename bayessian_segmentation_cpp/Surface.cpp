@@ -25,6 +25,7 @@
 #include <vtkSphereSource.h>
 #include <vtkLinearSubdivisionFilter.h>
 #include <vtkCenterOfMass.h>
+#include <vtkSmoothPolyDataFilter.h>
 #include <Point.h>
 
 
@@ -146,6 +147,8 @@ Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, do
     auto mesh = subdivisionFilter->GetOutput();
     Surface result = Surface();
     result.setPoints(mesh->GetPoints());
+    std::cout << "    There are " << mesh->GetPoints()->GetNumberOfPoints()
+              << " points." << std::endl;
     result.setTriangles(mesh->GetPolys());
     result.mesh = mesh;
 
@@ -199,6 +202,7 @@ void Surface::shrink_sphere (VolumeDouble &mask, std::tuple<double, double, doub
 
     Point center1 = Point(get<0>(center),get<1>(center),get<2>(center));
 
+    double nm;
     for(int i = 0; i < this->points->GetNumberOfPoints(); i++){
         auto vox = Point(this->points->GetPoint(i));
         double* normal = normals4->GetTuple(i);
@@ -206,6 +210,10 @@ void Surface::shrink_sphere (VolumeDouble &mask, std::tuple<double, double, doub
         normal[0] = get<0>(center) - vox.getX();
         normal[1] = get<1>(center) - vox.getY();
         normal[2] = get<2>(center) - vox.getZ();
+        nm = sqrt(normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2]);
+        normal[0] = normal[0]/nm;
+        normal[1] = normal[1]/nm;
+        normal[2] = normal[2]/nm;
         auto norm2 = Point(normal);
         Point res_vox= vox.move_point_with_stop(mask,norm2,center1,threshold,0.3, 0.01);
 
@@ -230,4 +238,21 @@ void Surface::apply_transformation(TransformMatrix& pre_transformation) {
     this->mesh->Initialize();
     this->mesh->SetPoints(this->points);
     this->mesh->SetPolys(this->triangles);
+}
+
+void Surface::smoothMesh() {
+    vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter =
+            vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+    smoothFilter->SetInputData(this->mesh);
+
+    smoothFilter->SetNumberOfIterations(30);
+    smoothFilter->BoundarySmoothingOn();
+    smoothFilter->SetRelaxationFactor(0.1);
+    smoothFilter->Update();
+    this->points->Initialize();
+    this->points->DeepCopy(smoothFilter->GetOutput()->GetPoints());
+    this->mesh->Initialize();
+    this->mesh->SetPoints(this->points);
+    this->mesh->SetPolys(this->triangles);
+
 }

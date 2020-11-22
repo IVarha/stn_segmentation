@@ -29,7 +29,7 @@ unordered_map<int,string> parse_label_descriptor(string fileName){
     return result;
 }
 
-void convert_voxel_to_mesh(string workdir, NiftiImage image,pair<int,string> label, TransformMatrix &from_mni_to_label){
+void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> label, TransformMatrix &from_mni_to_label){
 
     Surface surface = Surface();
     surface.read_volume(label.second);
@@ -57,11 +57,13 @@ void convert_voxel_to_mesh(string workdir, NiftiImage image,pair<int,string> lab
     //apply transformation
     //sphr.apply_transformation(from_mni_to_label);
     surface.apply_transformation(from_mni_to_label);
-    surface.write_obj(workdir + "/" + std::to_string(label.first) + "_mapped_mesh.obj");
+    //surface.write_obj(workdir + "/" + std::to_string(label.first) + "_mapped_mesh.obj");
 
-    sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
-   sphr.shrink_sphere(mask,ride, 0.5);
 
+    //sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
+    //SHRINK SPHERE
+    sphr.shrink_sphere(mask,ride, 0.3);
+    sphr.smoothMesh();
     auto trans = image.get_voxel_to_world();
     sphr.apply_transformation(trans);
     sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_1.obj");
