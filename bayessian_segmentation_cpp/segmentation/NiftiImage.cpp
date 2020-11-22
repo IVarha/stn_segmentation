@@ -293,7 +293,7 @@ tuple<double, double, double> TransformMatrix::vox_to_mm(int x, int y, int z) {
     vect(2,0) = z;
     vect(3,0) = 1;
     Mat<double> ress = this->matrix * vect;
-    return tuple<double, double, double>(ress(0,0),ress(0,1),ress(0,2));
+    return tuple<double, double, double>(ress(0,0),ress(1,0),ress(2,0));
 }
 
 TransformMatrix::~TransformMatrix() {

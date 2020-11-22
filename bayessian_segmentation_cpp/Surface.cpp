@@ -27,6 +27,7 @@
 #include <vtkCenterOfMass.h>
 #include <vtkSmoothPolyDataFilter.h>
 #include <Point.h>
+#include <vtkMassProperties.h>
 
 
 void Surface::read_volume(const std::string& file_name ) {
@@ -246,6 +247,7 @@ void Surface::smoothMesh() {
     smoothFilter->SetInputData(this->mesh);
 
     smoothFilter->SetNumberOfIterations(30);
+    smoothFilter->FeatureEdgeSmoothingOff();
     smoothFilter->BoundarySmoothingOn();
     smoothFilter->SetRelaxationFactor(0.1);
     smoothFilter->Update();
@@ -254,5 +256,14 @@ void Surface::smoothMesh() {
     this->mesh->Initialize();
     this->mesh->SetPoints(this->points);
     this->mesh->SetPolys(this->triangles);
+
+
+}
+
+double Surface::calculate_volume() {
+    auto mass_calc = vtkSmartPointer<vtkMassProperties>::New();
+    mass_calc->SetInputData(this->mesh);
+    mass_calc->Update();
+    return mass_calc->GetVolume();
 
 }

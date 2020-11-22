@@ -46,6 +46,7 @@ private:
         void shrink_sphere(VolumeDouble& mask, std::tuple<double,double,double> center,double threshold);
         void apply_transformation(TransformMatrix& pre_transformation);
 
+        double calculate_volume();
         static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre);
 
 };

@@ -64,8 +64,11 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
     //SHRINK SPHERE
     sphr.shrink_sphere(mask,ride, 0.3);
     sphr.smoothMesh();
+
+
     auto trans = image.get_voxel_to_world();
     sphr.apply_transformation(trans);
+    std::cout << "Calculated volume of " << label.first << "  is " << sphr.calculate_volume() << std::endl;
     sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_1.obj");
 
 
@@ -76,6 +79,7 @@ void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,Nift
 
     NiftiImage mni = NiftiImage();
     mni.read_nifti_image(workdir + "/t1_brain_to_mni_stage2_apply.nii.gz");
+
     NiftiImage native = NiftiImage();
     native.read_nifti_image(workdir + "/t1_acpc_extracted.nii.gz");
 
