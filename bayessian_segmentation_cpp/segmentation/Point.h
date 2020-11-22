@@ -22,6 +22,7 @@ private:
     double getY();
     double getZ();
     Point move_point(VolumeDouble &image, Point &direction, double reach_value,double step ,double eps);
+    Point move_point_with_stop(VolumeDouble &image, Point &direction, Point &stop,double reach_value,double step ,double eps);
 };
 
 

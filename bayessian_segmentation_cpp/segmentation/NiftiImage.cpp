@@ -104,16 +104,16 @@ void* NiftiImage::returnImage() {
         case NIFTI_TYPE_INT64:{
             auto* nii_columns_data = static_cast<int64_t*>(this->niimg->data);
             auto* res = new Cube<int>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
-
+            int ca = 0;
             for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
                 int16_t val;
                 val = static_cast<int16_t >(*(nii_columns_data + cnt));
                 tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
                 res->operator()(i,j,k)= static_cast<int>(val);
                 if (val == 6){
+                    ca += 1;
                     cout<< i << " " << j << " " << k << endl;
                 }
-                cnt++;
             }
             VolumeInt* volumeInt = new VolumeInt();
             volumeInt->setVolume(*res);
@@ -129,7 +129,6 @@ void* NiftiImage::returnImage() {
                 val = static_cast<int16_t >(*(nii_columns_data + cnt));
                 tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
                 res->operator()(i,j,k)= static_cast<int>(val);
-                cnt++;
             }
             VolumeInt* volumeInt = new VolumeInt();
             volumeInt->setVolume(*res);
@@ -147,10 +146,8 @@ void* NiftiImage::returnImage() {
                 tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
                 if (val == 1) {
                     cout << i << " " << j << " " << k << endl;
-
                     cn += 1; }
                 res->operator()(i,j,k)= static_cast<int>(val);
-                cnt++;
             }
             VolumeInt* volumeInt = new VolumeInt();
             volumeInt->setVolume(*res);
@@ -167,7 +164,6 @@ void* NiftiImage::returnImage() {
                 val = static_cast<double>(*(nii_columns_data + cnt));
                 tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
                 res->operator()(i,j,k)= static_cast<double>(val);
-                cnt++;
             }
             return res;
         }
@@ -181,7 +177,6 @@ void* NiftiImage::returnImage() {
                 val = static_cast<double>(*(nii_columns_data + cnt));
                 tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
                 res->operator()(i,j,k)= static_cast<double>(val);
-                cnt++;
             }
             return res;
         }
@@ -382,10 +377,10 @@ double *TransformMatrix::apply_transform(double x, double y, double z) {
     vect(2,0) = z;
     vect(3,0) = 1;
     Mat<double> ress = this->matrix * vect;
-    double res[3];
+    double* res = new double(3);
     res[0] = ress(0,0);
-    res[1] = ress(0,1);
-    res[2] = ress(0,2);
+    res[1] = ress(1,0);
+    res[2] = ress(2,0);
     return res;
 }
 

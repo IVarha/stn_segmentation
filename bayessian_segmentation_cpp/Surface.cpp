@@ -186,7 +186,7 @@ std::tuple<double, double, double> Surface::centre_of_mesh() {
     return {res[0],res[1],res[2]};
 }
 
-void Surface::shrink_mesh(VolumeDouble& mask, double threshold) {
+void Surface::shrink_sphere (VolumeDouble &mask, std::tuple<double, double, double> center, double threshold)  {
     auto normalsGen =  vtkSmartPointer<vtkPolyDataNormals>::New();
     normalsGen->SetInputData(this->mesh);
     normalsGen->ComputeCellNormalsOff();
@@ -197,19 +197,20 @@ void Surface::shrink_mesh(VolumeDouble& mask, double threshold) {
     auto normals = normalsGen->GetOutput();
     auto normals4= normals->GetPointData()->GetNormals();
 
-
+    Point center1 = Point(get<0>(center),get<1>(center),get<2>(center));
 
     for(int i = 0; i < this->points->GetNumberOfPoints(); i++){
         auto vox = Point(this->points->GetPoint(i));
         double* normal = normals4->GetTuple(i);
 
-        normal[0] = -1*normal[0];
-        normal[1] = -1*normal[1];
-        normal[2] = -1*normal[2];
+        normal[0] = get<0>(center) - vox.getX();
+        normal[1] = get<1>(center) - vox.getY();
+        normal[2] = get<2>(center) - vox.getZ();
         auto norm2 = Point(normal);
-        Point res_vox= vox.move_point(mask,norm2,threshold,0.3, 0.01);
+        Point res_vox= vox.move_point_with_stop(mask,norm2,center1,threshold,0.3, 0.01);
 
         this->points->SetPoint(i,res_vox.getPt());
+        cout<<  "Process point :"<< i << endl;
     }
 
     this->mesh->Initialize();

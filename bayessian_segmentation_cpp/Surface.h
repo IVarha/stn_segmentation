@@ -41,7 +41,7 @@ private:
         void write_obj(const std::string file_name);
         void write_stl(const std::string file_name);
         std::tuple<double, double, double>  centre_of_mesh();
-        void shrink_mesh(VolumeDouble& mask, double threshold);
+        void shrink_sphere(VolumeDouble& mask, std::tuple<double,double,double> center,double threshold);
         void apply_transformation(TransformMatrix& pre_transformation);
 
         static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre);
