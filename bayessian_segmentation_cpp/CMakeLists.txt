@@ -11,10 +11,12 @@ set(CMAKE_CXX_STANDARD 14)
          vtkFiltersSources
          vtkFiltersModeling
          vtkInteractionStyle
+         vtkInteractionImage
          vtkIOLegacy
          vtkIOGeometry
          vtkIOPLY
          vtkIOXML
+         vtkIOImage
          vtkRenderingCore
          vtkRenderingFreeType
 

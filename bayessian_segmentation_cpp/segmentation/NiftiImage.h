@@ -39,6 +39,8 @@
 #include "nifti2_io.h"
 #include "Point.h"
 #include <armadillo>
+#include <vtkImageData.h>
+#include <vtkSmartPointer.h>
 using namespace std;
 
 
@@ -135,7 +137,8 @@ private:
 
 class NiftiImage {
 private:
-    nifti_image* niimg = nullptr;
+    vtkSmartPointer<vtkImageData> niimg;
+
     int type;
     arma::Mat<double> transform;
 public:
@@ -152,6 +155,9 @@ private:
     double xdim;
     double ydim;
     double zdim;
+    double nx;
+    double ny;
+    double nz;
 
 protected:
 public:

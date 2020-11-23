@@ -36,83 +36,123 @@
 #include <tuple>
 #include <iostream>
 #include <unordered_map>
+#include <vtkNIFTIImageReader.h>
+#include <vtkSmartPointer.h>
+#include <vtkMatrix4x4.h>
+#include <vtkImageData.h>
+#include <vtkPointData.h>
+#include <vtkDataArray.h>
+#include <vtkNIFTIImageHeader.h>
+
 using namespace arma;
 void NiftiImage::read_nifti_image(string file) {
     int gzz = nifti_compiled_with_zlib();
-    niimg = nifti_image_read(file.c_str(),1);
+    auto reader = vtkSmartPointer<vtkNIFTIImageReader>::New();
+    auto val = reader->CanReadFile(file.c_str());
+    reader->SetFileName(file.c_str());
+    reader->Update();
+    auto qf = reader->GetQFormMatrix();
+    vtkMatrix4x4* sf = reader->GetSFormMatrix();
+
+//    cout << sf->GetElement(0,0) << sf->GetElement(0,3) << endl;
+    //niimg = nifti_image_read(file.c_str(),1);
 
     this->transform = Mat<double>(4,4,fill::eye);
-    if ((niimg->qto_xyz.m[0][0]!= 0) and (niimg->qto_xyz.m[0][3]!= 0)) {
-        this->transform(0, 0) = niimg->qto_xyz.m[0][0];
-        this->transform(0, 1) = niimg->qto_xyz.m[0][1];
-        this->transform(0, 2) = niimg->qto_xyz.m[0][2];
-        this->transform(0, 3) = niimg->qto_xyz.m[0][3];
-        this->transform(1, 0) = niimg->qto_xyz.m[1][0];
-        this->transform(1, 1) = niimg->qto_xyz.m[1][1];
-        this->transform(1, 2) = niimg->qto_xyz.m[1][2];
-        this->transform(1, 3) = niimg->qto_xyz.m[1][3];
-        this->transform(2, 0) = niimg->qto_xyz.m[2][0];
-        this->transform(2, 1) = niimg->qto_xyz.m[2][1];
-        this->transform(2, 2) = niimg->qto_xyz.m[2][2];
-        this->transform(2, 3) = niimg->qto_xyz.m[2][3];
-        this->transform(3, 0) = niimg->qto_xyz.m[3][0];
-        this->transform(3, 1) = niimg->qto_xyz.m[3][1];
-        this->transform(3, 2) = niimg->qto_xyz.m[3][2];
-        this->transform(3, 3) = niimg->qto_xyz.m[3][3];
-    } else{
-        if ((niimg->sto_xyz.m[0][0]!= 0) and (niimg->sto_xyz.m[0][3]!= 0)){
-            this->transform(0, 0) = niimg->sto_xyz.m[0][0];
-            this->transform(0, 1) = niimg->sto_xyz.m[0][1];
-            this->transform(0, 2) = niimg->sto_xyz.m[0][2];
-            this->transform(0, 3) = niimg->sto_xyz.m[0][3];
-            this->transform(1, 0) = niimg->sto_xyz.m[1][0];
-            this->transform(1, 1) = niimg->sto_xyz.m[1][1];
-            this->transform(1, 2) = niimg->sto_xyz.m[1][2];
-            this->transform(1, 3) = niimg->sto_xyz.m[1][3];
-            this->transform(2, 0) = niimg->sto_xyz.m[2][0];
-            this->transform(2, 1) = niimg->sto_xyz.m[2][1];
-            this->transform(2, 2) = niimg->sto_xyz.m[2][2];
-            this->transform(2, 3) = niimg->sto_xyz.m[2][3];
-            this->transform(3, 0) = niimg->sto_xyz.m[3][0];
-            this->transform(3, 1) = niimg->sto_xyz.m[3][1];
-            this->transform(3, 2) = niimg->sto_xyz.m[3][2];
-            this->transform(3, 3) = niimg->sto_xyz.m[3][3];
+    if (qf != nullptr){
+
+            this->transform(0, 0) = qf->GetElement(0,0);
+            this->transform(0, 1) = qf->GetElement(0,1);
+            this->transform(0, 2) = qf->GetElement(0,2);
+            this->transform(0, 3) = qf->GetElement(0,3);
+            this->transform(1, 0) = qf->GetElement(1,0);
+            this->transform(1, 1) = qf->GetElement(1,1);
+            this->transform(1, 2) = qf->GetElement(1,2);
+            this->transform(1, 3) = qf->GetElement(1,3);
+            this->transform(2, 0) = qf->GetElement(2,0);
+            this->transform(2, 1) = qf->GetElement(2,1);
+            this->transform(2, 2) = qf->GetElement(2,2);
+            this->transform(2, 3) = qf->GetElement(2,3);
+            this->transform(3, 0) = qf->GetElement(3,0);
+            this->transform(3, 1) = qf->GetElement(3,1);
+            this->transform(3, 2) = qf->GetElement(3,2);
+            this->transform(3, 3) = qf->GetElement(3,3);
+
+    }else{
+        if (sf != nullptr){
+            this->transform(0, 0) = sf->GetElement(0,0);
+            this->transform(0, 1) = sf->GetElement(0,1);
+            this->transform(0, 2) = sf->GetElement(0,2);
+            this->transform(0, 3) = sf->GetElement(0,3);
+            this->transform(1, 0) = sf->GetElement(1,0);
+            this->transform(1, 1) = sf->GetElement(1,1);
+            this->transform(1, 2) = sf->GetElement(1,2);
+            this->transform(1, 3) = sf->GetElement(1,3);
+            this->transform(2, 0) = sf->GetElement(2,0);
+            this->transform(2, 1) = sf->GetElement(2,1);
+            this->transform(2, 2) = sf->GetElement(2,2);
+            this->transform(2, 3) = sf->GetElement(2,3);
+            this->transform(3, 0) = sf->GetElement(3,0);
+            this->transform(3, 1) = sf->GetElement(3,1);
+            this->transform(3, 2) = sf->GetElement(3,2);
+            this->transform(3, 3) = sf->GetElement(3,3);
         }
     }
-    this->xdim = niimg->dx;
-    this->ydim = niimg->dy;
-    this->zdim = niimg->dz;
 
-    this->type = niimg->datatype;
+    //print info about image
+    double range[2];
+    reader->GetOutput()->GetPointData()->GetScalars()->GetRange(range);
+
+    std::cout << range[0] << ", " << range[1] << std::endl;
+    std::cout << reader->GetDataSpacing()[0] << ", " << reader->GetDataSpacing()[1] << " ," << reader->GetDataSpacing()[2] <<  std::endl;
+    std::cout << reader->GetDataSpacing()[0] << ", " << reader->GetDataSpacing()[1] << " ," << reader->GetDataSpacing()[2] <<  std::endl;
+    auto data = reader->GetOutput();
+
+    auto resp  = data->GetPoint(0);
+    cout << data->GetPoint(0)[0] << endl;
+
+    this->niimg = data;
+    this->type = data->GetDataObjectType();
+
+    this->xdim = reader->GetDataSpacing()[0];
+    this->ydim =reader->GetDataSpacing()[1];
+    this->zdim = reader->GetDataSpacing()[2];
+    this->type= reader->GetNIFTIHeader()->GetDataType();
+    this->nx = data->GetDimensions()[0];
+    this->ny = data->GetDimensions()[1];
+    this->nz = data->GetDimensions()[2];
+
+
+//
+//    this->type = niimg->datatype;
 
 
 }
 
 NiftiImage::~NiftiImage() {
-    delete niimg;
-
+    this->niimg->Delete();
 }
 
 
 void* NiftiImage::returnImage() {
-    int i,j,k;
     auto trans =  TransformMatrix();
     trans.setMatrix(this->transform);
-
+    this->niimg->GetPointData()->Print(cout);
 
     switch (this->type){
         case NIFTI_TYPE_INT64:{
-            auto* nii_columns_data = static_cast<int64_t*>(this->niimg->data);
-            auto* res = new Cube<int>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
+
+            auto* res = new Cube<int>(this->nx,this->ny,this->nz,fill::zeros);
             int ca = 0;
-            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
-                int16_t val;
-                val = static_cast<int16_t >(*(nii_columns_data + cnt));
-                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
-                res->operator()(i,j,k)= static_cast<int>(val);
-                if (val == 6){
-                    ca += 1;
-                    cout<< i << " " << j << " " << k << endl;
+            for (int i = 0;i<this->nx;i++){
+                for (int j = 0;j<this->ny;j++){
+                    for (int k = 0;k<this->nz;k++){
+                        int64_t * pix = static_cast<int64_t*>(this->niimg->GetScalarPointer(i,j,k));
+
+                        res->operator()(i,j,k)= (int)*pix;
+                        if (*pix == 6 ) {
+                            cout << i << " " << j << " " << k << endl;
+                        }
+                    }
                 }
             }
             VolumeInt* volumeInt = new VolumeInt();
@@ -121,14 +161,18 @@ void* NiftiImage::returnImage() {
             return volumeInt;
         }
         case NIFTI_TYPE_INT32:{
-            auto* nii_columns_data = static_cast<int32_t*>(this->niimg->data);
-            auto* res = new Cube<int>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
-
-            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
-                int16_t val;
-                val = static_cast<int16_t >(*(nii_columns_data + cnt));
-                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
-                res->operator()(i,j,k)= static_cast<int>(val);
+            auto* res = new Cube<int>(this->nx,this->ny,this->nz,fill::zeros);
+            int ca = 0;
+            for (int i = 0;i<this->nx;i++){
+                for (int j = 0;j<this->ny;j++){
+                    for (int k = 0;k<this->nz;k++){
+                        int32_t* pix = static_cast<int32_t*>(this->niimg->GetScalarPointer(i,j,k));
+                        res->operator()(i,j,k)= (int)*pix;
+                        if (*pix == 6) {
+                            cout << i << " " << j << " " << k << endl;
+                        }
+                    }
+                }
             }
             VolumeInt* volumeInt = new VolumeInt();
             volumeInt->setVolume(*res);
@@ -136,50 +180,52 @@ void* NiftiImage::returnImage() {
             return volumeInt;
         }
         case NIFTI_TYPE_UINT16:{
-            auto* nii_columns_data = static_cast<uint16_t*>(this->niimg->data);
-            auto* res = new Cube<int>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
-            int cn = 0;
-            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
-                uint16_t val;
-                val = static_cast<uint16_t >(*(nii_columns_data + cnt));
-
-                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
-                if (val == 1) {
-                    cout << i << " " << j << " " << k << endl;
-                    cn += 1; }
-                res->operator()(i,j,k)= static_cast<int>(val);
+            auto* res = new Cube<int>(this->nx,this->ny,this->nz,fill::zeros);
+            int ca = 0;
+            for (int i = 0;i<this->nx;i++){
+                for (int j = 0;j<this->ny;j++){
+                    for (int k = 0;k<this->nz;k++){
+                        uint16_t * pix = static_cast<uint16_t*>(this->niimg->GetScalarPointer(i,j,k));
+                        res->operator()(i,j,k)= (int)*pix;
+                        auto cel = this->niimg->GetCell(i,j,k);
+                        if ((*pix == 6) and (cel)) {
+                            ca++;
+                            cout << i << " " << j << " " << k << endl;
+                        }
+                    }
+                }
             }
             VolumeInt* volumeInt = new VolumeInt();
             volumeInt->setVolume(*res);
             volumeInt->setTransformation(trans);
             return volumeInt;
         }
-        case NIFTI_TYPE_FLOAT32:
-        {
-            auto* nii_columns_data = static_cast<float*>(this->niimg->data);
-            auto* res = new Cube<double>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
-
-            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
-                double val;
-                val = static_cast<double>(*(nii_columns_data + cnt));
-                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
-                res->operator()(i,j,k)= static_cast<double>(val);
-            }
-            return res;
-        }
-        case NIFTI_TYPE_FLOAT64:
-        {
-            auto* nii_columns_data = static_cast<double*>(this->niimg->data);
-            auto* res = new Cube<double>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
-
-            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
-                double val;
-                val = static_cast<double>(*(nii_columns_data + cnt));
-                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
-                res->operator()(i,j,k)= static_cast<double>(val);
-            }
-            return res;
-        }
+//        case NIFTI_TYPE_FLOAT32:
+//        {
+//            auto* nii_columns_data = static_cast<float*>(this->niimg->data);
+//            auto* res = new Cube<double>(this->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
+//
+//            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
+//                double val;
+//                val = static_cast<double>(*(nii_columns_data + cnt));
+//                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
+//                res->operator()(i,j,k)= static_cast<double>(val);
+//            }
+//            return res;
+//        }
+//        case NIFTI_TYPE_FLOAT64:
+//        {
+//            auto* nii_columns_data = static_cast<double*>(this->niimg->data);
+//            auto* res = new Cube<double>(this->niimg->nx,this->niimg->ny,this->niimg->nz,fill::zeros);
+//
+//            for (int cnt = 0; cnt<this->niimg->nvox;cnt++){
+//                double val;
+//                val = static_cast<double>(*(nii_columns_data + cnt));
+//                tie(i,j,k) = ind2sub_3D(cnt, this->niimg->nx,this->niimg->ny);
+//                res->operator()(i,j,k)= static_cast<double>(val);
+//            }
+//            return res;
+//        }
 
     }
 
@@ -204,15 +250,15 @@ const Mat<double> &NiftiImage::getTransform() const {
 
 TransformMatrix NiftiImage::get_voxel_to_fsl() {
     Mat<double> voxToScaledWorld = Mat<double>(4,4,fill::eye);
-    voxToScaledWorld(0,0) = this->niimg->dx;
-    voxToScaledWorld(1,1) = this->niimg->dy;
-    voxToScaledWorld(2,2) = this->niimg->dz;
+    voxToScaledWorld(0,0) = this->xdim;
+    voxToScaledWorld(1,1) = this->ydim;
+    voxToScaledWorld(2,2) = this->zdim;
     voxToScaledWorld(3,3) = 1;
 
     bool isneuro = (det(this->transform) > 0);
 
     if (isneuro){
-        double x = (this->niimg->nx - 1)* this->niimg->dx;
+        double x = (this->nx - 1)* this->xdim;
         auto tmp = Mat<double>(4,4,fill::eye);
         tmp(0,0) = -1;
         tmp(1,1) = 1;
