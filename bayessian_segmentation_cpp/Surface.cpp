@@ -100,9 +100,7 @@ void Surface::expand_volume(double mm) {
     this->points->Initialize();
     this->points->DeepCopy(new_pts);
     this->mesh->SetPoints(this->points);
-//    this->points->Delete();
-    //this->points = new_pts;
-   // cout << 0  ;
+
 
 }
 

@@ -3,6 +3,20 @@
 #include "CLIParser.h"
 #include "NiftiImage.h"
 
+
+
+#include <vtkNIFTIImageReader.h>
+#include <vtkSmartPointer.h>
+#include <vtkMatrix4x4.h>
+#include <vtkImageData.h>
+#include <vtkPointData.h>
+#include <vtkDataArray.h>
+#include <vtkNIFTIImageHeader.h>
+#include <vtkImageBSplineInterpolator.h>
+#include <vtkImageBSplineCoefficients.h>
+#include <vtkBMPReader.h>
+#include <vtkImageSincInterpolator.h>
+
 using namespace std;
 
 
@@ -80,14 +94,16 @@ void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,Nift
     NiftiImage mni = NiftiImage();
     mni.read_nifti_image(workdir + "/t1_brain_to_mni_stage2_apply.nii.gz");
 
-    NiftiImage native = NiftiImage();
-    native.read_nifti_image(workdir + "/t1_acpc_extracted.nii.gz");
+    NiftiImage* native = new NiftiImage();
+
+
+    native->read_nifti_image(workdir + "/t1_acpc_extracted.nii.gz");
 
 
     //get flirt transform from flirt to native
-    auto mni2native = TransformMatrix::convert_flirt_W_W(flirt_transform,mni,native);
+    auto mni2native = TransformMatrix::convert_flirt_W_W(flirt_transform,mni,*native);
     //mni2native.getMatrix().print("res ");
-
+    delete native;
     //read surface
     for (auto const& mesh: meshes){
         convert_voxel_to_mesh(workdir,image,mesh,mni2native);
@@ -103,12 +119,54 @@ void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,Nift
 
 }
 
+
+
+void test_interpolation(){
+//    std::string im_n = "/mnt/c/Users/ivarh/Pictures/Untitled.bmp";
+//    auto im_Read = vtkSmartPointer<vtkBMPReader>::New();
+//    im_Read->SetFileName(im_n.c_str());
+//    im_Read->Update();
+//    auto readeddata = im_Read->GetOutput();
+//    int * coord = new int(3);
+//    coord[0] = 118;
+//    coord[1] = 184;
+//    coord[2] = 0;
+//
+//    ///temp line
+//    auto ss = readeddata->GetDimensions();
+//    auto ss2 = readeddata->GetCenter();
+//    im_Read->Print(cout);
+//    int *val  = static_cast<int *>(readeddata->GetScalarPointer(coord));
+//    int value  = (int) (*val);
+//    double * coord2 = new double (3);
+//    coord2[0] = 134;
+//    coord2[1] = 161;
+//    coord2[2] = 0;
+//    auto coeff = vtkSmartPointer<vtkImageBSplineCoefficients>::New();
+//    coeff->SetInputData(readeddata);
+//    coeff->Update();
+//    auto check = coeff->CheckBounds(coord2);
+//    auto res = coeff->Evaluate(118,184,0);
+//    auto interp = vtkSmartPointer<vtkImageBSplineInterpolator>::New();
+//    interp->SetSplineDegree(3);
+//    interp->Initialize(coeff->GetOutput());
+//    interp->Update();
+//    auto res1 = interp->Interpolate(118,184,0,0);
+//    double* arl;
+//    interp->InterpolateIJK(coord2,arl);
+//    auto interp2 = vtkSmartPointer<vtkImageBSplineInterpolator>::New();
+//    interp2->Initialize(readeddata);
+//    interp2->Update();
+//    auto res2 = interp->Interpolate(118,184,0,0);
+}
+
 int main(int argc, char *argv[]) {
     std::cout << "Hello, World!" << std::endl;
 
-
+    test_interpolation();
     CLIParser parser = CLIParser();
     parser.parse_options(argc,argv);
+
 
 
     vector<string> run_param = parser.getValue("run");

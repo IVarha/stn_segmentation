@@ -36,11 +36,12 @@
 
 
 #include <string>
-#include "nifti2_io.h"
 #include "Point.h"
 #include <armadillo>
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
+#include <vtkImageBSplineCoefficients.h>
+
 using namespace std;
 
 
@@ -56,7 +57,7 @@ public:
 
     static TransformMatrix read_matrix(string fileName);
 
-    static TransformMatrix convert_flirt_W_W(TransformMatrix fslMat,NiftiImage source,NiftiImage reference );
+    static TransformMatrix convert_flirt_W_W(TransformMatrix fslMat,NiftiImage& source,NiftiImage& reference );
 
     static TransformMatrix convert_flirt_W_V(TransformMatrix fslMat,NiftiImage source,NiftiImage reference );
 
@@ -137,8 +138,8 @@ private:
 
 class NiftiImage {
 private:
-    vtkSmartPointer<vtkImageData> niimg;
-
+    vtkSmartPointer<vtkImageData> niimg = nullptr;
+    vtkSmartPointer<vtkImageBSplineCoefficients> bspline_coeff = nullptr;
     int type;
     arma::Mat<double> transform;
 public:
@@ -172,6 +173,10 @@ public:
     TransformMatrix get_world_to_fsl();
     TransformMatrix get_fsl_to_world();
     TransformMatrix get_voxel_to_world();
+
+    double bSplineInterp(double* x);
+
+
 };
 
 

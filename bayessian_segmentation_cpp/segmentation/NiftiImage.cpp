@@ -32,7 +32,6 @@
 
 #include "NiftiImage.h"
 #include <armadillo>
-#include "laynii_lib.h"
 #include <tuple>
 #include <iostream>
 #include <unordered_map>
@@ -43,23 +42,51 @@
 #include <vtkPointData.h>
 #include <vtkDataArray.h>
 #include <vtkNIFTIImageHeader.h>
-
+#include <vtkImageBSplineInterpolator.h>
+#include <vtkImageBSplineCoefficients.h>
 using namespace arma;
 void NiftiImage::read_nifti_image(string file) {
-    int gzz = nifti_compiled_with_zlib();
+
+
+
+
+
     auto reader = vtkSmartPointer<vtkNIFTIImageReader>::New();
+    reader->DebugOn();
     auto val = reader->CanReadFile(file.c_str());
     reader->SetFileName(file.c_str());
     reader->Update();
-    auto qf = reader->GetQFormMatrix();
-    vtkMatrix4x4* sf = reader->GetSFormMatrix();
-
-//    cout << sf->GetElement(0,0) << sf->GetElement(0,3) << endl;
+    auto data = reader->GetOutput();
+    auto tr_mat = data->GetIndexToPhysicalMatrix();
+    cout << reader->GetNIFTIHeader()->GetSRowX()[0] << " " <<
+        reader->GetNIFTIHeader()->GetSRowX()[1] << " " <<
+        reader->GetNIFTIHeader()->GetSRowX()[2] << " " <<
+        reader->GetNIFTIHeader()->GetSRowX()[3] << " " <<endl;
     //niimg = nifti_image_read(file.c_str(),1);
 
-    this->transform = Mat<double>(4,4,fill::eye);
-    if (qf != nullptr){
+//
+//    this->transform(0, 0) = tr_mat->GetElement(0,0);
+//    this->transform(0, 1) = tr_mat->GetElement(0,1);
+//    this->transform(0, 2) = tr_mat->GetElement(0,2);
+//    this->transform(0, 3) = tr_mat->GetElement(0,3);
+//    this->transform(1, 0) = tr_mat->GetElement(1,0);
+//    this->transform(1, 1) = tr_mat->GetElement(1,1);
+//    this->transform(1, 2) = tr_mat->GetElement(1,2);
+//    this->transform(1, 3) = tr_mat->GetElement(1,3);
+//    this->transform(2, 0) = tr_mat->GetElement(2,0);
+//    this->transform(2, 1) = tr_mat->GetElement(2,1);
+//    this->transform(2, 2) = tr_mat->GetElement(2,2);
+//    this->transform(2, 3) = tr_mat->GetElement(2,3);
+//    this->transform(3, 0) = tr_mat->GetElement(3,0);
+//    this->transform(3, 1) = tr_mat->GetElement(3,1);
+//    this->transform(3, 2) = tr_mat->GetElement(3,2);
+//    this->transform(3, 3) = tr_mat->GetElement(3,3);
 
+    auto sf = reader->GetSFormMatrix();
+    auto qf = reader->GetQFormMatrix();
+    this->transform = Mat<double>(4,4,fill::eye);
+    if (qf!= nullptr){
+        if (qf->GetElement(0,3) != 0 ){
             this->transform(0, 0) = qf->GetElement(0,0);
             this->transform(0, 1) = qf->GetElement(0,1);
             this->transform(0, 2) = qf->GetElement(0,2);
@@ -76,25 +103,27 @@ void NiftiImage::read_nifti_image(string file) {
             this->transform(3, 1) = qf->GetElement(3,1);
             this->transform(3, 2) = qf->GetElement(3,2);
             this->transform(3, 3) = qf->GetElement(3,3);
-
-    }else{
+        }
+    } else {
         if (sf != nullptr){
-            this->transform(0, 0) = sf->GetElement(0,0);
-            this->transform(0, 1) = sf->GetElement(0,1);
-            this->transform(0, 2) = sf->GetElement(0,2);
-            this->transform(0, 3) = sf->GetElement(0,3);
-            this->transform(1, 0) = sf->GetElement(1,0);
-            this->transform(1, 1) = sf->GetElement(1,1);
-            this->transform(1, 2) = sf->GetElement(1,2);
-            this->transform(1, 3) = sf->GetElement(1,3);
-            this->transform(2, 0) = sf->GetElement(2,0);
-            this->transform(2, 1) = sf->GetElement(2,1);
-            this->transform(2, 2) = sf->GetElement(2,2);
-            this->transform(2, 3) = sf->GetElement(2,3);
-            this->transform(3, 0) = sf->GetElement(3,0);
-            this->transform(3, 1) = sf->GetElement(3,1);
-            this->transform(3, 2) = sf->GetElement(3,2);
-            this->transform(3, 3) = sf->GetElement(3,3);
+            if (sf->GetElement(0,3)!=0){
+                this->transform(0, 0) = reader->GetNIFTIHeader()->GetSRowX()[0];
+                this->transform(0, 1) = reader->GetNIFTIHeader()->GetSRowX()[1];
+                this->transform(0, 2) = reader->GetNIFTIHeader()->GetSRowX()[2];
+                this->transform(0, 3) = reader->GetNIFTIHeader()->GetSRowX()[3];
+                this->transform(1, 0) = reader->GetNIFTIHeader()->GetSRowY()[0];
+                this->transform(1, 1) = reader->GetNIFTIHeader()->GetSRowY()[1];
+                this->transform(1, 2) = reader->GetNIFTIHeader()->GetSRowY()[2];
+                this->transform(1, 3) = reader->GetNIFTIHeader()->GetSRowY()[3];
+                this->transform(2, 0) = reader->GetNIFTIHeader()->GetSRowZ()[0];
+                this->transform(2, 1) = reader->GetNIFTIHeader()->GetSRowZ()[1];
+                this->transform(2, 2) = reader->GetNIFTIHeader()->GetSRowZ()[2];
+                this->transform(2, 3) = reader->GetNIFTIHeader()->GetSRowZ()[3];
+                this->transform(3, 0) =0;
+                this->transform(3, 1) = 0;
+                this->transform(3, 2) = 0;
+                this->transform(3, 3) = 1;
+            }
         }
     }
 
@@ -105,8 +134,8 @@ void NiftiImage::read_nifti_image(string file) {
     std::cout << range[0] << ", " << range[1] << std::endl;
     std::cout << reader->GetDataSpacing()[0] << ", " << reader->GetDataSpacing()[1] << " ," << reader->GetDataSpacing()[2] <<  std::endl;
     std::cout << reader->GetDataSpacing()[0] << ", " << reader->GetDataSpacing()[1] << " ," << reader->GetDataSpacing()[2] <<  std::endl;
-    auto data = reader->GetOutput();
 
+    auto x_cord = tr_mat->GetElement(0,3);
     auto resp  = data->GetPoint(0);
     cout << data->GetPoint(0)[0] << endl;
 
@@ -120,16 +149,18 @@ void NiftiImage::read_nifti_image(string file) {
     this->nx = data->GetDimensions()[0];
     this->ny = data->GetDimensions()[1];
     this->nz = data->GetDimensions()[2];
-
-
-//
-//    this->type = niimg->datatype;
+    reader->CloseFile();
 
 
 }
 
 NiftiImage::~NiftiImage() {
-    this->niimg->Delete();
+    if (this->niimg != nullptr) {
+        this->niimg= nullptr;
+    }
+//    if (this->bspline_coeff != nullptr) {
+//        this->bspline_coeff->Delete();
+//    }
 }
 
 
@@ -195,10 +226,19 @@ void* NiftiImage::returnImage() {
                     }
                 }
             }
+            double* arr = new double(3);
+            auto interp = vtkSmartPointer<vtkImageBSplineInterpolator>::New();
+            arr[0]=113.2;
+            arr[1]=112.5;
+            arr[2]=52.1;
+            auto trP= trans.apply_transform(arr);
+            double reaa= this->bSplineInterp(trP);
             VolumeInt* volumeInt = new VolumeInt();
             volumeInt->setVolume(*res);
             volumeInt->setTransformation(trans);
             return volumeInt;
+
+
         }
 //        case NIFTI_TYPE_FLOAT32:
 //        {
@@ -308,6 +348,26 @@ TransformMatrix NiftiImage::get_voxel_to_world() {
     return res;
 }
 
+double NiftiImage::bSplineInterp(double* x) {
+    auto interp = vtkSmartPointer<vtkImageBSplineInterpolator>::New();
+    interp->SetSplineDegree(5);
+    interp->SetOutValue(-1);
+    if (this->bspline_coeff == nullptr){
+        this->bspline_coeff = vtkSmartPointer<vtkImageBSplineCoefficients>::New();
+
+
+        this->bspline_coeff->SetInputData(this->niimg);
+        this->bspline_coeff->SetSplineDegree(5);
+        this->bspline_coeff->Update();
+
+    }
+    interp->Initialize(bspline_coeff->GetOutput());
+    auto aa = this->bspline_coeff->Evaluate(x);
+    auto bb = interp->Interpolate(x[0],x[1],x[2],1);
+    return interp->Interpolate(x[0],x[1],x[2],0);
+    //return this->bspline_coeff->Evaluate(x);
+}
+
 
 const Mat<double> &TransformMatrix::getMatrix() const {
     return matrix;
@@ -375,7 +435,7 @@ TransformMatrix TransformMatrix::read_matrix(string fileName) {
     return res;
 }
 
-TransformMatrix TransformMatrix::convert_flirt_W_W(TransformMatrix fslMat,NiftiImage source,NiftiImage reference)
+TransformMatrix TransformMatrix::convert_flirt_W_W(TransformMatrix fslMat,NiftiImage& source,NiftiImage& reference)
 {
 //    //testcode
 //    Mat<double> a1 = Mat<double>(2,2,fill::zeros);

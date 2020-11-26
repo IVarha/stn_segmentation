@@ -56,17 +56,19 @@ if __name__ == '__main__':
     print_hi('PyCharm')
     labels_in = sys.argv[1]
     outp = sys.argv[2]
-
+    refim = sys.argv[3]
 
     #read pve segmentation
     labels_file = nib.load(labels_in)
-
+    ref_file2 = nib.load(refim)
 
     pve_transf = labels_file.affine
 
     res = clear_labels(t2_img=labels_file.get_fdata())
 
-    nif2 = nib.Nifti1Image(res.astype(np.int), pve_transf)
+    nif2 = nib.Nifti1Image(res.astype(np.int), ref_file2.affine)
+
+
     nib.save(nif2,outp)
     # Initialize the layout
     print(1222)
