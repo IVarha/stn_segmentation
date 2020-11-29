@@ -12,12 +12,12 @@ im_name=$work_dir/names
 #done < "$im_name"
 seg="labels.nii.gz"
 seg_out="labels_clean.nii.gz"
-
+lab_file="t2_resampled.nii.gz"
 
 # segment alex data
 for d in $work_dir//$prefix_subdirs*; do
     echo "$d"
-    python clear_labels.py $d/$seg $d/$seg_out
+    python clear_labels.py $d/$seg $d/$seg_out $d/$lab_file
     # WM_mask
     #create mask
 
