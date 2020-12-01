@@ -29,7 +29,7 @@ def get_coord_voxel(coord_orig,orig_transf):
 def create_mask(t2_img,t2_transf,pve_img, pve_transf):
     res_mask = np.zeros(t2_img.shape)
 
-
+    res_mask_full = np.zeros(t2_img.shape)
     revers_pve = np.linalg.inv(pve_transf)
     for i in range(t2_img.shape[0]):
         for j in range(t2_img.shape[1]):
@@ -44,6 +44,7 @@ def create_mask(t2_img,t2_transf,pve_img, pve_transf):
                             t_res  = 1
                     except:
                         pass
+                    res_mask_full[i,j,k] = 1
                     res_mask[i,j,k] = t_res
     mn = t2_img[res_mask>0].mean()*0.1
     res_mask[t2_img<mn]=0
@@ -51,7 +52,7 @@ def create_mask(t2_img,t2_transf,pve_img, pve_transf):
     res_mask = morph2.binary_fill_holes(res_mask)
     res_mask = morph2.binary_dilation(res_mask,iterations=1)
     res_mask = morph2.binary_erosion(res_mask, iterations=1)
-    return res_mask.astype(np.int)
+    return [res_mask.astype(np.int),res_mask_full.astype(np.int)]
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     pve_seg = sys.argv[2]
     outp = sys.argv[3]
 
-
+    outp_fullmask = sys.argv[4]
     #read pve segmentation
     pve_file = nib.load(pve_seg)
 
@@ -72,8 +73,10 @@ if __name__ == '__main__':
     res = create_mask(t2_img=t2_file.get_fdata(),t2_transf=t2_transf,
                       pve_img=pve_file.get_fdata(),pve_transf=pve_transf)
 
-    nif2 = nib.Nifti1Image(res, t2_transf)
+    nif2 = nib.Nifti1Image(res[0], t2_transf)
     nib.save(nif2,outp)
+    nif2 = nib.Nifti1Image(res[1], t2_transf)
+    nib.save(nif2,outp_fullmask)
     # Initialize the layout
     print(1222)
 
