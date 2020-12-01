@@ -78,4 +78,29 @@ class Mesh:
         pass
 
 
+    def generate_normals(self,mm_len, npts):
+        dt = (2* mm_len) / (npts - 1)
+        nm_del = [ -mm_len + dt*x for x in range(npts)]
 
+        norm_calc = vtk.vtkPolyDataNormals()
+        norm_calc.ComputeCellNormalsOff()
+        norm_calc.ComputePointNormalsOn()
+        norm_calc.SetAutoOrientNormals(True)
+        norm_calc.SetInputData(self._mesh_instance)
+        norm_calc.Update()
+
+        normals = ((norm_calc.GetOutput()).GetPointData()).GetNormals()
+        res  = []
+        for i in range(self._points.GetNumberOfPoints()):
+
+            tmp = []
+            norm = np.array(normals.GetTuple(i))
+            norm = norm /np.linalg.norm(norm)
+
+            pt = np.array(self._points.GetPoint(i))
+
+            for j in range(len(nm_del)):
+                poin = pt + nm_del[j] * norm
+                tmp.append(list(poin))
+            res.append(tmp)
+        return res
