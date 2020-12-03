@@ -116,3 +116,7 @@ Point Point::move_point_with_stop(VolumeDouble &image, Point &direction, Point &
     Point res = Point(curr_pt);
     return res;
 }
+
+std::tuple<double, double, double> Point::to_tuple() {
+    return std::tuple<double, double, double>(this->getX(), this->getY(), this->getZ());
+}

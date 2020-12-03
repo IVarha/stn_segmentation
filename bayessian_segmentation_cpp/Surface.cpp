@@ -28,7 +28,7 @@
 #include <vtkSmoothPolyDataFilter.h>
 #include <Point.h>
 #include <vtkMassProperties.h>
-
+#include <vtkSelectEnclosedPoints.h>
 
 void Surface::read_volume(const std::string& file_name ) {
     int s = 1;

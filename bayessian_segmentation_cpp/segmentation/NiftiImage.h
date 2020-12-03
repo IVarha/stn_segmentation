@@ -64,6 +64,9 @@ public:
     double* apply_transform(double x,double y,double z);
 
     double* apply_transform(const double* pt);
+
+    TransformMatrix get_inverse();
+
 private:
     arma::Mat<double> matrix;
     arma::Mat<double> inverse_mat;
@@ -173,6 +176,7 @@ public:
     TransformMatrix get_world_to_fsl();
     TransformMatrix get_fsl_to_world();
     TransformMatrix get_voxel_to_world();
+    TransformMatrix get_world_to_voxel();
 
     double bSplineInterp(double* x);
 

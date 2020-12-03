@@ -48,7 +48,7 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
     Surface surface = Surface();
     surface.read_volume(label.second);
 
-
+    TransformMatrix from_label_to_mni = from_mni_to_label.get_inverse();
 
 
     //shrink volume
@@ -56,15 +56,24 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
 
     auto label_mask = lab1_vol->label_to_mask(label.first);
     //calc centre of label
-    Point centr_of_mesh = label_mask.center_of_mass();
-    auto swap_centre = image.get_voxel_to_world().apply_transform(centr_of_mesh.getPt()[0],centr_of_mesh.getPt()[1],centr_of_mesh.getPt()[2]);
+    Point centr_of_label = label_mask.center_of_mass();
+    //point of center in world coordinate
+    auto swap_centre = image.get_voxel_to_world().apply_transform(centr_of_label.getPt()[0],centr_of_label.getPt()[1],centr_of_label.getPt()[2]);
 
+    auto  back_centre = image.get_world_to_voxel().apply_transform(swap_centre);
 
-    //GENERATE SPHERE IN VOXEL COORDS!!!
+    auto lab_centre_mni = from_label_to_mni.apply_transform(swap_centre); //map labels centre to mni space
 
-    //tuple<double,double,double> ride = {swap_centre[0],swap_centre[1],swap_centre[2]};
-    tuple<double,double,double> ride = {centr_of_mesh.getPt()[0],centr_of_mesh.getPt()[1],centr_of_mesh.getPt()[2]};
-    auto sphr = Surface::generate_sphere(10,ride);
+    //GENERATE SPHERE IN MNI COORDS!!!
+
+    tuple<double,double,double> ride = {lab_centre_mni[0],lab_centre_mni[1],lab_centre_mni[2]};
+    //tuple<double,double,double> ride = {centr_of_label.getPt()[0],centr_of_label.getPt()[1],centr_of_label.getPt()[2]};
+    auto sphr = Surface::generate_sphere(50,ride);
+
+    sphr.apply_transformation(from_mni_to_label);
+    //sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
+    auto W_V_trans= image.get_world_to_voxel();
+    sphr.apply_transformation(W_V_trans);
     //sphr.expand_volume(30);
     //calc c
     auto mask = label_mask.int_to_double();
@@ -76,7 +85,7 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
 
     //sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
     //SHRINK SPHERE
-    sphr.shrink_sphere(mask,ride, 0.3);
+    sphr.shrink_sphere(mask,centr_of_label.to_tuple(), 0.3);
     sphr.smoothMesh();
 
 

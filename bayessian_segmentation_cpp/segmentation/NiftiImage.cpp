@@ -368,6 +368,12 @@ double NiftiImage::bSplineInterp(double* x) {
     //return this->bspline_coeff->Evaluate(x);
 }
 
+TransformMatrix NiftiImage::get_world_to_voxel() {
+    auto res =  TransformMatrix();
+    res.setMatrix(inv(this->transform));
+    return res;
+}
+
 
 const Mat<double> &TransformMatrix::getMatrix() const {
     return matrix;
@@ -502,6 +508,12 @@ double *TransformMatrix::apply_transform(const double *pt) {
     res[1] = ress(1,0);
     res[2] = ress(2,0);
     return res;
+}
+
+TransformMatrix TransformMatrix::get_inverse() {
+    auto res_mat =  TransformMatrix();
+    res_mat.setMatrix(this->inverse_mat);
+    return res_mat;
 }
 
 
