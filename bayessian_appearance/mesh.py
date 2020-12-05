@@ -66,12 +66,14 @@ class Mesh:
         encl_points.Update()
 
         result = np.zeros([pts_3d.shape[0],pts_3d.shape[1],pts_3d.shape[2]])
+        cnt = 0
         for i in range(pts_3d.shape[0]):
             for j in range(pts_3d.shape[1]):
                 for k in range(pts_3d.shape[2]):
-                    ind = i*pts_3d.shape[1]*pts_3d.shape[2] + k*pts_3d.shape[2] + k
+                    ind = cnt
                     val = encl_points.IsInside(ind)
                     result[i,j,k] = val
+                    cnt+=1
         return result
 
 
@@ -104,3 +106,6 @@ class Mesh:
                 tmp.append(list(poin))
             res.append(tmp)
         return res
+
+    def get_point(self, i):
+        return self._points.GetPoint(i)

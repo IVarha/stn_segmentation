@@ -81,6 +81,10 @@ def calculate_mask_touches( mask, norms):
 
 
 def save_intensities_csv(pdm, filename):
+    try:
+        os.remove(filename)
+    except:
+        pass
     f = open(filename,'w')
     wr = csv.writer(f)
     wr.writerows(pdm)
@@ -137,8 +141,7 @@ def calculate_intensites_subject(modalities,labels,subject, discretisation, norm
 def parse_conf(conf_file_name):
     conf = util.read_config_ini(conf_file_name)
 
-    conf['norm_length'] = float(conf['norm_length'])
-    conf['discretisation'] = int(conf['discretisation'])
+
     return conf
 
 

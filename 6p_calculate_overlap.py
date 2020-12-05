@@ -4,17 +4,16 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-import sys
-
-import nibabel as nib
-import nrrd
-import numpy as np
-import bayessian_appearance.mesh as mesh
 import os
 import sys
-import vtk
-import fsl.transform.flirt as fl
+
 import fsl.data.image as fim
+import fsl.transform.flirt as fl
+import numpy as np
+
+import bayessian_appearance.mesh as mesh
+
+
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
@@ -84,7 +83,7 @@ def generate_mask(x_r,y_r,z_r,dt):
     return res_arr
 
 def create_subj_mask(point_coords, tr_subjects,mesh_name):
-    dt = 0.15
+    dt = 0.5
 
     x_r = [point_coords[0],point_coords[1]]
     y_r = [point_coords[2],point_coords[3]]
@@ -179,6 +178,7 @@ def main_proc(train, label_names, workdir):
 
 
     overlap_stat = np.array(overlap_stat)
+    os.remove(workdir + os.sep + "overlaped.mat")
     np.savetxt(workdir + os.sep + "overlaped.mat",X=overlap_stat)
     mesh_min_max= np.array(m_mx)
 
