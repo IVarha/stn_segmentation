@@ -148,7 +148,7 @@ def parse_conf(conf_file_name):
 
 
 def main_proc(train, label_names, config_name,modalities, workdir):
-    tr_subjects = util.read_train_subjects(train)
+    tr_subjects = util.read_subjects(train)
     labels = util.read_label_desc(label_names)
 
     mod = util.read_modalities_config(modalities_name)

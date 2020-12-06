@@ -11,13 +11,15 @@ def read_label_desc(file_name):
     fm.close()
     return res
 
-def read_train_subjects(file_name):
+def read_subjects(file_name):
     fm = open(file=file_name,mode='rt')
     res = []
     for sub in fm:
         res.append(str(sub.strip('\n')))
     fm.close()
     return res
+
+
 
 
 def read_config_ini(file_name):
