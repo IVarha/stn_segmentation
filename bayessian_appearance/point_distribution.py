@@ -1,5 +1,6 @@
 
 import bayessian_appearance.settings as settings
+import bayessian_appearance.distributions as distros
 import os
 import csv
 import sklearn.neighbors as neighb
@@ -58,7 +59,8 @@ class PointDistribution:
             posit_kdes = []
             for j in range(len(coordinates)):
                 #HERE IS KDE FOR COORDS!!!
-                kde = scp_stats.gaussian_kde(np.array(coordinates[j]).transpose())
+                #kde = scp_stats.gaussian_kde(np.array(coordinates[j]).transpose())
+                kde = distros.NormalDistribution(coordinates[j])
                 posit_kdes.append(kde)
                 print(1)
 
@@ -78,7 +80,10 @@ class PointDistribution:
 
                 #form intensity KDE HERE
                 profile = np.array(profile)
-                i_kde = scp_stats.gaussian_kde(profile) #TODO MAYBE ADD CONSTRAINTS FOR OUTSIDE
+                i_kde = neighb.KernelDensity(kernel="gaussian").fit(profile)
+                i_kde2 =distros.NormalDistribution(profile)
+                #i_kde = scp_stats.gaussian_kde(profile.transpose()) #TODO MAYBE ADD CONSTRAINTS FOR OUTSIDE
+                #i_kde.pdf(profile[3,:])
                 intensity_kdes.append(i_kde)
 
             kde_combined.append([posit_kdes,intensity_kdes])
@@ -157,6 +162,10 @@ class PointDistribution:
             pass
         f = open(file_name,'wb')
         pickle.dump(self,f)
+
+
+    def get_kdes(self):
+        return self._kdes.copy()
 
     @staticmethod
     def read_pdm( file_name):

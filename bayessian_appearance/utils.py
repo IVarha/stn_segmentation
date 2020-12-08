@@ -1,13 +1,14 @@
 
 import configparser
 import bayessian_appearance.settings as settings
-
+import numpy as np
 def read_label_desc(file_name):
     fm = open(file=file_name,mode='rt')
     res = []
     for sub in fm:
         a = sub.split(',')
         res.append(a[0])
+    settings.settings.all_labels = res
     fm.close()
     return res
 
@@ -70,3 +71,16 @@ def read_segmentation_config(file_name):
     return res
 
 
+def apply_transf_2_norms( norms,transf):
+    a = np.array(norms)
+
+
+    res = []
+    for i in range(a.shape[0]):
+        tmp = []
+        for j in range(a.shape[1]):
+            pt_norm = np.array(list(a[i,j,:]) + [1])
+            pt_tmp = list((np.dot(transf,pt_norm))[:3])
+            tmp.append(pt_tmp)
+        res.append(tmp)
+    return res

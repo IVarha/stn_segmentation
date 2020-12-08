@@ -12,6 +12,7 @@ class Settings:
     dependent_constraint = None
     norm_length = None
     discretisation = None
+    all_labels = None
 
     def __init__(self):
         pass

@@ -109,3 +109,29 @@ class Mesh:
 
     def get_point(self, i):
         return self._points.GetPoint(i)
+
+    def gen_num_of_points(self):
+        return self._points.GetNumberOfPoints()
+
+    def get_all_points(self):
+
+        res = []
+        for i in range(self.gen_num_of_points()):
+            res.append(list(self._points.GetPoint(i)))
+        return res
+
+    def get_unpacked_coords(self):
+        res = []
+        for i in range(self.gen_num_of_points()):
+            res += (list(self._points.GetPoint(i)))
+        return res
+
+
+    def modify_points(self, coords):
+
+        for i in range(coords.shape[0]):
+            self._points.SetPoint(i,tuple(coords[i,:]))
+        self._mesh_instance.Initialize()
+        self._mesh_instance.SetPoints(self._points)
+        self._mesh_instance.SetPolys(self._triangles)
+
