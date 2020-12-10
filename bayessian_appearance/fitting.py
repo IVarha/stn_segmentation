@@ -11,6 +11,9 @@ import fsl.transform.flirt as fl
 import os
 import nibabel as nib
 
+from datetime import datetime
+
+
 
 import bayessian_appearance.settings as gl_set
 
@@ -69,13 +72,15 @@ class FunctionHandler:
         normals = utils.apply_transf_2_norms(normals,self._from_mni_to_vox)
 
         norm_intens = np.array(self._image.interpolate_normals(normals))
-        res = -1
+        res = 0
 
         for i in range(self._num_of_points):
-            p1 = self._kdes[0][i].pdf(coords[i,:])
-            p2 = self._kdes[1][i].pdf(norm_intens[i,:])
+            p1 = self._kdes[0][i](coords[i,:])
+            p2 = self._kdes[1][i](norm_intens[i,:])
+            res += p1 + p2
+        return -res
 
-            print(1)
+
 
 
 
@@ -161,12 +166,35 @@ class Fitter:
                 fc.set_image(  self._test_subj[i] + os.sep + "t2_acpc_normalised.nii.gz/t2_resampled_fcm.nii.gz"   )
                 fc.set_subject(self._test_subj[i])
                 fc._mesh = self._best_meshes_mni[lab]
+
+
+                fc._mesh.calculate_closest_points()
                 fc._kdes = self._pdm.get_kdes()[lab]
                 fc._num_of_points= self._best_meshes_mni[lab].gen_num_of_points()
 
+                #constraint for interception
+                int_Cons = opt.NonlinearConstraint(fc._mesh.calculate_interception_from_newPTS,lb=0,ub=2)
+
+
                 X0 = fc._mesh.get_unpacked_coords()
 
+
+
+                # mimiser = opt.minimize(fc,X0,method="L-BFGS-B",options={'disp':101})
+                con =( { 'type': 'ineq', 'fun' : fc._mesh.calculate_interception_from_newPTS})
+                print(datetime.now())
+                mimiser = opt.minimize(fc, X0,method='COBYLA',constraints=con,options={"maxiter":40})
+                print(datetime.now())
+                fc._mesh.modify_points(mimiser.x.reshape((770,3)))
+                fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i]))
+
+                fc._mesh.save_obj(self._test_subj[i] + os.sep + str(lab) + "_fitted.obj")
+
                 a = fc(X0)
+
+
+
+
 
 
 

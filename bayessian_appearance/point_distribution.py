@@ -80,8 +80,8 @@ class PointDistribution:
 
                 #form intensity KDE HERE
                 profile = np.array(profile)
-                i_kde = neighb.KernelDensity(kernel="gaussian").fit(profile)
-                i_kde2 =distros.NormalDistribution(profile)
+                #i_kde = neighb.KernelDensity(kernel="gaussian").fit(profile)
+                i_kde =distros.NormalDistribution(profile)
                 #i_kde = scp_stats.gaussian_kde(profile.transpose()) #TODO MAYBE ADD CONSTRAINTS FOR OUTSIDE
                 #i_kde.pdf(profile[3,:])
                 intensity_kdes.append(i_kde)
