@@ -72,13 +72,15 @@ class FunctionHandler:
         normals = utils.apply_transf_2_norms(normals,self._from_mni_to_vox)
 
         norm_intens = np.array(self._image.interpolate_normals(normals))
-        res = 0
-
+        res1 = 0
+        res2 = 0
         for i in range(self._num_of_points):
             p1 = self._kdes[0][i](coords[i,:])
             p2 = self._kdes[1][i](norm_intens[i,:])
-            res += p1 + p2
-        return -res
+            res1 += p1
+            res2 += p2
+
+        return -(res1 + 0.2*res2)
 
 
 
@@ -183,7 +185,7 @@ class Fitter:
                 # mimiser = opt.minimize(fc,X0,method="L-BFGS-B",options={'disp':101})
                 con =( { 'type': 'ineq', 'fun' : fc._mesh.calculate_interception_from_newPTS})
                 print(datetime.now())
-                mimiser = opt.minimize(fc, X0,method='COBYLA',constraints=con,options={"maxiter":40})
+                mimiser = opt.minimize(fc, X0,method='COBYLA',constraints=con,options={"maxiter":1000})
                 print(datetime.now())
                 fc._mesh.modify_points(mimiser.x.reshape((770,3)))
                 fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i]))

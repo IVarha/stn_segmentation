@@ -1,6 +1,6 @@
 import vtk
 import numpy as np
-
+import os
 
 class Mesh:
     _mesh_instance = None
@@ -174,6 +174,10 @@ class Mesh:
         self._mesh_instance.SetPolys(self._triangles)
 
     def save_obj(self, filename):
+        try:
+            os.remove(filename)
+        except:
+            pass
         writer = vtk.vtkOBJWriter()
         writer.SetFileName(filename)
         writer.SetInputData(self._mesh_instance)
@@ -182,6 +186,13 @@ class Mesh:
     def is_triangle_intercepted(self, V10, V11, V12, V20, V21, V22):
         N2 = np.cross(V21 - V20, V22 - V20)
         d2 = -np.dot(N2, V20)
+        eq =0
+        if ((V10 == V20).min() == True) or ((V10 == V21).min() == True) or ((V10 == V22).min() == True): eq+=1
+        if ((V11 == V20).min() == True) or ((V11 == V21).min() == True) or ((V11 == V22).min() == True): eq += 1
+        if ((V12 == V20).min() == True) or ((V12 == V21).min() == True) or ((V12 == V22).min() == True): eq += 1
+
+        if eq == 1:
+            return False
 
         dist10 = np.dot(N2, V10) + d2
 
@@ -227,7 +238,8 @@ class Mesh:
 
             if ((dist20 == 0) or  (dist21 == 0) or  (dist22 == 0)):
                 return False
-
+            if ((dist10 - dist12 == 0)):
+                return False
             if (((dist10 >= 0) and (dist11 >= 0)) or ((dist10 <= 0) and (dist11 <= 0))):
 
                 t11 = p10 - (p10 - p12) * (dist10 / (dist10 - dist12))
