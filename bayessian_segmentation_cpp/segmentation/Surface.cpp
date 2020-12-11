@@ -29,9 +29,9 @@
 #include <Point.h>
 #include <vtkMassProperties.h>
 #include <vtkSelectEnclosedPoints.h>
+#include <vtkOBJReader.h>
 
 void Surface::read_volume(const std::string& file_name ) {
-    int s = 1;
     auto reader = vtkSmartPointer<vtkPolyDataReader>::New();
     reader->SetFileName(file_name.c_str());
     reader->Update();
@@ -264,4 +264,33 @@ double Surface::calculate_volume() {
     mass_calc->Update();
     return mass_calc->GetVolume();
 
+}
+
+void Surface::apply_points(std::vector<double>& set_of_points) {
+
+    for (int i = 0;i< this->points->GetNumberOfPoints();i++){
+        this->points->InsertPoint(i,set_of_points[3*i],set_of_points[3*i +1],set_of_points[3*i +2]);
+    }
+    this->mesh->Initialize();
+    this->mesh->SetPoints(this->points);
+    this->mesh->SetPolys(this->triangles);
+}
+
+void Surface::read_obj(const string &basicString) {
+
+    auto reader = vtkSmartPointer<vtkOBJReader>::New();
+    reader->SetFileName(basicString.c_str());
+    reader->Update();
+    vtkSmartPointer<vtkPolyData> origpd = reader->GetOutput();
+    auto points = vtkSmartPointer<vtkPoints>::New();
+    auto polys = vtkSmartPointer<vtkCellArray>::New();
+    auto newpd = vtkSmartPointer<vtkPolyData>::New();
+    points->DeepCopy(origpd->GetPoints());
+    polys->DeepCopy(origpd->GetPolys());
+    newpd->SetPoints(points);
+    newpd->SetPolys(polys);
+
+    this->mesh = newpd;
+    this->points = points;
+    this->triangles = polys;
 }

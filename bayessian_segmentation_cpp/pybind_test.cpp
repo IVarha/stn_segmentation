@@ -33,7 +33,8 @@ m.def("subtract", [](int i, int j) { return i - j; }, R"pbdoc(
 
     py::class_<pySurface>(m, "cMesh")
             .def(py::init<const std::string &>())
-            .def("getName",&pySurface::getName);
+            .def("getName",&pySurface::getName)
+            .def("setNewPoints", &pySurface::modify_points);
 
 #ifdef VERSION_INFO
 m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

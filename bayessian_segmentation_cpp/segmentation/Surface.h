@@ -31,6 +31,10 @@ public:
 
     void setMesh(const vtkSmartPointer<vtkPolyData> &mesh);
 
+    void apply_points(std::vector<double>& new_pts);
+
+
+
     void smoothMesh();
 
 private:
@@ -48,7 +52,7 @@ private:
 
         double calculate_volume();
         static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre);
-
+        void read_obj(const string &basicString);
 };
 
 
