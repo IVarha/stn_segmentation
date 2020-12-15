@@ -13,6 +13,10 @@ import nibabel as nib
 
 from datetime import datetime
 
+import sys
+
+sys.path.insert(0, "/tmp/tmp.9HaHyiykJ1/cmake-build-debug-remote-host")
+import ExtPy
 
 
 import bayessian_appearance.settings as gl_set
@@ -27,6 +31,7 @@ class FunctionHandler:
     #label of single mesh
     _label = None
     _mesh = None
+    _cmesh = None
     _num_of_points=None
 
 
@@ -80,7 +85,7 @@ class FunctionHandler:
             res1 += p1
             res2 += p2
 
-        return -(res1 + 0.2*res2)
+        return -(10*res1 + 0.2*res2)
 
 
 
@@ -110,6 +115,7 @@ class Fitter:
     _modal = None
     _mat_over = None
     _best_meshes_mni = None
+    _best_meshes_c = None
 
 
 
@@ -137,6 +143,7 @@ class Fitter:
 
         #get best meshes of segmented figures
         self._best_meshes_mni = []
+        self._best_meshes_c = []
         for i in range(len(gl_set.settings.labels_to_segment)):
             label = gl_set.settings.labels_to_segment[i]
             ind = gl_set.settings.all_labels.index(label)
@@ -150,8 +157,13 @@ class Fitter:
 
             mni_w = fl.fromFlirt(to_mni_mat, native_im, mni_im, "world", "world")
 
+            surf_c = ExtPy.cMesh(self._train_subj[sub_ind] + os.sep + label + "_1.obj")
+
+
             surf = mesh.Mesh(self._train_subj[sub_ind] + os.sep + label + "_1.obj")
             surf.apply_transform(mni_w)
+            surf_c.applyTransformation(mni_w.tolist())
+            self._best_meshes_c.append(surf_c)
             self._best_meshes_mni.append(surf)
 
 
@@ -168,7 +180,7 @@ class Fitter:
                 fc.set_image(  self._test_subj[i] + os.sep + "t2_acpc_normalised.nii.gz/t2_resampled_fcm.nii.gz"   )
                 fc.set_subject(self._test_subj[i])
                 fc._mesh = self._best_meshes_mni[lab]
-
+                fc._cmesh = self._best_meshes_c[lab]
 
                 fc._mesh.calculate_closest_points()
                 fc._kdes = self._pdm.get_kdes()[lab]
@@ -180,10 +192,15 @@ class Fitter:
 
                 X0 = fc._mesh.get_unpacked_coords()
 
+                print(datetime.now())
+                print(fc._cmesh.selfIntersectionTest(X0))
+                print(datetime.now())
+                #print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
+                print(datetime.now())
 
-
+                cons = lambda x : fc._cmesh.selfIntersectionTest(x.tolist())
                 # mimiser = opt.minimize(fc,X0,method="L-BFGS-B",options={'disp':101})
-                con =( { 'type': 'ineq', 'fun' : fc._mesh.calculate_interception_from_newPTS})
+                con =( { 'type': 'ineq', 'fun' : cons})
                 print(datetime.now())
                 mimiser = opt.minimize(fc, X0,method='COBYLA',constraints=con,options={"maxiter":1000})
                 print(datetime.now())

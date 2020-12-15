@@ -177,7 +177,9 @@ int main(int argc, char *argv[]) {
     CLIParser parser = CLIParser();
     parser.parse_options(argc,argv);
 
-
+    Surface surface = Surface();
+    surface.read_volume("/mnt/f/fsl/src/mist-clean/data/meshes/left_red_nucleus.mim");
+    auto a = surface.getTrianglesAsVec();
 
     vector<string> run_param = parser.getValue("run");
 
@@ -206,7 +208,6 @@ int main(int argc, char *argv[]) {
 
         return 0;
     }
-    Surface surface = Surface();
-    surface.read_volume("/mnt/f/fsl/src/mist-clean/data/meshes/left_red_nucleus.mim");
+
     return 0;
 }

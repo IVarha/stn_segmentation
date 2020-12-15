@@ -13,6 +13,8 @@ class Mesh:
 
     _pt_size = None
 
+    _file_name = None
+
     def calculate_copy_of_triangles(self):
         res = []
         for cell_id in range(self._mesh_instance.GetNumberOfCells()):
@@ -69,6 +71,8 @@ class Mesh:
         self.calculate_copy_of_points()
         self.calculate_copy_of_triangles()
         self._pt_size = self._points.GetNumberOfPoints()
+        self._file_name = filename
+
 
     def apply_transform(self, mat):
         for i in range(self._pt_size):

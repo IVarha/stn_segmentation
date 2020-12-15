@@ -120,3 +120,32 @@ Point Point::move_point_with_stop(VolumeDouble &image, Point &direction, Point &
 std::tuple<double, double, double> Point::to_tuple() {
     return std::tuple<double, double, double>(this->getX(), this->getY(), this->getZ());
 }
+
+double *Point::cross_product(double *p1, double *p2) {
+    double* res = new double(3);
+    res[0] = p1[1]*p2[2] - p1[2]*p2[1];
+    res[1] = p1[2]*p2[0] - p1[0]*p2[2];
+    res[2] = p1[0]*p2[1] - p1[1]*p2[0];
+    return res;
+}
+
+double *Point::substract(const double *V1,const double *V2) {
+    double* res = new double (3);
+    res[0] = V1[0] - V2[0];
+    res[1] = V1[1] - V2[1];
+    res[2] = V1[2] - V2[2];
+    return res;
+}
+
+double Point::scalar(const double *V1,const double *V2) {
+    double res = 0;
+    res+= V1[0] * V2[0];
+    res+= V1[1] * V2[1];
+    res+= V1[2] * V2[2];
+    return res;
+
+}
+
+bool Point::isEqual(const double *V1, const double *V2) {
+    return ((V1[0]==V2[0])&&(V1[1]==V2[1])&&(V1[2]==V2[2]));
+}

@@ -26,6 +26,10 @@ private:
     Point move_point(VolumeDouble &image, Point &direction, double reach_value,double step ,double eps);
     Point move_point_with_stop(VolumeDouble &image, Point &direction, Point &stop,double reach_value,double step ,double eps);
     std::tuple<double,double,double> to_tuple();
+    static double* cross_product(double* p1, double* p2);
+    static double* substract(const double* V1,const double* V2);
+    static double scalar(const double* V1,const double* V2);
+    static bool isEqual(const double* V1,const double* V2);
 };
 
 

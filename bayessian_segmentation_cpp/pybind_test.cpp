@@ -1,4 +1,5 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <pySurface.h>
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -34,7 +35,9 @@ m.def("subtract", [](int i, int j) { return i - j; }, R"pbdoc(
     py::class_<pySurface>(m, "cMesh")
             .def(py::init<const std::string &>())
             .def("getName",&pySurface::getName)
-            .def("setNewPoints", &pySurface::modify_points);
+            .def("setNewPoints", &pySurface::modify_points)
+            .def("selfIntersectionTest", &pySurface::self_intersection_test)
+            .def("applyTransformation", &pySurface::apply_transformation);
 
 #ifdef VERSION_INFO
 m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

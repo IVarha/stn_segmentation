@@ -33,7 +33,9 @@ public:
 
     void apply_points(std::vector<double>& new_pts);
 
+    std::vector<std::vector<int>> getTrianglesAsVec();
 
+    std::vector<std::vector<double>> getPointsAsVec();
 
     void smoothMesh();
 
@@ -49,10 +51,17 @@ private:
         std::tuple<double, double, double>  centre_of_mesh();
         void shrink_sphere(VolumeDouble& mask, std::tuple<double,double,double> center,double threshold);
         void apply_transformation(TransformMatrix& pre_transformation);
-
+        void apply_transformation(arma::mat pre_transformation);
         double calculate_volume();
         static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre);
         void read_obj(const string &basicString);
+
+        static bool intersection_triangles(double* v0, double* v1, double* v2, double* v0_2, double* u1, double* u2);
+
+
+    static bool
+    triangle_intersection(const double *V10, const double *V11, const double *V12, const double *V20, const double *V21,
+                          const double *V22);
 };
 
 

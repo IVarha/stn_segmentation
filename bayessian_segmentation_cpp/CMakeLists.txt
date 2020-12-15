@@ -2,6 +2,7 @@
 project(bayessian_segmentation_cpp)
 
 set(CMAKE_CXX_STANDARD 14)
+add_compile_options("-fPIC")
  set(VTK_DIR "/home/igorv/vtk/VTK-9.0.1/build" CACHE PATH "VTK directory override" FORCE )
  find_package(VTK COMPONENTS
          vtkCommonCore
@@ -48,12 +49,12 @@ include_directories(pybind11_INCLUDE_DIRS)
 
 add_executable(bayessian_segmentation_cpp main.cpp ${SOURCES})
  pybind11_add_module(ExtPy pybind_test.cpp py_wrappers/pySurface.cpp)
- target_link_libraries(ExtPy PUBLIC ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES})
+
 
 
  target_link_libraries(bayessian_segmentation_cpp PRIVATE ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES})
- target_link_libraries(Segmentation ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES})
-
+ target_link_libraries(Segmentation PUBLIC ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES})
+ target_link_libraries(ExtPy PUBLIC ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES} Segmentation )
  # vtk_module_autoinit is needed
  vtk_module_autoinit(
          TARGETS bayessian_segmentation_cpp
