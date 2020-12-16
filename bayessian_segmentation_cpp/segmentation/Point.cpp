@@ -121,7 +121,7 @@ std::tuple<double, double, double> Point::to_tuple() {
     return std::tuple<double, double, double>(this->getX(), this->getY(), this->getZ());
 }
 
-double *Point::cross_product(double *p1, double *p2) {
+double* Point::cross_product(double *p1, double *p2) {
     double* res = new double(3);
     res[0] = p1[1]*p2[2] - p1[2]*p2[1];
     res[1] = p1[2]*p2[0] - p1[0]*p2[2];

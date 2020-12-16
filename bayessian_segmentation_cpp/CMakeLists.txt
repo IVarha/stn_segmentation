@@ -25,6 +25,8 @@ add_compile_options("-fPIC")
          QUIET)
  find_package(ZLIB REQUIRED)
  find_package(Armadillo REQUIRED)
+ find_package(spdlog REQUIRED)
+
  add_subdirectory(external/pybind11)
 include_directories(pybind11_INCLUDE_DIRS)
 
@@ -36,6 +38,7 @@ include_directories(pybind11_INCLUDE_DIRS)
  include_directories(utils)
  include_directories(segmentation)
  include_directories(py_wrappers)
+ include_directories(external/spdlog/include)
  include_directories(${ARMADILLO_INCLUDE_DIRS})
  add_library(Segmentation
          segmentation/Surface.cpp segmentation/Surface.h
@@ -52,9 +55,9 @@ add_executable(bayessian_segmentation_cpp main.cpp ${SOURCES})
 
 
 
- target_link_libraries(bayessian_segmentation_cpp PRIVATE ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES})
- target_link_libraries(Segmentation PUBLIC ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES})
- target_link_libraries(ExtPy PUBLIC ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES} Segmentation )
+ target_link_libraries(bayessian_segmentation_cpp PRIVATE ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES} spdlog::spdlog )
+ target_link_libraries(Segmentation PUBLIC ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES} spdlog::spdlog)
+ target_link_libraries(ExtPy PUBLIC ${VTK_LIBRARIES} ZLIB::ZLIB  ${ARMADILLO_LIBRARIES} Segmentation spdlog::spdlog)
  # vtk_module_autoinit is needed
  vtk_module_autoinit(
          TARGETS bayessian_segmentation_cpp

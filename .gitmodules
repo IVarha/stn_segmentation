@@ -1,3 +1,6 @@
 [submodule "bayessian_segmentation_cpp/external/pybind11"]
 	path = bayessian_segmentation_cpp/external/pybind11
 	url = https://github.com/pybind/pybind11/
+[submodule "bayessian_segmentation_cpp/external/spdlog"]
+	path = bayessian_segmentation_cpp/external/spdlog
+	url = https://github.com/gabime/spdlog

@@ -172,6 +172,12 @@ void test_interpolation(){
 
 int main(int argc, char *argv[]) {
     std::cout << "Hello, World!" << std::endl;
+    try{
+        double b = 1/0;
+    }
+    catch (...){
+        std::cout << "what?";
+    }
 
     test_interpolation();
     CLIParser parser = CLIParser();

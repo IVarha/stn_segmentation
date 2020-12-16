@@ -51,12 +51,12 @@ bool pySurface::self_intersection_test(const std::vector<double>& new_points) {
             U2[2] = new_points[3*u2i+2];
 
             if (Surface::triangle_intersection(V0,V1,V2,U0,U1,U2)){
-                delete V0;
-                delete V1;
-                delete V2;
-                delete U0;
-                delete U1;
-                delete U2;
+                delete[] V0;
+                delete[] V1;
+                delete[] V2;
+                delete[] U0;
+                delete[] U1;
+                delete[] U2;
                 std::cout << "intersected: " << i << " " << j << std::endl;
                 return true;
 
@@ -66,12 +66,12 @@ bool pySurface::self_intersection_test(const std::vector<double>& new_points) {
         }
         sj++;
     }
-    delete V0;
-    delete V1;
-    delete V2;
-    delete U0;
-    delete U1;
-    delete U2;
+    delete[] V0;
+    delete[] V1;
+    delete[] V2;
+    delete[] U0;
+    delete[] U1;
+    delete[] U2;
 
     return false;
 }

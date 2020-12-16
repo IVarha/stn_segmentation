@@ -12,6 +12,9 @@
 #include <vtkPolyData.h>
 #include "vtkSmartPointer.h"
 #include <NiftiImage.h>
+#include "spdlog/spdlog.h"
+#include "spdlog/logger.h"
+#include "spdlog/sinks/rotating_file_sink.h"
 
 class Surface {
 
@@ -37,11 +40,14 @@ public:
 
     std::vector<std::vector<double>> getPointsAsVec();
 
+    Surface();
+
     void smoothMesh();
 
 private:
     vtkSmartPointer<vtkCellArray> triangles;
     vtkSmartPointer<vtkPolyData> mesh;
+    static std::shared_ptr<spdlog::logger> _logger;
     public:
         void read_volume(const std::string& file_name );
         void expand_volume(double mm);

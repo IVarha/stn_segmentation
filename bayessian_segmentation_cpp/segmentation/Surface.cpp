@@ -31,6 +31,9 @@
 #include <vtkSelectEnclosedPoints.h>
 #include <vtkOBJReader.h>
 #include "math.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/cfg/env.h" // support for loading levels from the environment variable
+#include "spdlog/sinks/rotating_file_sink.h"
 
 void Surface::read_volume(const std::string& file_name ) {
     auto reader = vtkSmartPointer<vtkPolyDataReader>::New();
@@ -575,22 +578,30 @@ void Surface::apply_transformation(arma::mat pre_transformation) {
     this->apply_transformation(matrix);
 
 }
+std::shared_ptr<spdlog::logger> Surface::_logger=spdlog::rotating_logger_st("file_logger", "logs/mylogfile", 1048576 * 5, 25);
 
 bool Surface::triangle_intersection(const double* V10, const double* V11, const double* V12, const double* V20, const double* V21, const double* V22 )
 {//this is the de
     //calculate triangle plane 2
     //cout<<"test triangles"<<endl;
 
-    try {
-        double a = 1/0.0;
+
+//    Surface::_logger->error("Entered");
+
+
+
         short eq = 0;
         if (Point::isEqual(V10, V20) || Point::isEqual(V10, V21) || Point::isEqual(V10, V22)) eq++;
         if (Point::isEqual(V11, V20) || Point::isEqual(V11, V21) || Point::isEqual(V11, V22)) eq++;
         if (Point::isEqual(V12, V20) || Point::isEqual(V12, V21) || Point::isEqual(V12, V22)) eq++;
 
-        if (eq == 1) return false;
+        if (eq == 1) { Surface::_logger->error("Succesful exit in 1");return false;}
 
-        double *N2 = Point::cross_product(Point::substract(V21, V20), Point::substract(V22, V20));
+        auto v1 =  Point::substract(V21, V20);
+        auto v2 = Point::substract(V22, V20);
+        double *N2 = Point::cross_product(v1, v2);
+        delete v1;
+        delete v2;
         double d2 = -Point::scalar(N2, V20);
 
 //	T testV[]={1,2,3};
@@ -606,6 +617,7 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
         //cout<<"DIST AGAIN "<<dist10<<" "<<dot_prod(N2,V22)+d2<<" "<<dot_prod(N2,V20)+d2<<" "<<dot_prod(N2,V21)+d2<<endl;
         if (((dist10 >= 0) && (dist11 >= 0) && (dist12 >= 0)) || ((dist10 <= 0) && (dist11 <= 0) && (dist12 <= 0))) {
             delete N2;
+//            Surface::_logger->error("Succesful exit in 2");
             return false;//not all points are on same side of plan
         }
 //	}else if (( dist10 == dist11 ) && (dist11 == dist12) && ( dist12 == 0 )) //test for coplanar
@@ -614,11 +626,17 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
 //		return false;
 //	}else
         if ((dist10 == 0) || (dist11 == 0) || (dist12 == 0)) {
-            delete N2;
+            delete[] N2;
+//            Surface::_logger->error("Succesful exit in 3");
             return false;
         } else {
             //calculate intersection line
-            double *N1 = Point::cross_product(Point::substract(V11, V10), Point::substract(V12, V10));
+
+            auto v3 = Point::substract(V11, V10);
+            auto v4 = Point::substract(V12, V10);
+            double *N1 = Point::cross_product(v3, v4);
+            delete[] v3;
+            delete[] v4;
             double d1 = -Point::scalar(N1, V10);
 
             double dist20 = Point::scalar(N1, V20) + d1;
@@ -627,8 +645,9 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
 
             if (((dist20 >= 0) && (dist21 >= 0) && (dist22 >= 0)) ||
                 ((dist20 <= 0) && (dist21 <= 0) && (dist22 <= 0))) {
-                delete N2;
-                delete N1;
+                delete[] N2;
+                delete[] N1;
+//                Surface::_logger->error("Succesful exit in 3_1");
                 return false;//not all points are on same side of plan
             }
             //claulcate line in=tersection (without intercept)
@@ -667,15 +686,17 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
             if (abs(dist21) < 1e-4) dist21 = 0;
             if (abs(dist22) < 1e-4) dist22 = 0;
 
-            //	cout<<"dist1 "<<dist10<<" "<<dist11<<" "<<dist12<<" "<<dist20<<" "<<dist21<<" "<<dist22<<endl;
+            	//cout<<"dist1 "<<dist10<<" "<<dist11<<" "<<dist12<<" "<<dist20<<" "<<dist21<<" "<<dist22<<endl;
 
             if ((dist20 == 0) || (dist21 == 0) || (dist22 == 0)) {
                 //cout<<"not intersect 2"<<endl;
-                delete N2;
-                delete N1;
+                delete[] D;
+                delete[] N2;
+                delete[] N1;
+//                Surface::_logger->error("Succesful exit in 4");
                 return false;
             }
-            if ((dist10 == dist12) || (dist11 == dist12) || (dist11 == dist10)) { cout << "problem" << endl; }
+            if ((dist10 == dist12) || (dist11 == dist12) || (dist11 == dist10)) {Surface::_logger->error("pr2"); cout << "problem" << endl; }
             double t11, t12, t21, t22; //intersection parameters
 
             //get triangle 1 interval
@@ -689,7 +710,7 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
                 t11 = p11 - (p11 - p10) * (dist11 / (dist11 - dist10));
                 t12 = p12 - (p12 - p10) * (dist12 / (dist12 - dist10));
             }
-            if ((dist20 == dist21) || (dist20 == dist22) || (dist21 == dist22)) { cout << "problem2" << endl; }
+            if ((dist20 == dist21) || (dist20 == dist22) || (dist21 == dist22)) {Surface::_logger->error("pr2"); cout << "problem2" << endl; }
             //get triangle 2 interval
             if (((dist20 >= 0) && (dist21 >= 0)) || ((dist20 <= 0) && (dist21 <= 0))) {
                 t21 = p20 - (p20 - p22) * (dist20 / (dist20 - dist22));
@@ -711,18 +732,20 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
 //		cout<<"intervals "<<t11<<" "<<t12<<" "<<t21<<" "<<t22<<endl;
             //check interval overlap
             if (((t21 <= t11) && (t21 <= t12) && (t22 <= t11) && (t22 <= t12)) || \
-             ((t21 >= t11) && (t21 >= t12) && (t22 >= t11) && (t22 >= t12)))
+             ((t21 >= t11) && (t21 >= t12) && (t22 >= t11) && (t22 >= t12))){
+                delete[] D;
+                delete[] N1;
+                delete[] N2;
+//                Surface::_logger->error("Succesful exit in 5");
                 return false;
-
-
+        } else { delete[] D; delete[] N1; delete[] N2;}
         }
-        return true;
-    }
-    catch(exception& e) {
+//        Surface::_logger->error("Succesful exit in 6");
 
-        cout << e.what() << '\n';
-        cout << V10[0]<< endl;
-        exit(-2);
-    }
-    return false;
+        return true;
+
+}
+
+Surface::Surface() {
+
 }
