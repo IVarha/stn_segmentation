@@ -172,20 +172,14 @@ void test_interpolation(){
 
 int main(int argc, char *argv[]) {
     std::cout << "Hello, World!" << std::endl;
-    try{
-        double b = 1/0;
-    }
-    catch (...){
-        std::cout << "what?";
-    }
 
     test_interpolation();
     CLIParser parser = CLIParser();
     parser.parse_options(argc,argv);
 
-    Surface surface = Surface();
-    surface.read_volume("/mnt/f/fsl/src/mist-clean/data/meshes/left_red_nucleus.mim");
-    auto a = surface.getTrianglesAsVec();
+//    Surface surface = Surface();
+//    surface.read_volume("/mnt/f/fsl/src/mist-clean/data/meshes/left_red_nucleus.mim");
+//    auto a = surface.getTrianglesAsVec();
 
     vector<string> run_param = parser.getValue("run");
 

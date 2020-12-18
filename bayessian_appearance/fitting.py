@@ -202,9 +202,10 @@ class Fitter:
                 # mimiser = opt.minimize(fc,X0,method="L-BFGS-B",options={'disp':101})
                 con =( { 'type': 'ineq', 'fun' : cons})
                 print(datetime.now())
-                mimiser = opt.minimize(fc, X0,method='COBYLA',constraints=con,options={"maxiter":1000})
+                mimiser = opt.minimize(fc, X0,method='COBYLA',constraints=con,options={"maxiter":50000})
                 print(datetime.now())
-                fc._mesh.modify_points(mimiser.x.reshape((770,3)))
+                l = len(mimiser.x.tolist())
+                fc._mesh.modify_points(mimiser.x.reshape(( int(l/3),3)))
                 fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i]))
 
                 fc._mesh.save_obj(self._test_subj[i] + os.sep + str(lab) + "_fitted.obj")

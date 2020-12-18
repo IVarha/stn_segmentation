@@ -14,10 +14,14 @@ pveseg="t1_acpc_extracted_pveseg.nii.gz"
 t2_file="t2_resampled.nii.gz"
 out_t2="t2_acpc_normalised.nii.gz"
 wm_mask="t2_WM_mask.nii.gz"
+
+out_name_fcm="t2_resampled_fcm.nii.gz"
 # segment alex data
 for d in $work_dir//$prefix_subdirs*; do
     echo "$d"
+    rm -rf $d/$out_t2
     fcm-normalize -i $d/$t2_file -tm $d/$wm_mask -o $d/$out_t2 -v -c t2 -s -p
+    python3 robust_intesity_normalisation.py $d/$out_t2/$out_name_fcm $d/$wm_mask $d/$out_t2/$out_name_fcm
     # WM_mask
     #create mask
 

@@ -22,9 +22,6 @@ import pandas
 import csv
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 def concatenate_intensities(x1,x2):
     res = [ ]
@@ -172,7 +169,7 @@ def main_proc(train, label_names, config_name,modalities, workdir):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    #print_hi('PyCharm')
     train_subjects_file = sys.argv[1]
     labels_desc_file = sys.argv[2]
     conf_file = sys.argv[3]

@@ -14,9 +14,6 @@ import numpy as np
 import bayessian_appearance.mesh as mesh
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 def read_train_subjects(file_name):
     fm = open(file=file_name,mode='rt')
@@ -195,7 +192,7 @@ def main_proc(train, label_names, workdir):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    print('Hi PyCharm')
     train_subjects_file = sys.argv[1]
     labels_desc_file = sys.argv[2]
     outp = sys.argv[3]
