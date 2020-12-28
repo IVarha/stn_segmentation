@@ -48,30 +48,30 @@ class Mesh:
             mat.append(list(set(t_connected)))
         self._connectivity_list = mat
 
-    def __init__(self, filename):
+    def __init__(self, filename=None):
+        if filename != None:
+            reader = vtk.vtkOBJReader()
+            reader.SetFileName(filename)
+            reader.Update()
 
-        reader = vtk.vtkOBJReader()
-        reader.SetFileName(filename)
-        reader.Update()
+            a = reader.GetOutput()
 
-        a = reader.GetOutput()
+            self._mesh_instance = vtk.vtkPolyData()
 
-        self._mesh_instance = vtk.vtkPolyData()
+            self._points = vtk.vtkPoints()
+            self._triangles = vtk.vtkCellArray()
 
-        self._points = vtk.vtkPoints()
-        self._triangles = vtk.vtkCellArray()
+            self._points.DeepCopy(a.GetPoints())
+            self._triangles.DeepCopy(a.GetPolys())
 
-        self._points.DeepCopy(a.GetPoints())
-        self._triangles.DeepCopy(a.GetPolys())
-
-        self._mesh_instance.SetPoints(self._points)
-        self._mesh_instance.SetPolys(self._triangles)
-        # calculate options
-        self.calculate_closest_points()
-        self.calculate_copy_of_points()
-        self.calculate_copy_of_triangles()
-        self._pt_size = self._points.GetNumberOfPoints()
-        self._file_name = filename
+            self._mesh_instance.SetPoints(self._points)
+            self._mesh_instance.SetPolys(self._triangles)
+            # calculate options
+            self.calculate_closest_points()
+            self.calculate_copy_of_points()
+            self.calculate_copy_of_triangles()
+            self._pt_size = self._points.GetNumberOfPoints()
+            self._file_name = filename
 
 
     def apply_transform(self, mat):
@@ -297,3 +297,196 @@ class Mesh:
                 if (self.is_triangle_intercepted(v11, v21, v31, v12, v22, v32)):
                     return -1
         return 1
+
+
+    def get_centre(self):
+        cn  = vtk.vtkCenterOfMass()
+        cn.SetInputData(self._mesh_instance)
+        cn.Update()
+        return cn.GetCenter()
+
+    @staticmethod
+    def generate_sphere(center, radius,discretisation):
+        ss = vtk.vtkSphereSource()
+        ss.SetRadius(radius)
+        ss.SetCenter(center[0],center[1],center[2])
+        ss.Update()
+        originalMesh = ss.GetOutput()
+        sdf = vtk.vtkLinearSubdivisionFilter()
+        sdf.SetInputData(originalMesh)
+        sdf.SetNumberOfSubdivisions(discretisation)
+        sdf.Update()
+        mes = sdf.GetOutput()
+        res = Mesh()
+        res._points = mes.GetPoints()
+        res._triangles = mes.GetPolys()
+        res._mesh_instance = mes
+        res.calculate_closest_points()
+        res.calculate_copy_of_points()
+        res.calculate_copy_of_triangles()
+        return res
+
+
+
+
+
+    def _interpolate_value_vox(self,mask,vox):
+
+        if vox == None: return 0
+        x = vox[0]
+        y = vox[1]
+        z = vox[2]
+
+
+        x1 = np.floor(vox[0])
+
+        y1 = np.floor(vox[1])
+
+        z1 = np.floor(vox[2])
+
+        xd = vox[0] - x1
+
+        yd = vox[1] - y1
+
+        zd = vox[2] - z1
+
+        if (((vox[0] + 1) > mask.shape[0]) or ((y + 1) > mask.shape[1]) or ((z + 1) > mask.shape[2]) or (x < 0) or (
+                y < 0) or (z < 0)): return 0;
+
+        c000 = mask[(int)(x1), (int)(y1), (int)(z1)]
+        c001 = mask[int(x1), int(y1), int(z1 + 1)]
+
+        c010 = mask[int(x1), int(y1 + 1), int(z1)]
+
+        c011 = mask[int(x1), int(y1 + 1), int(z1 + 1)]
+
+        c100 = mask[int(x1 + 1), int(y1), int(z1)]
+
+        c101 = mask[int(x1 + 1), int(y1), int(z1 + 1)]
+
+        c110 = mask[int(x1 + 1), int(y1 + 1), int(z1)]
+
+        c111 = mask[int(x1 + 1), int(y1 + 1), int(z1 + 1)]
+
+
+        c00 = c000 * (1 - xd) + c100 * xd
+
+        c01 = c001 * (1 - xd) + c101 * xd
+
+        c10 = c010 * (1 - xd) + c110 * xd
+
+        c11 = c011 * (1 - xd) + c111 * xd
+
+
+        c0 = c00 * (1 - yd) + c10 * yd
+
+        c1 = c01 * (1 - yd) + c11 * yd
+
+        return c0 * (1 - zd) + c1 * zd
+
+
+    #for sphere shrinkage
+    def _recalc_to_voxel_coords(self, coords,mni_coords):
+        tx=0
+        if ((mni_coords[0] > coords[0][-1])
+                or(mni_coords[1] > coords[1][-1])
+                or (mni_coords[2] > coords[2][-1])
+                or (mni_coords[0] < coords[0][0])
+                or (mni_coords[1] < coords[1][0])
+                or (mni_coords[2] < coords[2][0])
+        ):
+            return None
+        #for x
+        tx = 0
+        for i in range(len(coords[0])-1):
+            if (coords[0][i]<mni_coords[0]) and (coords[0][i+1]>mni_coords[0]):
+                tx = i
+                break
+        tx =tx+ (mni_coords[0] - coords[0][tx])/(coords[0][tx+1] - coords[0][tx])
+
+        #for y
+        ty = 0
+        for i in range(len(coords[1])-1):
+            if (coords[1][i]<mni_coords[1]) and (coords[1][i+1]>mni_coords[1]):
+                ty = i
+                break
+        ty =ty+ (mni_coords[1] - coords[1][ty]) / (coords[1][ty + 1] - coords[1][ty])
+        # for z
+        tz = 0
+        for i in range(len(coords[2]) - 1):
+            if (coords[2][i] < mni_coords[2]) and (coords[2][i + 1] > mni_coords[2]):
+                tz = i
+                break
+        tz = tz + (mni_coords[2] - coords[2][tz]) / (coords[2][tz + 1] - coords[2][tz])
+        return [tx,ty,tz]
+
+
+    def _move_point(self, image,point, coords, direction, stop, reach_value, step, eps):
+        curr_pt=point
+
+        cur_dir = 1
+
+        curr_step = step
+
+        val_pre = self._interpolate_value_vox(image, self._recalc_to_voxel_coords(coords,curr_pt))
+
+
+        err = abs(val_pre - reach_value)
+        while (err > eps):
+
+            val1 = self._interpolate_value_vox(image, self._recalc_to_voxel_coords(coords,curr_pt + curr_step*cur_dir*direction))
+
+            t_err = np.linalg.norm( curr_pt - stop)
+
+            if (t_err < curr_step):
+                break
+
+            curr_pt = curr_pt + curr_step*cur_dir*direction
+
+            if (((val1 > reach_value) and (val_pre < reach_value)) or ((val1 < reach_value) and (val_pre > reach_value))):
+
+                curr_step = curr_step / 2
+                cur_dir = cur_dir * (-1)
+
+            else:
+                if (val1 == reach_value):
+                    break
+            err = abs(val1 - reach_value)
+            val_pre = val1
+
+        return curr_pt
+
+    def shrink_sphere(self, mask, coords,cenre,tres):
+        cenre = np.array(cenre)
+        for i in range(self._copied_points.shape[0]):
+
+            normal = cenre - self._copied_points[i,:]
+            normal = normal/np.linalg.norm(normal)
+
+
+            #move+point
+            res_vox = self._move_point(mask,point=self._copied_points[i,:],coords=coords,
+                                       direction=normal,stop=cenre,reach_value=tres,step=0.3,eps=0.03)
+
+            self._points.SetPoint(i,res_vox)
+            print("processed point " + str(i))
+
+        self._mesh_instance.Initialize()
+        self._mesh_instance.SetPoints(self._points)
+        self._mesh_instance.SetPolys(self._triangles)
+
+
+    def smooth_mesh(self):
+        sf = vtk.vtkSmoothPolyDataFilter()
+        sf.SetInputData(self._mesh_instance)
+        sf.SetNumberOfIterations(30)
+        sf.FeatureEdgeSmoothingOff()
+        sf.BoundarySmoothingOn()
+        sf.SetRelaxationFactor(0.1)
+        sf.Update()
+
+        self._points.Initialize()
+        self._points.DeepCopy(sf.GetOutput().GetPoints())
+        self._mesh_instance.Initialize()
+        self._mesh_instance.SetPoints(self._points)
+        self._mesh_instance.SetPolys(self._triangles)

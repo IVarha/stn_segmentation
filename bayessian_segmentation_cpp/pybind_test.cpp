@@ -32,6 +32,11 @@ m.def("subtract", [](int i, int j) { return i - j; }, R"pbdoc(
     )pbdoc");
 
 
+m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
+        Test if triangles formed by points intersected
+        Some other explanation about the subtract function.
+    )pbdoc");
+
     py::class_<pySurface>(m, "cMesh")
             .def(py::init<const std::string &>())
             .def("getName",&pySurface::getName)

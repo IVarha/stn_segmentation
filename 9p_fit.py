@@ -22,6 +22,16 @@ def main_proc(train_subjects, test_subjects, label_names, config_name, modalitie
     mod = util.read_modalities_config(modalities)
     seg_cnf = util.read_segmentation_config(modalities)
     cnf = util.read_config_ini(config_name)
+    sys.path.insert(0, "/tmp/tmp.9HaHyiykJ1/cmake-build-debug-remote-host")
+    import ExtPy
+    tri = [ [0,0,0],
+            [0,0,2],
+            [0,2,0],
+
+            [1,0,0],
+            [-1,0,0],
+            [-0.5,0.5,0.5]]
+    a = ExtPy.is_triangle_intersected(tri)
 
     meshes = []
     fitter  = fitt.Fitter(tr_subjects,test_subj=test_subjs)

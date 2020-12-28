@@ -13,6 +13,7 @@ class Settings:
     norm_length = None
     discretisation = None
     all_labels = None
+    atlas_dir = None
 
     def __init__(self):
         pass

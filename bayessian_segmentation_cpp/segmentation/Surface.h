@@ -15,6 +15,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/logger.h"
 #include "spdlog/sinks/rotating_file_sink.h"
+#include <set>
 
 class Surface {
 

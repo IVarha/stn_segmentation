@@ -42,7 +42,8 @@ include_directories(pybind11_INCLUDE_DIRS)
  include_directories(${ARMADILLO_INCLUDE_DIRS})
  add_library(Segmentation
          segmentation/Surface.cpp segmentation/Surface.h
-         segmentation/NiftiImage.cpp segmentation/NiftiImage.h segmentation/Point.cpp segmentation/Point.h)
+         segmentation/NiftiImage.cpp segmentation/NiftiImage.h segmentation/Point.cpp segmentation/Point.h
+         segmentation/triangleintersects.h)
 
 
  add_library( Utils

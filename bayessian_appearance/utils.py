@@ -69,6 +69,7 @@ def read_segmentation_config(file_name):
             #res.append( [keys[i],cfg['segmentation_conf'][keys[i]]])
         settings.settings.use_constraint = res['use_constraint']
 
+    settings.settings.atlas_dir = res['atlas_dir']
     res['labels_to_segment'] = res['labels_to_segment'].split(',')
     settings.settings.labels_to_segment = res['labels_to_segment']
 
@@ -102,3 +103,46 @@ def read_fsl_mni2native_w(subject):
 def read_fsl_native2mni_w(subject):
     a = read_fsl_mni2native_w(subject)
     return np.linalg.inv(a)
+
+
+#generates point array
+def generate_mask(x_r,y_r,z_r,dt):
+
+    x_min = x_r[0]
+    x_max = x_r[1]
+
+    x_arr = []
+    i = 0
+    while True:
+        x_arr.append(x_min + i * dt)
+        if (x_min + i * dt) >= x_max:
+            break
+        i += 1
+    y_min = y_r[0]
+    y_max = y_r[1]
+    y_arr = []
+    i = 0
+    while True:
+        y_arr.append(y_min + i * dt)
+        if (y_min + i * dt) >= y_max:
+            break
+        i += 1
+
+    z_min = z_r[0]
+    z_max = z_r[1]
+    z_arr = []
+    i = 0
+    while True:
+        z_arr.append(z_min + i * dt)
+        if (z_min + i * dt) >= z_max:
+            break
+        i += 1
+
+    res_arr = np.zeros((len(x_arr),len(y_arr),len(z_arr),3))
+    for i in range(len(x_arr)):
+        for j in range(len(y_arr)):
+            for k in  range(len(z_arr)):
+                res_arr[i,j,k,0] = x_arr[i]
+                res_arr[i, j, k, 1] = y_arr[j]
+                res_arr[i, j, k, 2] = z_arr[k]
+    return res_arr

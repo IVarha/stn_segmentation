@@ -625,11 +625,12 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
 //		delete N2;
 //		return false;
 //	}else
-        if ((dist10 == 0) || (dist11 == 0) || (dist12 == 0)) {
-            delete[] N2;
-//            Surface::_logger->error("Succesful exit in 3");
-            return false;
-        } else {
+
+//        if ((dist10 == 0) || (dist11 == 0) || (dist12 == 0)) {
+//            delete[] N2;
+////            Surface::_logger->error("Succesful exit in 3");
+//            return false;
+//        } else {
             //calculate intersection line
 
             auto v3 = Point::substract(V11, V10);
@@ -739,7 +740,7 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
 //                Surface::_logger->error("Succesful exit in 5");
                 return false;
         } else { delete[] D; delete[] N1; delete[] N2;}
-        }
+        //}
 //        Surface::_logger->error("Succesful exit in 6");
 
         return true;

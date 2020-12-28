@@ -85,7 +85,7 @@ class FunctionHandler:
             res1 += p1
             res2 += p2
 
-        return -(10*res1 + 0.2*res2)
+        return -(10*res1 + 0.5*res2)
 
 
 
@@ -145,27 +145,28 @@ class Fitter:
         self._best_meshes_mni = []
         self._best_meshes_c = []
         for i in range(len(gl_set.settings.labels_to_segment)):
+
+
             label = gl_set.settings.labels_to_segment[i]
-            ind = gl_set.settings.all_labels.index(label)
-
-            sub_ind = list(self._mat_over[ind]).index(1)
-            mni_im = fim.Image(self._train_subj[sub_ind] + os.sep + "t1_brain_to_mni_stage2_apply.nii.gz")
-
-            native_im = fim.Image(self._train_subj[sub_ind] + os.sep + "t1_acpc_extracted.nii.gz")
-
-            to_mni_mat = fl.readFlirt(self._train_subj[sub_ind] + os.sep + "combined_affine_t1.mat")
-
-            mni_w = fl.fromFlirt(to_mni_mat, native_im, mni_im, "world", "world")
-
-            surf_c = ExtPy.cMesh(self._train_subj[sub_ind] + os.sep + label + "_1.obj")
-
-
-            surf = mesh.Mesh(self._train_subj[sub_ind] + os.sep + label + "_1.obj")
-            surf.apply_transform(mni_w)
-            surf_c.applyTransformation(mni_w.tolist())
+            # ind = gl_set.settings.all_labels.index(label)
+            #
+            # sub_ind = list(self._mat_over[ind]).index(1)
+            # mni_im = fim.Image(self._train_subj[sub_ind] + os.sep + "t1_brain_to_mni_stage2_apply.nii.gz")
+            #
+            # native_im = fim.Image(self._train_subj[sub_ind] + os.sep + "t1_acpc_extracted.nii.gz")
+            #
+            # to_mni_mat = fl.readFlirt(self._train_subj[sub_ind] + os.sep + "combined_affine_t1.mat")
+            #
+            # mni_w = fl.fromFlirt(to_mni_mat, native_im, mni_im, "world", "world")
+            #
+            # surf_c = ExtPy.cMesh(self._train_subj[sub_ind] + os.sep + label + "_1.obj")
+            #surf= mesh.Mesh(self._train_subj[sub_ind] + os.sep + label + "_1.obj")
+            surf_c = ExtPy.cMesh(gl_set.settings.atlas_dir + os.sep + label + "m.obj")
+            surf = mesh.Mesh(gl_set.settings.atlas_dir + os.sep + label + "m.obj")
+            # surf.apply_transform(mni_w)
+            # surf_c.applyTransformation(mni_w.tolist())
             self._best_meshes_c.append(surf_c)
             self._best_meshes_mni.append(surf)
-
 
 
 
@@ -198,11 +199,20 @@ class Fitter:
                 #print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
                 print(datetime.now())
 
-                cons = lambda x : fc._cmesh.selfIntersectionTest(x.tolist())
+                def __fc(x):
+                    if (fc._cmesh.selfIntersectionTest(x.tolist())):
+                        return -1
+                    else: return 1
+
+
+                #cons = lambda x : fc._cmesh.selfIntersectionTest(x.tolist())
+                cons = lambda x: __fc(x)
                 # mimiser = opt.minimize(fc,X0,method="L-BFGS-B",options={'disp':101})
                 con =( { 'type': 'ineq', 'fun' : cons})
+#                nlc = opt.NonlinearConstraint(cons,ub=0,keep_feasible=True)
                 print(datetime.now())
-                mimiser = opt.minimize(fc, X0,method='COBYLA',constraints=con,options={"maxiter":50000})
+                fc._constraints = cons
+                mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
                 print(datetime.now())
                 l = len(mimiser.x.tolist())
                 fc._mesh.modify_points(mimiser.x.reshape(( int(l/3),3)))
