@@ -27,7 +27,7 @@ add_compile_options("-fPIC")
  find_package(Armadillo REQUIRED)
  find_package(spdlog REQUIRED)
 
- add_subdirectory(external/pybind11)
+ add_subdirectory(external/pybind11-2.6)
 include_directories(pybind11_INCLUDE_DIRS)
 
  if (NOT VTK_FOUND)
@@ -38,7 +38,7 @@ include_directories(pybind11_INCLUDE_DIRS)
  include_directories(utils)
  include_directories(segmentation)
  include_directories(py_wrappers)
- include_directories(external/spdlog/include)
+ include_directories(external/spdlog-1.8.2/include)
  include_directories(${ARMADILLO_INCLUDE_DIRS})
  add_library(Segmentation
          segmentation/Surface.cpp segmentation/Surface.h
