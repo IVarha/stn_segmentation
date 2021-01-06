@@ -200,7 +200,7 @@ void* NiftiImage::returnImage() {
                         int32_t* pix = static_cast<int32_t*>(this->niimg->GetScalarPointer(i,j,k));
                         res->operator()(i,j,k)= (int)*pix;
                         if (*pix == 6) {
-                            cout << i << " " << j << " " << k << endl;
+                            //cout << i << " " << j << " " << k << endl;
                         }
                     }
                 }

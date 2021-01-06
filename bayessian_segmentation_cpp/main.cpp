@@ -59,7 +59,7 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
     //calc centre of label
     Point centr_of_label = label_mask.center_of_mass();
     //point of center in world coordinate
-    auto swap_centre = image.get_voxel_to_world().apply_transform(centr_of_label.getPt()[0],centr_of_label.getPt()[1],centr_of_label.getPt()[2]);
+    auto swap_centre = image.get_voxel_to_world().apply_transform(centr_of_label.getX(),centr_of_label.getY(),centr_of_label.getZ());
 
     auto  back_centre = image.get_world_to_voxel().apply_transform(swap_centre);
 
@@ -86,8 +86,10 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
 
     //sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
     //SHRINK SPHERE
-    sphr.shrink_sphere(mask,centr_of_label.to_tuple(), 0.3);
+    sphr.shrink_sphere(mask,centr_of_label.to_tuple(), 0.2);
     sphr.smoothMesh();
+    //sphr.triangle_normalisation(10,0.1);
+
 
 
     auto trans = image.get_voxel_to_world();
@@ -119,13 +121,6 @@ void convert_mesh_to_labels(unordered_map<int,string> meshes,string workdir,Nift
         convert_voxel_to_mesh(workdir,image,mesh,mni2native);
     }
 
-
-
-
-    auto res = mni2native.vox_to_mm(75,77,157);
-    cout << get<0>(res) << "  " << get<1>(res) << " " << get<2> (res) ;
-
-    int k = 1;
 
 }
 

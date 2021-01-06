@@ -85,7 +85,7 @@ void Surface::expand_volume(double mm) {
 //    double y = normals4->GetTuple(0)[1];
 //    double z = normals4->GetTuple(0)[2];
     normals->GetPointData();
-    cout<< "prtdsffsf";
+    //cout<< "prtdsffsf";
     //new points
     auto new_pts = vtkSmartPointer<vtkPoints>::New();
     for (int i = 0;i<this->points->GetNumberOfPoints();i++){
@@ -150,11 +150,15 @@ Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, do
     subdivisionFilter->Update();
     auto mesh = subdivisionFilter->GetOutput();
     Surface result = Surface();
-    result.setPoints(mesh->GetPoints());
+    result.points = mesh->GetPoints();
     std::cout << "    There are " << mesh->GetPoints()->GetNumberOfPoints()
               << " points." << std::endl;
-    result.setTriangles(mesh->GetPolys());
+    result.triangles = mesh->GetPolys();
     result.mesh = mesh;
+    //renew sphere
+    result.vec_tri = result.getTrianglesAsVec();
+    result.compute_points_neigbours();
+    result.compute_tri_neigbours();
 
     return result;
 }
@@ -222,7 +226,7 @@ void Surface::shrink_sphere (VolumeDouble &mask, std::tuple<double, double, doub
         Point res_vox= vox.move_point_with_stop(mask,norm2,center1,threshold,0.3, 0.01);
 
         this->points->SetPoint(i,res_vox.getPt());
-        cout<<  "Process point :"<< i << endl;
+        //cout<<  "Process point :"<< i << endl;
     }
 
     this->mesh->Initialize();
@@ -249,7 +253,7 @@ void Surface::smoothMesh() {
             vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
     smoothFilter->SetInputData(this->mesh);
 
-    smoothFilter->SetNumberOfIterations(30);
+    smoothFilter->SetNumberOfIterations(20);
     smoothFilter->FeatureEdgeSmoothingOff();
     smoothFilter->BoundarySmoothingOn();
     smoothFilter->SetRelaxationFactor(0.1);
@@ -298,6 +302,12 @@ void Surface::read_obj(const string &basicString) {
     this->mesh = newpd;
     this->points = points;
     this->triangles = polys;
+    //other init
+    this->vec_tri = this->getTrianglesAsVec();
+
+    this->compute_tri_neigbours();
+    this->compute_points_neigbours();
+
 }
 #define EPSILON 0.000001
 #define BEPSILON (0.000001 * 10)
@@ -533,7 +543,7 @@ std::vector<std::vector<int>> Surface::getTrianglesAsVec() {
     auto res = std::vector<std::vector<int>>(this->triangles->GetNumberOfCells());
     auto ellist = vtkSmartPointer<vtkIdList>::New();
     for (int i = 0; i < this->triangles->GetNumberOfCells();i++){
-        std::cout << i << std::endl;
+        //std::cout << i << std::endl;
         auto tvec = std::vector<int>(3);
 
         ellist->Initialize();
@@ -553,7 +563,7 @@ std::vector<std::vector<double>> Surface::getPointsAsVec() {
     auto res = std::vector<std::vector<double>>(this->points->GetNumberOfPoints());
     double x,y,z;
     for (int i = 0; i < this->points->GetNumberOfPoints();i++){
-        std::cout << i << std::endl;
+        //std::cout << i << std::endl;
         auto tvec = std::vector<double>(3);
 
         auto pt = this->points->GetPoint(i);
@@ -749,4 +759,159 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
 
 Surface::Surface() {
 
+}
+
+void Surface::triangle_normalisation(int iterations,double fraction) {
+
+    int pt1,pt2,pt3;
+
+
+
+    for (int i = 0; i < iterations;i++){
+
+        for (int pt = 0; pt< this->points->GetNumberOfPoints();pt++){
+
+            std::vector<double> areas;
+            //compute areas
+            int tr_size = this->point_tri[pt].size();
+            for (int tri = 0;tri<tr_size;tri++){
+                int triangle = this->point_tri[pt][tri];
+
+                pt1 = this->vec_tri[triangle][0];
+                pt2 = this->vec_tri[triangle][1];
+                pt3 = this->vec_tri[triangle][2];
+
+                Point pt_1 = Point(this->points->GetPoint(pt1));
+                Point pt_2= Point(this->points->GetPoint(pt2));
+                Point pt_3= Point(this->points->GetPoint(pt3));
+
+                Point v1 = pt_2 - pt_1;
+                Point v2 = pt_3 - pt_1;
+
+                areas.push_back(abs(Point::dot(v1,v2)));
+
+            }
+
+
+            //compute maximum
+            int max_i = 0;
+            for (int mx = 1;mx < areas.size();mx++){
+                if( areas[mx]>areas[max_i]){
+                    max_i = mx;
+                }
+            }
+            int max_tri = this->point_tri[pt][max_i];
+            //compute points
+            int ind_p,ind_o1,ind_o2;
+            ind_p = pt;
+            if (this->vec_tri[max_tri][0] == pt){
+
+                ind_o1 = this->vec_tri[max_tri][1];
+                ind_o2 = this->vec_tri[max_tri][2];
+            }else{
+                if (this->vec_tri[max_tri][1] == pt){
+                    ind_o1 = this->vec_tri[max_tri][0];
+                    ind_o2 = this->vec_tri[max_tri][2];
+                }
+                else{
+                    ind_o1 = this->vec_tri[max_tri][0];
+                    ind_o2 = this->vec_tri[max_tri][1];
+                }
+            }
+            Point point =  Point(this->getPoint(pt));
+
+            Point a1 = Point(this->getPoint(ind_o1));
+            Point a2 = Point(this->getPoint(ind_o2));
+            Point mid = a1 + a2;
+            mid = mid/2;
+
+            Point dir = point - mid;
+
+            dir = dir * fraction;
+
+            point = point-dir;
+
+            this->points->SetPoint(pt,point.getPt());
+
+
+        }
+
+
+
+
+
+
+
+    }
+
+    this->update_mesh();
+}
+
+void Surface::compute_tri_neigbours() {
+        auto res =  std::vector<std::set<int>>();
+        for (int i = 0; i < this->vec_tri.size();i++){
+            auto t_res = std::set<int>();
+
+
+            for (int j = 0; j < this->vec_tri.size();j++){
+                if (j!=i){
+                    if ((this->vec_tri[i][0] == this->vec_tri[j][0]) ||
+                        (this->vec_tri[i][0] == this->vec_tri[j][1]) ||
+                        (this->vec_tri[i][0] == this->vec_tri[j][2]) ||
+                        (this->vec_tri[i][1] == this->vec_tri[j][0]) ||
+                        (this->vec_tri[i][1] == this->vec_tri[j][1]) ||
+                        (this->vec_tri[i][1] == this->vec_tri[j][2]) ||
+                        (this->vec_tri[i][2] == this->vec_tri[j][0]) ||
+                        (this->vec_tri[i][2] == this->vec_tri[j][1]) ||
+                        (this->vec_tri[i][2] == this->vec_tri[j][2])){
+                        t_res.insert(j);
+                    }
+                }
+
+            }
+            res.push_back(t_res);
+        }
+
+    this->tri_neighb = res;
+
+
+
+}
+
+void Surface::compute_points_neigbours() {
+    int k,i,j;
+
+    std::vector<vector<int>> point_neigbours;
+    for ( i = 0; i < this->points->GetNumberOfPoints();i++){
+
+        std::vector<int> p_neigb;
+        for ( j = 0; j < this->vec_tri.size();j++){
+
+
+            //is i inside points
+
+            for ( k = 0; k< 3;k++){
+                if (this->vec_tri[j][k] == i){
+                    p_neigb.push_back(j);
+                    break;
+                }
+            }
+
+
+        }
+        point_neigbours.push_back(p_neigb);
+    }
+
+    this->point_tri = point_neigbours;
+}
+
+double *Surface::getPoint(int pos) {
+    return  this->points->GetPoint(pos);
+
+}
+
+void Surface::update_mesh() {
+    this->mesh.New();
+    this->mesh->SetPoints(this->points);
+    this->mesh->SetPolys(this->triangles);
 }
