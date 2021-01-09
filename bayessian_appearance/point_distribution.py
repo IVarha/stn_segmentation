@@ -50,19 +50,26 @@ class PointDistribution:
             pdm_label_data = self._original_data[list_pos[i]]
             #get locations]
 
+
+            # calculate cumulative coordinate of each coord. row sample col
             coordinates = []
             for j in range(len(pdm_label_data[0])):
                 vec_j = [ x[j][0][posit_of_cent] for x in pdm_label_data ]
                 coordinates.append(vec_j)
 
+
             #generate kdes for coords
             posit_kdes = []
+
+
+            #here we form joint coordinates rows = sample col = coords (x y z)
+            np_coord = None
             for j in range(len(coordinates)):
-                #HERE IS KDE FOR COORDS!!!
-                #kde = scp_stats.gaussian_kde(np.array(coordinates[j]).transpose())
-                kde = distros.NormalDistribution(coordinates[j])
-                posit_kdes.append(kde)
-                print(1)
+                if j == 0:
+                    np_coord = np.array(coordinates[j])
+                    continue
+                np_coord= np.concatenate((np_coord,np.array(coordinates[j])),axis=1)
+
 
             #############INTENSITY KDES
             ##RECord KDE like as whole profile (ESTIMATE THROUGH Whoole profile)!!!
@@ -70,6 +77,8 @@ class PointDistribution:
             #TODO add multiple modalities here
             num_of_mods = int(len(pdm_label_data[0][0][2]) / settings.settings.discretisation)
 
+
+            intensity_profs = []
             intensity_kdes = []
             for vert in range(len(pdm_label_data[0])):
                 profile = []
@@ -78,15 +87,24 @@ class PointDistribution:
                                                      mask_vec=pdm_label_data[sub][vert][1])
                     profile.append(single_profile)
 
-                #form intensity KDE HERE
-                profile = np.array(profile)
-                #i_kde = neighb.KernelDensity(kernel="gaussian").fit(profile)
-                i_kde =distros.NormalDistribution(profile)
-                #i_kde = scp_stats.gaussian_kde(profile.transpose()) #TODO MAYBE ADD CONSTRAINTS FOR OUTSIDE
-                #i_kde.pdf(profile[3,:])
-                intensity_kdes.append(i_kde)
 
-            kde_combined.append([posit_kdes,intensity_kdes])
+                intensity_profs.append(profile)
+                #i_kde = scp_stats.gaussian_kde(profile.transpose()) #TODO MAYBE ADD CONSTRAINTS FOR OUTSIDE
+
+
+            #here we form joint intensity rows = sample col = coords (x y z)
+            np_intensties  = None
+            for j in range(len(pdm_label_data[0])):
+                if j == 0:
+                    np_intensties = np.array(intensity_profs[j])
+                    continue
+                np_intensties= np.concatenate((np_intensties,np.array(intensity_profs[j])),axis=1)
+
+
+            # formulate shape+intensity distribution
+            jd = distros.NormalDistribution(np.concatenate((np_coord,np_intensties),axis=1))
+
+            kde_combined.append(jd)
         #save estimators
         self._kdes = kde_combined
 
@@ -172,3 +190,29 @@ class PointDistribution:
         f = open(file_name,'rb')
         res = pickle.load(f)
         return res
+
+
+    def recompute_conditional_shape_int_distribution(self, num_of_pts):
+        res = []
+        for i in range(len(self._kdes)):
+            mn = self._kdes[i].distr.mean[:3*num_of_pts]
+
+            cv = self._kdes[i].distr.cov[:3*num_of_pts,:3*num_of_pts]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

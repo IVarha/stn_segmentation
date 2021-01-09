@@ -181,7 +181,7 @@ void* NiftiImage::returnImage() {
 
                         res->operator()(i,j,k)= (int)*pix;
                         if (*pix == 6 ) {
-                            cout << i << " " << j << " " << k << endl;
+                            //cout << i << " " << j << " " << k << endl;
                         }
                     }
                 }
@@ -221,7 +221,7 @@ void* NiftiImage::returnImage() {
                         auto cel = this->niimg->GetCell(i,j,k);
                         if ((*pix == 6) and (cel)) {
                             ca++;
-                            cout << i << " " << j << " " << k << endl;
+                            //cout << i << " " << j << " " << k << endl;
                         }
                     }
                 }

@@ -86,11 +86,13 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
 
     //sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
     //SHRINK SPHERE
-    sphr.shrink_sphere(mask,centr_of_label.to_tuple(), 0.2);
-    sphr.smoothMesh();
-    //sphr.triangle_normalisation(10,0.1);
-
-
+    sphr.shrink_sphere(mask,centr_of_label.to_tuple(), 0.3);
+//    sphr.smoothMesh();
+    for (int i = 0;i < 10000;i++) {
+        sphr.triangle_normalisation(1, 0.1);
+        sphr.smoothMesh();
+        sphr.lab_move_points(mask, 0.3);
+    }
 
     auto trans = image.get_voxel_to_world();
     sphr.apply_transformation(trans);

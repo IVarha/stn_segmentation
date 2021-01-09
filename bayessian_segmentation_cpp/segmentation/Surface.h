@@ -53,6 +53,8 @@ public:
     void write_stl(const std::string file_name);
     std::tuple<double, double, double>  centre_of_mesh();
     void shrink_sphere(VolumeDouble& mask, std::tuple<double,double,double> center,double threshold);
+    void lab_move_points(VolumeDouble& mask,double threshold );
+
     void apply_transformation(TransformMatrix& pre_transformation);
     void apply_transformation(arma::mat pre_transformation);
     double calculate_volume();

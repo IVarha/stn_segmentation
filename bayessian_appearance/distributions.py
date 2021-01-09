@@ -25,7 +25,8 @@ class NormalDistribution:
     #     res = np.exp(-0.5 * v2) / coeff
     #     return res
 
-    #rows = samples cols variables
+    # rows = samples
+    # cols = variables
     def __init__(self,data):
         data = np.array(data)
         mean = []
@@ -38,7 +39,7 @@ class NormalDistribution:
         cov = np.cov(data.transpose())
         matr = cov
 
-        self.distr = stat.multivariate_normal(mean=mean, cov=cov)
+        self.distr = stat.multivariate_normal(mean=mean, cov=cov,allow_singular=True)
 
         self.mean_logN = self.distr.logpdf(self.distr.mean)
 
@@ -53,6 +54,17 @@ class NormalDistribution:
 
 
 
+class NormalConditional:
+
+    _mean1 = None
+    _mean2 = None
+
+    def __init__(self,mean1,mean2, cov11,cov12):
+
+        self._mean1 = mean1
+        self._mean2 = mean2
+
+        stat.multivariate_normal._
 
 
 

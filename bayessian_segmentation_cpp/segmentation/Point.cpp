@@ -185,3 +185,49 @@ double Point::dot(Point a, Point b) {
 Point Point::operator*(double b) {
     return Point(this->x * b, this->y * b,this->z * b);
 }
+
+Point Point::move_in_value_dir(VolumeDouble &image, Point &direction, double step, double  thresh) {
+    double curr_pt[3];
+    curr_pt[0] = x;
+    curr_pt[1] = y;
+    curr_pt[2] = z;
+    double cur_dir = 1;
+    double curr_step = step;
+    //cout << image.getVolume().max();
+    //eval
+    double val_pre = image.interpolate_value_vox(curr_pt[0],curr_pt[1],curr_pt[2],"linear");
+
+
+    double val1 = image.interpolate_value_vox(curr_pt[0] +  step*direction.getX(),
+                                                  curr_pt[1] + step*direction.getY(),
+                                                  curr_pt[2] + step*direction.getZ(),"linear");
+
+    double val2 = image.interpolate_value_vox(curr_pt[0] -  step*direction.getX(),
+                                              curr_pt[1] - step*direction.getY(),
+                                              curr_pt[2] - step*direction.getZ(),"linear");
+
+    if ( abs(val1 - thresh) < abs(val_pre - thresh))  {
+        return Point( curr_pt[0] +  step*direction.getX(),
+                      curr_pt[1] +  step*direction.getY(),
+                      curr_pt[2] +  step*direction.getZ());
+
+    } else{
+        if (abs(val1 - 1)<0.1) {
+            return Point(curr_pt[0] + 5*step * direction.getX(),
+                         curr_pt[1] + 5*step * direction.getY(),
+                         curr_pt[2] + 5*step * direction.getZ());
+        }
+        if ( abs(val2 - thresh) < abs(val_pre - thresh))  {
+            return Point( curr_pt[0] -  step*direction.getX(),
+                          curr_pt[1] -  step*direction.getY(),
+                          curr_pt[2] -  step*direction.getZ());}
+
+//        return Point( curr_pt[0] -  step*direction.getX(),
+//                      curr_pt[1] -  step*direction.getY(),
+//                      curr_pt[2] -  step*direction.getZ());
+        return Point( curr_pt[0] ,
+                      curr_pt[1] ,
+                      curr_pt[2] );
+
+    }
+}

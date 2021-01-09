@@ -253,7 +253,7 @@ void Surface::smoothMesh() {
             vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
     smoothFilter->SetInputData(this->mesh);
 
-    smoothFilter->SetNumberOfIterations(20);
+    smoothFilter->SetNumberOfIterations(2);
     smoothFilter->FeatureEdgeSmoothingOff();
     smoothFilter->BoundarySmoothingOn();
     smoothFilter->SetRelaxationFactor(0.1);
@@ -912,6 +912,36 @@ double *Surface::getPoint(int pos) {
 
 void Surface::update_mesh() {
     this->mesh.New();
+    this->mesh->SetPoints(this->points);
+    this->mesh->SetPolys(this->triangles);
+}
+
+void Surface::lab_move_points(VolumeDouble &mask, double threshold) {
+    auto normalsGen =  vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalsGen->SetInputData(this->mesh);
+    normalsGen->ComputeCellNormalsOff();
+    normalsGen->ComputePointNormalsOn();
+    bool a1 = normalsGen->GetAutoOrientNormals();
+    normalsGen->SetAutoOrientNormals(true);
+    normalsGen->Update();
+    auto normals = normalsGen->GetOutput();
+    auto normals4= normals->GetPointData()->GetNormals();
+
+
+    double nm;
+    for(int i = 0; i < this->points->GetNumberOfPoints(); i++){
+        auto vox = Point(this->points->GetPoint(i));
+        double* normal = normals4->GetTuple(i);
+
+
+        auto norm2 = Point(normal);
+        Point res_vox= vox.move_in_value_dir(mask,norm2,0.1,threshold);
+
+        this->points->SetPoint(i,res_vox.getPt());
+        //cout<<  "Process point :"<< i << endl;
+    }
+
+    this->mesh->Initialize();
     this->mesh->SetPoints(this->points);
     this->mesh->SetPolys(this->triangles);
 }
