@@ -49,7 +49,7 @@ def convert_atlast_list_2_meshes(atlases,discret,workdir):
             z_coords.append(arr[0, 0, k, 2])
         mask = atlas.points_is_inside(arr)
 
-        sphr = ms.Mesh.generate_sphere(center=atlas.get_centre(),radius=200,discretisation=int(discret))
+        sphr = ms.Mesh.generate_sphere(center=atlas.get_centre(),radius=200,discretisation=1)
 
         sphr.shrink_sphere(mask=mask,coords=[x_coords,y_coords,z_coords],cenre=atlas.get_centre(),tres=0.2)
 

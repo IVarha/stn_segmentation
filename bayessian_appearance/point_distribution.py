@@ -196,11 +196,13 @@ class PointDistribution:
         res = []
         for i in range(len(self._kdes)):
             mn = self._kdes[i].distr.mean[:3*num_of_pts]
-
+            mn2 = self._kdes[i].distr.mean[3*num_of_pts:]
             cv = self._kdes[i].distr.cov[:3*num_of_pts,:3*num_of_pts]
 
+            cv2 = np.dot(self._kdes[i].distr.cov_info.U,self._kdes[i].distr.cov_info.U.transpose())[:3 * num_of_pts, 3 * num_of_pts:]
+            res.append(distros.NormalConditional(mean1=mn,mean2=mn2,cov11=cv,prec12=cv2))
 
-
+        return res
 
 
 

@@ -68,24 +68,22 @@ class FunctionHandler:
 
     def __call__(self, *args, **kwargs):
         coords = np.array(args[0])
-        coords = coords.reshape((self._num_of_points,3))
 
 
-        self._mesh.modify_points(coords)
+        coords = self._kdes.vector_2_points(coords)
+        coords2 = coords.reshape((self._num_of_points,3))
+
+
+        self._mesh.modify_points(coords2)
 
         normals = self._mesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
         normals = utils.apply_transf_2_norms(normals,self._from_mni_to_vox)
 
         norm_intens = np.array(self._image.interpolate_normals(normals))
-        res1 = 0
-        res2 = 0
-        for i in range(self._num_of_points):
-            p1 = self._kdes[0][i](coords[i,:])
-            p2 = self._kdes[1][i](norm_intens[i,:])
-            res1 += p1
-            res2 += p2
+        norm_intens = norm_intens.reshape((norm_intens.shape[0]*norm_intens.shape[1]))
+        #distr_coords = np.concatenate((coords,norm_intens))
 
-        return -(10*res1 + 0.5*res2)
+        return - self._kdes(coords,norm_intens)
 
 
 
@@ -172,7 +170,7 @@ class Fitter:
 
 
     def fit_single(self):
-
+        cds = self._pdm.recompute_conditional_shape_int_distribution(self._best_meshes_mni[0].gen_num_of_points())
         for i in range(len(self._test_subj)):
 
             for lab in range(len(self._best_meshes_mni)):
@@ -184,7 +182,7 @@ class Fitter:
                 fc._cmesh = self._best_meshes_c[lab]
 
                 fc._mesh.calculate_closest_points()
-                fc._kdes = self._pdm.get_kdes()[lab]
+                fc._kdes = cds[lab]
                 fc._num_of_points= self._best_meshes_mni[lab].gen_num_of_points()
 
                 #constraint for interception
@@ -192,30 +190,26 @@ class Fitter:
 
 
                 X0 = fc._mesh.get_unpacked_coords()
-
+                X0 = cds[lab].decompose_coords_to_eigcords(X0)
+                X0[:] = 0
                 print(datetime.now())
-                print(fc._cmesh.selfIntersectionTest(X0))
+                print(fc._cmesh.selfIntersectionTest(list(cds[lab].vector_2_points(X0))))
                 print(datetime.now())
                 #print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
                 print(datetime.now())
 
-                def __fc(x):
-                    if (fc._cmesh.selfIntersectionTest(x.tolist())):
-                        return -1
-                    else: return 1
 
+                bounds = cds[lab].generate_bounds(3)
+                #mimiser = opt.minimize(fc,X0,method="cg",options={"disp":True})
+                mimiser = opt.minimize(fc, X0, method='TNC',bounds=bounds, options={"disp": True})
+                #mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
+                #mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
 
-                #cons = lambda x : fc._cmesh.selfIntersectionTest(x.tolist())
-                cons = lambda x: __fc(x)
-                # mimiser = opt.minimize(fc,X0,method="L-BFGS-B",options={'disp':101})
-                con =( { 'type': 'ineq', 'fun' : cons})
-#                nlc = opt.NonlinearConstraint(cons,ub=0,keep_feasible=True)
+                #mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
                 print(datetime.now())
-                fc._constraints = cons
-                mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
-                print(datetime.now())
-                l = len(mimiser.x.tolist())
-                fc._mesh.modify_points(mimiser.x.reshape(( int(l/3),3)))
+                res_points = cds[lab].vector_2_points(mimiser.x)
+                l = len(res_points.tolist())
+                fc._mesh.modify_points(res_points.reshape(( int(l/3),3)))
                 fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i]))
 
                 fc._mesh.save_obj(self._test_subj[i] + os.sep + str(lab) + "_fitted.obj")
