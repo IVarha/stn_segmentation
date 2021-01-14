@@ -191,8 +191,7 @@ Point Point::move_in_value_dir(VolumeDouble &image, Point &direction, double ste
     curr_pt[0] = x;
     curr_pt[1] = y;
     curr_pt[2] = z;
-    double cur_dir = 1;
-    double curr_step = step;
+
     //cout << image.getVolume().max();
     //eval
     double val_pre = image.interpolate_value_vox(curr_pt[0],curr_pt[1],curr_pt[2],"linear");

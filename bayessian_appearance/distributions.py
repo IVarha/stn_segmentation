@@ -2,6 +2,7 @@
 import numpy as np
 import scipy.stats as stat
 import scipy as scp
+import scipy.optimize as opt
 
 
 class NormalDistribution:
@@ -157,13 +158,19 @@ class NormalConditional:
     def decompose_coords_to_eigcords(self,X):
         res = scp.linalg.solve(self._eig_vec,X - self._mean1)
         res = res[self._eig_val>0]
+        res[:] =0
+        fc = lambda x: np.linalg.norm(self.vector_2_points(x)- X)
 
+        mimise = opt.minimize(fc,res,method='TNC',bounds=self.generate_bounds(3))
+        r_x = mimise.fun
+        for i in range(10):
+            mimise = opt.minimize(fc, mimise.x, method='TNC', bounds=self.generate_bounds(3), options={"disp": True})
+            mimise = opt.minimize(fc, mimise.x, method='Powell', bounds=self.generate_bounds(3), options={"disp": True})
 
-        scp.optimize.minimize()
-
-
-
-        return res
+            if r_x - mimise.fun < 1:
+                break
+            r_x = mimise.fun
+        return mimise.x
 
     def vector_2_points(self,X):
 

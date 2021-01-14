@@ -10,6 +10,7 @@ class Mesh:
     _connectivity_list = None
     _copied_points = None
     _triangles_copy = None
+    _points_in_triangles = None
 
     _pt_size = None
 
@@ -17,14 +18,27 @@ class Mesh:
 
     def calculate_copy_of_triangles(self):
         res = []
+
         for cell_id in range(self._mesh_instance.GetNumberOfCells()):
             a = vtk.vtkIdList()
             self._triangles.GetCellAtId(cell_id, a)
             id_list = []
             for id in range(a.GetNumberOfIds()):
                 id_list.append(a.GetId(id))
+
             res.append(id_list)
         self._triangles_copy = np.array(res)
+
+        res_tri = []
+        for i in range(self.gen_num_of_points()):
+            p_nb = []
+            for j in range(self._triangles_copy.shape[0]):
+                if i in list(self._triangles_copy[j,:]):
+                    p_nb.append(j)
+            res_tri.append(p_nb)
+        self._points_in_triangles = res_tri
+
+
 
     def calculate_copy_of_points(self):
         self._copied_points = np.array(self.get_all_points())
@@ -476,10 +490,10 @@ class Mesh:
         self._mesh_instance.SetPolys(self._triangles)
 
 
-    def smooth_mesh(self):
+    def smooth_mesh(self,iterations):
         sf = vtk.vtkSmoothPolyDataFilter()
         sf.SetInputData(self._mesh_instance)
-        sf.SetNumberOfIterations(30)
+        sf.SetNumberOfIterations(iterations)
         sf.FeatureEdgeSmoothingOff()
         sf.BoundarySmoothingOn()
         sf.SetRelaxationFactor(0.1)
@@ -490,3 +504,105 @@ class Mesh:
         self._mesh_instance.Initialize()
         self._mesh_instance.SetPoints(self._points)
         self._mesh_instance.SetPolys(self._triangles)
+
+
+    def triangle_normalisation(self, iterations, fraction):
+
+        for i in range(iterations):
+
+            for pt in range(self._copied_points.shape[0]):
+                areas = []
+                for tri in range(len(self._points_in_triangles[pt])):
+                    triangle = self._points_in_triangles[pt][tri]
+                    pt1 = self._triangles_copy[triangle,0]
+                    pt2 = self._triangles_copy[triangle,1]
+                    pt3 = self._triangles_copy[triangle,2]
+
+                    pt_1 = np.array(self._points.GetPoint(pt1))
+                    pt_2 = np.array(self._points.GetPoint(pt2))
+                    pt_3 = np.array(self._points.GetPoint(pt3))
+
+                    areas.append(abs(np.dot( (pt_2 - pt_1).transpose(),pt_3-pt_1 )))
+
+                areas = np.array(areas)
+                max_i = np.where( areas == max(areas))[0][0]
+                max_tri = self._points_in_triangles[pt][max_i]
+
+                ind_p = pt
+                ind_o1 = None
+                ind_o2 = None
+                if self._triangles_copy[max_tri,0] == pt:
+                    ind_o1 = self._triangles_copy[max_tri,1]
+                    ind_o2 = self._triangles_copy[max_tri, 2]
+                elif self._triangles_copy[max_tri,1] == pt:
+                    ind_o1 = self._triangles_copy[max_tri,0]
+                    ind_o2 = self._triangles_copy[max_tri, 2]
+                else:
+                    ind_o1 = self._triangles_copy[max_tri,0]
+                    ind_o2 = self._triangles_copy[max_tri, 1]
+
+                point = np.array(self._points.GetPoint(pt))
+
+                a1 = np.array(self._points.GetPoint(ind_o1))
+                a2 = np.array(self._points.GetPoint(ind_o2))
+
+                mid = (a1 + a2)/2
+                dir = (point - mid)*fraction
+                self._points.SetPoint(pt,tuple(point - dir))
+
+        self.update_mesh()
+
+    def update_mesh(self):
+        self._mesh_instance.Initialize()
+        self._mesh_instance.SetPoints(self._points)
+        self._mesh_instance.SetPolys(self._triangles)
+
+
+    def lab_move_points(self, mask, threshold,coords):
+        normalsGen = vtk.vtkPolyDataNormals()
+        normalsGen.SetInputData(self._mesh_instance)
+        normalsGen.ComputeCellNormalsOff()
+        normalsGen.ComputePointNormalsOn()
+        normalsGen.SetAutoOrientNormals(True)
+        normalsGen.Update()
+
+        normals = normalsGen.GetOutput()
+        normals4 = normals.GetPointData().GetNormals()
+
+
+        for i in range(self.gen_num_of_points()):
+            vox = self._points.GetPoint(i)
+
+            normal = normals4.GetTuple(i)
+
+            res_vox = self.move_in_value_dir(vox,mask,np.array(normal),0.1,threshold,coords)
+            self._points.SetPoint(i, tuple(res_vox))
+        self._mesh_instance.Initialize()
+        self._mesh_instance.SetPoints(self._points)
+        self._mesh_instance.SetPolys(self._triangles)
+
+    def move_in_value_dir(self,point, mask, direction, step, threshold,coords):
+        curr_pt = point
+
+
+
+        val_pre = self._interpolate_value_vox(mask, self._recalc_to_voxel_coords(coords, curr_pt))
+
+
+
+        val1 = self._interpolate_value_vox(mask, self._recalc_to_voxel_coords(coords,
+                                                        curr_pt + step * direction))
+
+        val2 = self._interpolate_value_vox(mask, self._recalc_to_voxel_coords(coords,
+                                                        curr_pt - step * direction))
+
+        if (abs(val1 - threshold) < abs(val_pre - threshold)):
+            return curr_pt + step * direction
+
+        elif abs(val1 - 1) < 0.1:
+            return curr_pt + step * direction
+
+
+        return curr_pt
+
+        

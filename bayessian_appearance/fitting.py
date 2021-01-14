@@ -201,7 +201,38 @@ class Fitter:
 
                 bounds = cds[lab].generate_bounds(3)
                 #mimiser = opt.minimize(fc,X0,method="cg",options={"disp":True})
+
+                Xpt = X0.copy()
+                for bd in range(1,len(bounds)+1):
+                    bound = bounds[-bd]
+
+                    curr = bound[0]
+                    arr = []
+                    dt = bound[1]*2/100
+                    cnt = 0
+                    while (bound[0] + dt*cnt < bound[1]):
+                        Xpt[-bd] = bound[0] + dt*cnt
+                        arr.append(fc(Xpt))
+                        cnt = cnt+1
+
+                    arr = np.array(arr)
+                    ind = np.where( arr == min(arr))[0][0]
+                    Xpt[-bd] = bound[0] +ind*dt
+
+                X0 = Xpt
+
+
+                print("Start optimising ")
                 mimiser = opt.minimize(fc, X0, method='TNC',bounds=bounds, options={"disp": True})
+                r_x = mimiser.fun
+                for k in range(10):
+                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True})
+                    # mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
+                    #                       options={"disp": True})
+
+                    if r_x - mimiser.fun < 1:
+                        break
+                    r_x = mimiser.fun
                 #mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
                 #mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
 

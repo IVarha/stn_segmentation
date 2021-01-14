@@ -50,10 +50,17 @@ def convert_atlast_list_2_meshes(atlases,discret,workdir):
         mask = atlas.points_is_inside(arr)
 
         sphr = ms.Mesh.generate_sphere(center=atlas.get_centre(),radius=200,discretisation=1)
+        cds = [x_coords,y_coords,z_coords]
+        sphr.shrink_sphere(mask=mask,coords=[x_coords,y_coords,z_coords],cenre=atlas.get_centre(),tres=0.7)
 
-        sphr.shrink_sphere(mask=mask,coords=[x_coords,y_coords,z_coords],cenre=atlas.get_centre(),tres=0.2)
 
-        sphr.smooth_mesh()
+        for i in range(1000):
+
+            sphr.triangle_normalisation(1,0.7)
+            sphr.smooth_mesh(2)
+            sphr.lab_move_points(mask=mask,threshold=0.2,coords=cds)
+
+        sphr.smooth_mesh(10)
         sphr.save_obj(workdir + "/" + el[0] + "m.obj")
 
 
