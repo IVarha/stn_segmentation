@@ -200,7 +200,12 @@ class PointDistribution:
             cv = self._kdes[i].distr.cov[:3*num_of_pts,:3*num_of_pts]
 
             cv2 = np.dot(self._kdes[i].distr.cov_info.U,self._kdes[i].distr.cov_info.U.transpose())[:3 * num_of_pts, 3 * num_of_pts:]
-            res.append(distros.NormalConditional(mean1=mn,mean2=mn2,cov11=cv,prec12=cv2))
+
+
+            norm_cond = distros.NormalConditional(mean1=mn,mean2=mn2,cov11=cv,prec12=cv2)
+            norm_cond_b = distros.NormalConditionalBayes(mean_all=self._kdes[i].distr.mean,cov_all=self._kdes[i].distr.cov,num_of_pts=3*num_of_pts)
+
+            res.append([norm_cond,norm_cond_b])
 
         return res
 

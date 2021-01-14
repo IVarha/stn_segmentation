@@ -70,7 +70,7 @@ class FunctionHandler:
         coords = np.array(args[0])
 
 
-        coords = self._kdes.vector_2_points(coords)
+        coords = self._kdes[0].vector_2_points(coords)
         coords2 = coords.reshape((self._num_of_points,3))
 
 
@@ -83,7 +83,7 @@ class FunctionHandler:
         norm_intens = norm_intens.reshape((norm_intens.shape[0]*norm_intens.shape[1]))
         #distr_coords = np.concatenate((coords,norm_intens))
 
-        return - self._kdes(coords,norm_intens)
+        return - self._kdes[1](coords,norm_intens)
 
 
 
@@ -171,13 +171,13 @@ class Fitter:
 
     def fit_single(self):
         cds = self._pdm.recompute_conditional_shape_int_distribution(self._best_meshes_mni[0].gen_num_of_points())
-        for i in range(len(self._test_subj)):
+        for i_test_sub in range(len(self._test_subj)):
 
             for lab in range(len(self._best_meshes_mni)):
                 fc = FunctionHandler()
                 #todo fix set
-                fc.set_image(  self._test_subj[i] + os.sep + "t2_acpc_normalised.nii.gz/t2_resampled_fcm.nii.gz"   )
-                fc.set_subject(self._test_subj[i])
+                fc.set_image(  self._test_subj[i_test_sub] + os.sep + "t2_acpc_normalised.nii.gz/t2_resampled_fcm.nii.gz"   )
+                fc.set_subject(self._test_subj[i_test_sub])
                 fc._mesh = self._best_meshes_mni[lab]
                 fc._cmesh = self._best_meshes_c[lab]
 
@@ -190,36 +190,36 @@ class Fitter:
 
 
                 X0 = fc._mesh.get_unpacked_coords()
-                X0 = cds[lab].decompose_coords_to_eigcords(X0)
+                X0 = cds[lab][0].decompose_coords_to_eigcords(X0)
                 X0[:] = 0
                 print(datetime.now())
-                print(fc._cmesh.selfIntersectionTest(list(cds[lab].vector_2_points(X0))))
+                print(fc._cmesh.selfIntersectionTest(list(cds[lab][0].vector_2_points(X0))))
                 print(datetime.now())
                 #print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
                 print(datetime.now())
 
 
-                bounds = cds[lab].generate_bounds(3)
+                bounds = cds[lab][0].generate_bounds(3)
                 #mimiser = opt.minimize(fc,X0,method="cg",options={"disp":True})
 
-                Xpt = X0.copy()
-                for bd in range(1,len(bounds)+1):
-                    bound = bounds[-bd]
-
-                    curr = bound[0]
-                    arr = []
-                    dt = bound[1]*2/100
-                    cnt = 0
-                    while (bound[0] + dt*cnt < bound[1]):
-                        Xpt[-bd] = bound[0] + dt*cnt
-                        arr.append(fc(Xpt))
-                        cnt = cnt+1
-
-                    arr = np.array(arr)
-                    ind = np.where( arr == min(arr))[0][0]
-                    Xpt[-bd] = bound[0] +ind*dt
-
-                X0 = Xpt
+                # Xpt = X0.copy()
+                # for bd in range(1,len(bounds)+1):
+                #     bound = bounds[-bd]
+                #
+                #     curr = bound[0]
+                #     arr = []
+                #     dt = bound[1]*2/100
+                #     cnt = 0
+                #     while (bound[0] + dt*cnt < bound[1]):
+                #         Xpt[-bd] = bound[0] + dt*cnt
+                #         arr.append(fc(Xpt))
+                #         cnt = cnt+1
+                #
+                #     arr = np.array(arr)
+                #     ind = np.where( arr == min(arr))[0][0]
+                #     Xpt[-bd] = bound[0] +ind*dt
+                #
+                # X0 = Xpt
 
 
                 print("Start optimising ")
@@ -227,8 +227,8 @@ class Fitter:
                 r_x = mimiser.fun
                 for k in range(10):
                     mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True})
-                    # mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
-                    #                       options={"disp": True})
+                    mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
+                                          options={"disp": True})
 
                     if r_x - mimiser.fun < 1:
                         break
@@ -238,12 +238,12 @@ class Fitter:
 
                 #mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
                 print(datetime.now())
-                res_points = cds[lab].vector_2_points(mimiser.x)
+                res_points = cds[lab][0].vector_2_points(mimiser.x)
                 l = len(res_points.tolist())
                 fc._mesh.modify_points(res_points.reshape(( int(l/3),3)))
-                fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i]))
+                fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
 
-                fc._mesh.save_obj(self._test_subj[i] + os.sep + str(lab) + "_fitted.obj")
+                fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + str(lab) + "_fitted.obj")
 
                 a = fc(X0)
 
