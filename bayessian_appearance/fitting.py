@@ -192,6 +192,14 @@ class Fitter:
                 X0 = fc._mesh.get_unpacked_coords()
                 X0 = cds[lab][0].decompose_coords_to_eigcords(X0)
                 X0[:] = 0
+                #####SAVE initi
+                res_points = cds[lab][0].vector_2_points(X0)
+                l = len(res_points.tolist())
+                fc._mesh.modify_points(res_points.reshape(( int(l/3),3)))
+                fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
+                fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + self._pdm._label_kde[lab] + "_initialise.obj")
+
+                ##########################################################
                 print(datetime.now())
                 print(fc._cmesh.selfIntersectionTest(list(cds[lab][0].vector_2_points(X0))))
                 print(datetime.now())
@@ -225,12 +233,12 @@ class Fitter:
                 print("Start optimising ")
                 mimiser = opt.minimize(fc, X0, method='TNC',bounds=bounds, options={"disp": True})
                 r_x = mimiser.fun
-                for k in range(10):
+                while True:
                     mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True})
                     mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
                                           options={"disp": True})
 
-                    if r_x - mimiser.fun < 1:
+                    if r_x - mimiser.fun < 0.1:
                         break
                     r_x = mimiser.fun
                 #mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
@@ -243,22 +251,12 @@ class Fitter:
                 fc._mesh.modify_points(res_points.reshape(( int(l/3),3)))
                 fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
 
-                fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + str(lab) + "_fitted.obj")
+                fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + self._pdm._label_kde[lab] + "_fitted.obj")
 
                 a = fc(X0)
 
 
-
-
-
-
-
             pass
-
-
-
-
-
 
 
         pass

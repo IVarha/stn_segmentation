@@ -18,6 +18,8 @@ class PointDistribution:
 
 
     _kdes = None
+    #description of each label
+    _label_kde = None
 
     #extrapolate to false
     def _prolongue_label(self, label_vec, mask_vec):
@@ -41,7 +43,7 @@ class PointDistribution:
             list_pos.append(pos)
 
         pass
-
+        self._label_kde = settings.settings.labels_to_segment
         posit_of_cent= int(settings.settings.discretisation/2)
 
         kde_combined = []

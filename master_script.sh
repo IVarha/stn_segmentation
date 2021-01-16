@@ -25,6 +25,7 @@ name_1="t1_acpc.nii.gz"
 #./4_intensity_normalisation.sh $work_dir $prefix_subdirs
 ./5p_generate_meshes.sh $work_dir $prefix_subdirs $cp_script $label_desc
 #python 6p_calculate_overlap.py $subjects $label_desc $working
+echo "$subjects $label_desc $opts_cnf $working $modalities_cnf"
 python 7p_calculate_norm_intensities.py $subjects $label_desc $opts_cnf $working $modalities_cnf
 python 8p_construct_constraints.py $subjects $label_desc $opts_cnf $working $modalities_cnf
-#python 9p_fit.py $subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj
+python 9p_fit.py $subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj

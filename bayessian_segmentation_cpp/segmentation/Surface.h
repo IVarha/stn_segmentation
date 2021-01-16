@@ -45,7 +45,7 @@ public:
 
     Surface();
 
-    void smoothMesh();
+    void smoothMesh(int iter);
 
     void expand_volume(double mm);
     void write_volume(const std::string file_name);

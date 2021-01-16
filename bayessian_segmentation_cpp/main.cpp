@@ -88,12 +88,12 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
     //SHRINK SPHERE
     sphr.shrink_sphere(mask,centr_of_label.to_tuple(), 0.3);
 //    sphr.smoothMesh();
-    for (int i = 0;i < 10000;i++) {
+    for (int i = 0;i < 10;i++) {
         sphr.triangle_normalisation(1, 0.1);
-        sphr.smoothMesh();
+        sphr.smoothMesh(2);
         sphr.lab_move_points(mask, 0.3);
     }
-
+    sphr.smoothMesh(5);
     auto trans = image.get_voxel_to_world();
     sphr.apply_transformation(trans);
     std::cout << "Calculated volume of " << label.first << "  is " << sphr.calculate_volume() << std::endl;

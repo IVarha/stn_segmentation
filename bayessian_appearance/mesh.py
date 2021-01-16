@@ -142,10 +142,11 @@ class Mesh:
         nm_del = [-mm_len + dt * x for x in range(npts)]
 
         norm_calc = vtk.vtkPolyDataNormals()
+        norm_calc.SetInputData(self._mesh_instance)
         norm_calc.ComputeCellNormalsOff()
         norm_calc.ComputePointNormalsOn()
         norm_calc.SetAutoOrientNormals(True)
-        norm_calc.SetInputData(self._mesh_instance)
+
         norm_calc.Update()
 
         normals = ((norm_calc.GetOutput()).GetPointData()).GetNormals()

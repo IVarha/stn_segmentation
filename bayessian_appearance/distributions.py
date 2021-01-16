@@ -179,7 +179,27 @@ class NormalConditional:
         res[:] =0
         fc = lambda x: np.linalg.norm(self.vector_2_points(x)- X)
 
-        mimise = opt.minimize(fc,res,method='TNC',bounds=self.generate_bounds(3))
+
+        bounds = self.generate_bounds(3)
+        Xpt = res.copy()
+        for bd in range(1,len(bounds)+1):
+            bound = bounds[-bd]
+
+            curr = bound[0]
+            arr = []
+            dt = bound[1]*2/100
+            cnt = 0
+            while (bound[0] + dt*cnt < bound[1]):
+                Xpt[-bd] = bound[0] + dt*cnt
+                arr.append(fc(Xpt))
+                cnt = cnt+1
+
+            arr = np.array(arr)
+            ind = np.where( arr == min(arr))[0][0]
+            Xpt[-bd] = bound[0] +ind*dt
+
+        res = Xpt
+        mimise = opt.minimize(fc, res, method='TNC', bounds=self.generate_bounds(3))
         r_x = mimise.fun
         for i in range(10):
             mimise = opt.minimize(fc, mimise.x, method='TNC', bounds=self.generate_bounds(3), options={"disp": True})

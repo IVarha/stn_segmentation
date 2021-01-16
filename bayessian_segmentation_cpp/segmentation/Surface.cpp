@@ -8,9 +8,8 @@
 #include <vtkPolyDataReader.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkStructuredPointsReader.h>
-#include <vtkImageDataGeometryFilter.h>
-#include <vtkRenderWindow.h>
+#include <cstdio>
+
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <sstream>
@@ -22,7 +21,6 @@
 #include <vtkSTLWriter.h>
 #include <vtkOBJWriter.h>
 #include <vtkSphere.h>
-#include <vtkSphereSource.h>
 #include <vtkLinearSubdivisionFilter.h>
 #include <vtkCenterOfMass.h>
 #include <vtkSmoothPolyDataFilter.h>
@@ -30,6 +28,7 @@
 #include <vtkMassProperties.h>
 #include <vtkSelectEnclosedPoints.h>
 #include <vtkOBJReader.h>
+#include <vtkSphereSource.h>
 #include "math.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h" // support for loading levels from the environment variable
@@ -117,6 +116,12 @@ void Surface::write_volume(const std::string file_name) {
 }
 
 void Surface::write_obj(const std::string file_name) {
+    try{
+        remove(file_name.c_str());
+    }catch (...){
+
+    }
+
     auto writer = vtkSmartPointer<vtkOBJWriter>::New();
     writer->SetFileName(file_name.c_str());
     writer->SetInputData(this->mesh);
@@ -248,12 +253,12 @@ void Surface::apply_transformation(TransformMatrix& pre_transformation) {
     this->mesh->SetPolys(this->triangles);
 }
 
-void Surface::smoothMesh() {
+void Surface::smoothMesh(int iter) {
     vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter =
             vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
     smoothFilter->SetInputData(this->mesh);
 
-    smoothFilter->SetNumberOfIterations(2);
+    smoothFilter->SetNumberOfIterations(iter);
     smoothFilter->FeatureEdgeSmoothingOff();
     smoothFilter->BoundarySmoothingOn();
     smoothFilter->SetRelaxationFactor(0.1);
