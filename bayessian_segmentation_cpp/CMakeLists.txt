@@ -1,9 +1,11 @@
- cmake_minimum_required(VERSION 2.8)
+ cmake_minimum_required(VERSION 3.10)
 project(bayessian_segmentation_cpp)
-
+ set(EXEC_NAME bayessian_segmentation_cpp)
+ list(APPEND CMAKE_PREFIX_PATH "/home/varga/libs/bay_segm/spdlog/build2/lib/cmake/spdlog")
 set(CMAKE_CXX_STANDARD 14)
 add_compile_options("-fPIC")
- set(VTK_DIR "/home/igorv/vtk/VTK-9.0.1/build" CACHE PATH "VTK directory override" FORCE )
+# set(VTK_DIR "/home/varga/VTK-9.0.1/build" CACHE PATH "VTK directory override" FORCE )
+ find_package(spdlog REQUIRED)
  find_package(VTK COMPONENTS
          vtkCommonCore
          vtkCommonDataModel
@@ -21,11 +23,10 @@ add_compile_options("-fPIC")
          vtkRenderingCore
          vtkRenderingFreeType
 
-
          QUIET)
  find_package(ZLIB REQUIRED)
  find_package(Armadillo REQUIRED)
- find_package(spdlog REQUIRED)
+
 
  add_subdirectory(external/pybind11-2.6)
 include_directories(pybind11_INCLUDE_DIRS)
@@ -34,7 +35,6 @@ include_directories(pybind11_INCLUDE_DIRS)
  message("Skipping ReadTextFile: ${VTK_NOT_FOUND_MESSAGE}")
  return ()
  endif()
- find_package(Armadillo REQUIRED)
  include_directories(utils)
  include_directories(segmentation)
  include_directories(py_wrappers)

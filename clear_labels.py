@@ -4,15 +4,12 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-from bids import BIDSLayout
-from bids.tests import get_test_data_path
-import os
 import sys
-import glob
-import nrrd
+
 import nibabel as nib
 import numpy as np
 import skimage.morphology as morph
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.

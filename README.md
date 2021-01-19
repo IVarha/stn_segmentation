@@ -9,6 +9,16 @@ download
 3 cmake ..
 4 make -j<num of cores>
 
+Make spdlog from external folder and install it :
+1. сreate build folder
+2. make spldog by cmake cmake -D CMAKE_INSTALL_PREFIX:PATH=<install dir> <source_dir>
+3. set spdlog_DIR in bashrc
+
+make c++ code
+
+
+cmake --build /tmp/pycharm_project_545/bayessian_segmentation_cpp/build  --target all -- -j 6
+
 Add 
 add_compile_options("-fPIC")
 to spdlog
