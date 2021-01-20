@@ -36,11 +36,14 @@ public:
     static bool triangles_intersected( std::vector<std::vector<double>> points);
     std::vector<std::set<int>> compute_neighbours();
 
+    void set_image(std::string file_name);
+
+    std::vector<std::vector<std::vector<double>>> generateNormals(double mm_len, int npts);
+
 
     virtual ~pySurface() {
         if (mesh!= nullptr) delete mesh;
     }
-
 
 };
 

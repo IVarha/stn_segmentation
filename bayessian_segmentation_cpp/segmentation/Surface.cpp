@@ -950,3 +950,42 @@ void Surface::lab_move_points(VolumeDouble &mask, double threshold) {
     this->mesh->SetPoints(this->points);
     this->mesh->SetPolys(this->triangles);
 }
+
+std::vector<std::vector<std::vector<double>>> Surface::calculate_normals(double mm, int npts) {
+
+
+    double dt = (2 * mm) / (npts -1);
+    auto norm_calc = vtkSmartPointer<vtkPolyDataNormals>::New();
+    norm_calc->SetInputData(this->mesh);
+    norm_calc->ComputeCellNormalsOff();
+    norm_calc->ComputePointNormalsOn();
+    norm_calc->SetAutoOrientNormals(true);
+
+    norm_calc->Update();
+    auto normals = norm_calc->GetOutput()->GetPointData()->GetNormals();
+    auto res = std::vector<std::vector<std::vector<double>>>();
+
+    for (int i = 0; i < this->points->GetNumberOfPoints();i++){
+        auto tmp = std::vector<std::vector<double>>();
+        auto norm = normals->GetTuple(i);
+
+
+        auto pt = this->points->GetPoint(i);
+
+
+        for (int j = 0; j < npts;j++){
+            auto res_pt = std::vector<double>();
+
+            res_pt.push_back( pt[0] + norm[0]*(-mm + i*dt));
+            res_pt.push_back( pt[1] + norm[1]*(-mm + i*dt));
+            res_pt.push_back( pt[2] + norm[2]*(-mm + i*dt));
+
+            tmp.push_back(res_pt);
+
+        }
+        res.push_back(tmp);
+    }
+
+    return res;
+
+}

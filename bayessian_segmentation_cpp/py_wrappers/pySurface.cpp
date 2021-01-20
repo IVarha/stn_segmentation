@@ -188,4 +188,15 @@ std::vector<std::set<int>> pySurface::compute_neighbours() {
     return res;
 }
 
+void pySurface::set_image(std::string file_name) {
+
+
+
+}
+
+std::vector<std::vector<std::vector<double>>> pySurface::generateNormals(double mm_len, int npts) {
+    return this->mesh->calculate_normals(mm_len,npts);
+
+}
+
 

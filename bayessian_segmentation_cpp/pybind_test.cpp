@@ -40,9 +40,10 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
     py::class_<pySurface>(m, "cMesh")
             .def(py::init<const std::string &>())
             .def("getName",&pySurface::getName)
-            .def("setNewPoints", &pySurface::modify_points)
+            .def("modify_points", &pySurface::modify_points)
             .def("selfIntersectionTest", &pySurface::self_intersection_test)
-            .def("applyTransformation", &pySurface::apply_transformation);
+            .def("applyTransformation", &pySurface::apply_transformation)
+            .def("generate_normals", &pySurface::generateNormals);
 
 #ifdef VERSION_INFO
 m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

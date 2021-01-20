@@ -47,6 +47,8 @@ public:
 
     void smoothMesh(int iter);
 
+    std::vector<std::vector<std::vector<double>>> calculate_normals(double mm, int npts);
+
     void expand_volume(double mm);
     void write_volume(const std::string file_name);
     void write_obj(const std::string file_name);
