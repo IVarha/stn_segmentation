@@ -42,8 +42,9 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             .def("getName",&pySurface::getName)
             .def("modify_points", &pySurface::modify_points)
             .def("selfIntersectionTest", &pySurface::self_intersection_test)
-            .def("applyTransformation", &pySurface::apply_transformation)
-            .def("generate_normals", &pySurface::generateNormals);
+            .def("apply_transform", &pySurface::apply_transformation)
+            .def("generate_normals", &pySurface::generateNormals)
+            .def("generate_mesh_points", &pySurface::getInsideMeshPoints);
 
 #ifdef VERSION_INFO
 m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

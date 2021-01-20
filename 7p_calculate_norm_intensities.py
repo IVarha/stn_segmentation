@@ -4,23 +4,18 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-import sys
-
-import nibabel as nib
-import nrrd
-import numpy as np
-import bayessian_appearance.mesh as mesh
-import bayessian_appearance.utils as util
+import csv
 import os
 import sys
-import vtk
-import fsl.transform.flirt as fl
-import fsl.data.image as fim
-import bayessian_appearance.vt_image as vtim
-import bayessian_appearance.nifti_mask as nm
-import pandas
-import csv
 
+import ExtPy
+import fsl.data.image as fim
+import fsl.transform.flirt as fl
+import numpy as np
+
+import bayessian_appearance.nifti_mask as nm
+import bayessian_appearance.utils as util
+import bayessian_appearance.vt_image as vtim
 
 
 def concatenate_intensities(x1,x2):
@@ -108,21 +103,27 @@ def calculate_intensites_subject(modalities,labels,subject, discretisation, norm
 
     mask_im = nm.ni_mask(subject + os.sep + "t2_mask.nii.gz")
     for i in range(len(labels)):
-        surf = mesh.Mesh(filename=subject + os.sep + labels[i] + "_1.obj")  # read mesh
-        surf.apply_transform(mat=to_mni)
+        surf = ExtPy.cMesh(subject + os.sep + labels[i] + "_1.obj")  # read mesh
+        surf.apply_transform(to_mni.tolist())
 
         mni_norms = surf.generate_normals(norm_len, discretisation)
         norms_native = apply_transf_2_norms(mni_norms, from_mni)
         #calculate overlap of normal with mask in world coords
         mask_norm = calculate_mask_touches(mask=mask_im,norms= norms_native)
         norms_native = apply_transf_2_norms(norms_native, tr_World_voxel)
+        surf.apply_transform(from_mni.tolist())
+        #calc points
+        mp = surf.generate_mesh_points(20)
+
 
         #calculate intensities mask,1st_modal,2nd...
         profiles = mask_norm
         for j in range(len(images)):
 
             profile= calc_intensities(norms_native, images[j][1])
-            profiles = concatenate_intensities(profiles,profile)
+            mp2 = util.apply_transf_2_pts(mp,images[j][1]._world_2_vox)
+            mn = np.array(images[j][1].interpolate_list(mp2)).mean()
+            profiles = concatenate_intensities(profiles,(np.array(profile) -mn).tolist())
         norm_vecs = norms_2_coords(normals=mni_norms)
 
         # calc result mat

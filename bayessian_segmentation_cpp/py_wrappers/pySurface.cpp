@@ -5,8 +5,10 @@
 #include "pySurface.h"
 #include <armadillo>
 
+#include <vtkSelectEnclosedPoints.h>
 void pySurface::modify_points(std::vector<double> points) {
     this->mesh->apply_points(points);
+    this->points = this->mesh->getPoints();
 }
 
 bool pySurface::self_intersection_test(const std::vector<double>& new_points) {
@@ -197,6 +199,76 @@ void pySurface::set_image(std::string file_name) {
 std::vector<std::vector<std::vector<double>>> pySurface::generateNormals(double mm_len, int npts) {
     return this->mesh->calculate_normals(mm_len,npts);
 
+}
+
+std::vector<std::vector<double>> pySurface::getInsideMeshPoints(int discretisation) {
+
+    //generate range
+    double max_x = -100000;
+    double max_y = -100000;
+    double max_z = -100000;
+    double min_x = 100000;
+    double min_y = 100000;
+    double min_z = 100000;
+    for (int i = 0; i < this->points->GetNumberOfPoints();i++){
+
+        auto pt = this->points->GetPoint(i);
+
+        if (max_x < pt[0]) max_x = pt[0];
+        if (min_x > pt[0]) min_x = pt[0];
+
+        if (max_y < pt[1]) max_y = pt[1];
+        if (min_y > pt[1]) min_y = pt[1];
+
+        if (max_z < pt[2]) max_z = pt[2];
+        if (min_z > pt[2]) min_z = pt[2];
+        //std::cout << pt[1] <<std::endl;
+
+    }
+
+
+    //std::cout << max_x <<std::endl;
+    //std::cout << min_x <<std::endl;
+    //std::cout << max_y <<std::endl;
+    //std::cout << min_y <<std::endl;
+    //std::cout << max_z <<std::endl;
+    //std::cout << min_z <<std::endl;
+
+    double dx = (max_x - min_x) / (discretisation -1);
+    double dy = (max_y - min_y) / (discretisation -1);
+    double dz = (max_z - min_z) / (discretisation -1);
+    int i,j,k;
+    auto pts = vtkSmartPointer<vtkPoints>::New();
+    for ( i =0; i< discretisation;i++){
+        for ( j =0; j< discretisation;j++){
+            for ( k =0; k< discretisation;k++){
+                pts->InsertNextPoint( min_x + i*dx, min_y + j*dy, min_z+k*dz);
+            }
+        }
+    }
+    auto poly_data = vtkSmartPointer<vtkPolyData>::New();
+    poly_data->SetPoints(pts);
+    auto encl_points = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+
+    encl_points->SetInputData(poly_data);
+    encl_points->SetSurfaceData(this->mesh->getMesh());
+    encl_points->Update();
+
+
+    auto res = std::vector<std::vector<double>>();
+    for (i = 0;i < pts->GetNumberOfPoints();i++){
+        if (encl_points->IsInside(i)){
+            auto tmp = std::vector<double>();
+            auto pt = pts->GetPoint(i);
+            tmp.push_back(pt[0]);
+            tmp.push_back(pt[1]);
+            tmp.push_back(pt[2]);
+            res.push_back(tmp);
+        }
+
+    }
+
+    return res;
 }
 
 

@@ -976,9 +976,9 @@ std::vector<std::vector<std::vector<double>>> Surface::calculate_normals(double 
         for (int j = 0; j < npts;j++){
             auto res_pt = std::vector<double>();
 
-            res_pt.push_back( pt[0] + norm[0]*(-mm + i*dt));
-            res_pt.push_back( pt[1] + norm[1]*(-mm + i*dt));
-            res_pt.push_back( pt[2] + norm[2]*(-mm + i*dt));
+            res_pt.push_back( pt[0] + norm[0]*(-mm + j*dt));
+            res_pt.push_back( pt[1] + norm[1]*(-mm + j*dt));
+            res_pt.push_back( pt[2] + norm[2]*(-mm + j*dt));
 
             tmp.push_back(res_pt);
 

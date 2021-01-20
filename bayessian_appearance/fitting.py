@@ -15,7 +15,7 @@ from datetime import datetime
 
 import sys
 
-sys.path.insert(0, "/tmp/tmp.9HaHyiykJ1/cmake-build-debug-remote-host")
+sys.path.insert(0, "/tmp/bayessian_segmentation_cpp/cmake-build-debug-remote-host")
 import ExtPy
 
 
@@ -73,13 +73,27 @@ class FunctionHandler:
         coords = self._kdes[0].vector_2_points(coords)
         coords2 = coords.reshape((self._num_of_points,3))
 
+        #print(datetime.now())
+        #self._mesh.modify_points(coords2)
 
-        self._mesh.modify_points(coords2)
+        #normals = self._mesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
+        #print(datetime.now())
+        self._cmesh.modify_points(coords)
+        normals = self._cmesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
+        #print(datetime.now())
+        mesh_pts = utils.apply_transf_2_pts(self._cmesh.generate_mesh_points(10),transf=self._from_mni_to_vox)
 
-        normals = self._mesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
         normals = utils.apply_transf_2_norms(normals,self._from_mni_to_vox)
 
+
+        ips = np.array(self._image.interpolate_list(mesh_pts)).mean()
+
+
         norm_intens = np.array(self._image.interpolate_normals(normals))
+
+        #normalise intensity
+        norm_intens  = norm_intens - ips
+
         norm_intens = norm_intens.reshape((norm_intens.shape[0]*norm_intens.shape[1]))
         #distr_coords = np.concatenate((coords,norm_intens))
 

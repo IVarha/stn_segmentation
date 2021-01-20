@@ -18,12 +18,12 @@ name="mri.nii.gz"
 name_1="t1_acpc.nii.gz"
 # segment alex data
 
-
+export PYTHONPATH=/tmp/bayessian_segmentation_cpp/cmake-build-debug-remote-host/:$PYTHONPATH
 #./1_brain_surface_extract.sh $work_dir $prefix_subdirs
 #./2_linear_registration.sh $work_dir $prefix_subdirs
 #./3_WM_SEG.sh $work_dir $prefix_subdirs
 #./4_intensity_normalisation.sh $work_dir $prefix_subdirs
-./5p_generate_meshes.sh $work_dir $prefix_subdirs $cp_script $label_desc
+#./5p_generate_meshes.sh $work_dir $prefix_subdirs $cp_script $label_desc
 #python 6p_calculate_overlap.py $subjects $label_desc $working
 echo "$subjects $label_desc $opts_cnf $working $modalities_cnf"
 python 7p_calculate_norm_intensities.py $subjects $label_desc $opts_cnf $working $modalities_cnf

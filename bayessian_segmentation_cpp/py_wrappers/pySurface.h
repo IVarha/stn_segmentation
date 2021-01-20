@@ -40,6 +40,7 @@ public:
 
     std::vector<std::vector<std::vector<double>>> generateNormals(double mm_len, int npts);
 
+    std::vector<std::vector<double>> getInsideMeshPoints( int discretisation);
 
     virtual ~pySurface() {
         if (mesh!= nullptr) delete mesh;

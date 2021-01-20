@@ -8,7 +8,7 @@ class Image:
     _image_instance = None
     _to_phys_mat = None
     _interpolation = None
-
+    _world_2_vox = None
 
     def test_function(self):
         x_dim, y_dim, z_dim = self._image_instance.GetDimensions()
@@ -59,6 +59,10 @@ class Image:
         self._to_phys_mat[3, 1] = tr_mat.GetElement(3, 1)
         self._to_phys_mat[3, 2] = tr_mat.GetElement(3, 2)
         self._to_phys_mat[3, 3] = tr_mat.GetElement(3, 3)
+
+        a = nib.load(filename)
+        self._world_2_vox = np.linalg.inv(a.affine)
+
         if self.test_function():
             pass
         else:
@@ -80,6 +84,12 @@ class Image:
 
         out = self._interpolation.Evaluate(list(phvect1[:3]))
         return out
+
+    def interpolate_list(self, vect):
+        res = []
+        for el in vect:
+            res.append(self.interpolate(el))
+        return res
 
     def interpolate_normals(self, normals):
         res = []

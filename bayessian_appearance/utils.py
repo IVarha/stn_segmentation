@@ -75,6 +75,17 @@ def read_segmentation_config(file_name):
 
     return res
 
+def apply_transf_2_pts(pts,transf):
+    res = []
+    for i in range(len(pts)):
+
+        pt_norm = np.array(pts[i] + [1])
+        pt_tmp = list((np.dot(transf,pt_norm))[:3])
+
+        res.append(pt_tmp)
+    return res
+
+
 
 def apply_transf_2_norms( norms,transf):
     a = np.array(norms)

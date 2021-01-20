@@ -1,11 +1,5 @@
 
 
-
-
-
-
-
-
 class Settings:
     use_constraint = None
     labels_to_segment = None

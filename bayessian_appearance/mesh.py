@@ -586,10 +586,7 @@ class Mesh:
         curr_pt = point
 
 
-
         val_pre = self._interpolate_value_vox(mask, self._recalc_to_voxel_coords(coords, curr_pt))
-
-
 
         val1 = self._interpolate_value_vox(mask, self._recalc_to_voxel_coords(coords,
                                                         curr_pt + step * direction))
