@@ -161,8 +161,6 @@ def main_proc(train, label_names, config_name,modalities, workdir):
 
 
 
-
-
     meshes = np.array(meshes)
     m_mx = []
 

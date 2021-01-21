@@ -37,7 +37,7 @@ class PointDistribution:
     def _construct_pdm(self):
 
         #find what we segmenting
-        list_pos= []
+        list_pos= [] #positions of labels which we segmenting
         for i in range(len(settings.settings.labels_to_segment)):
             pos = self._labels.index(settings.settings.labels_to_segment[i])
             list_pos.append(pos)
@@ -47,9 +47,10 @@ class PointDistribution:
         posit_of_cent= int(settings.settings.discretisation/2)
 
         kde_combined = []
-        # construct PDM for each segmented label!!!!! HERE
-        for i in range(len(list_pos)):
-            pdm_label_data = self._original_data[list_pos[i]]
+        # construct combined ONE PDM for ALL labels here
+        comb_array = None
+        for i in range(len(self._labels)):
+            pdm_label_data = self._original_data[i]
             #get locations]
 
 
@@ -104,9 +105,16 @@ class PointDistribution:
 
 
             # formulate shape+intensity distribution
-            jd = distros.NormalDistribution(np.concatenate((np_coord,np_intensties),axis=1))
+            if comb_array is None:
 
-            kde_combined.append(jd)
+                comb_array = np.concatenate((np_coord,np_intensties),axis=1)
+            else:
+                a = np.concatenate((np_coord,np_intensties),axis=1)
+                comb_array = np.concatenate((comb_array,a),axis=1)
+
+        jd = distros.NormalDistribution(comb_array)
+
+        kde_combined = jd
         #save estimators
         self._kdes = kde_combined
 
@@ -170,16 +178,16 @@ class PointDistribution:
 
         self._original_data = self._read_labels(labels=labels,train_subjects=train_subjects)
 
-
-
         self._construct_pdm()
 
 
-    def save_pdm(self, file_name):
+    def save_pdm(self, file_name, save_orig = False):
         try:
             os.remove(file_name)
         except:
             pass
+        if (~ save_orig):
+            self._original_data = None
         f = open(file_name,'wb')
         pickle.dump(self,f)
 

@@ -121,15 +121,6 @@ def create_subj_mask(point_coords, tr_subjects,mesh_name):
 
 
 
-
-
-
-
-
-
-
-
-
 def main_proc(train, label_names, workdir):
     tr_subjects = read_train_subjects(train)
     labels = read_label_desc(label_names)
