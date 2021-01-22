@@ -204,16 +204,26 @@ class PointDistribution:
 
     def recompute_conditional_shape_int_distribution(self, num_of_pts):
         res = []
-        for i in range(len(self._kdes)):
-            mn = self._kdes[i].distr.mean[:3*num_of_pts]
-            mn2 = self._kdes[i].distr.mean[3*num_of_pts:]
-            cv = self._kdes[i].distr.cov[:3*num_of_pts,:3*num_of_pts]
+        for i in range(len(self._label_kde)):
 
-            cv2 = np.dot(self._kdes[i].distr.cov_info.U,self._kdes[i].distr.cov_info.U.transpose())[:3 * num_of_pts, 3 * num_of_pts:]
+            #recompute coord pos
+            ind = self._labels.index(self._label_kde[i])
+
+            num_intensity_coords = settings.settings.discretisation * num_of_pts
+            num_per_structure = 3* num_of_pts + num_intensity_coords
 
 
+            mn = self._kdes.distr.mean[i*num_per_structure:i*num_per_structure+ 3*num_of_pts]
+            mn2 = self._kdes.distr.mean[num_per_structure*i+ 3*num_of_pts: num_per_structure *(i+1)]
+            cv = self._kdes.distr.cov[i*num_per_structure : i*num_per_structure+ 3*num_of_pts
+                                        ,i*num_per_structure:i*num_per_structure + 3*num_of_pts]
+
+            cv2 = np.dot(self._kdes.distr.cov_info.U,self._kdes.distr.cov_info.U.transpose())[i*num_per_structure:i*num_per_structure +3 * num_of_pts,i*num_per_structure + 3 * num_of_pts:(i+1)*num_per_structure]
+
+            mean_all1  = self._kdes.distr.mean[num_per_structure*i:num_per_structure*(i+1)]
+            cov_all1 = self._kdes.distr.cov[num_per_structure*i:num_per_structure*(i+1),num_per_structure*i:num_per_structure*(i+1)]
             norm_cond = distros.NormalConditional(mean1=mn,mean2=mn2,cov11=cv,prec12=cv2)
-            norm_cond_b = distros.NormalConditionalBayes(mean_all=self._kdes[i].distr.mean,cov_all=self._kdes[i].distr.cov,num_of_pts=3*num_of_pts)
+            norm_cond_b = distros.NormalConditionalBayes(mean_all=mean_all1,cov_all=cov_all1,num_of_pts=3*num_of_pts)
 
             res.append([norm_cond,norm_cond_b])
 

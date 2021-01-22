@@ -185,6 +185,7 @@ class Fitter:
 
     def fit_single(self):
         cds = self._pdm.recompute_conditional_shape_int_distribution(self._best_meshes_mni[0].gen_num_of_points())
+
         for i_test_sub in range(len(self._test_subj)):
 
             for lab in range(len(self._best_meshes_mni)):
@@ -268,9 +269,13 @@ class Fitter:
                 fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + self._pdm._label_kde[lab] + "_fitted.obj")
 
                 a = fc(X0)
-
-
             pass
+        pass
+
+
+
+    def fit_multiple(self):
+        cds = self._pdm.recompute_conditional_shape_int_distribution(self._best_meshes_mni[0].gen_num_of_points())
 
 
         pass
