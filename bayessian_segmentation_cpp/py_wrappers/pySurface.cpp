@@ -271,4 +271,24 @@ std::vector<std::vector<double>> pySurface::getInsideMeshPoints(int discretisati
     return res;
 }
 
+std::vector<double> pySurface::getUnpackedCords() {
+
+
+    auto res = std::vector<double>();
+    for (int i=0;i< this->points->GetNumberOfPoints();i++){
+        double* ar = this->points->GetPoint(i);
+
+        res.push_back(ar[0]);
+        res.push_back(ar[1]);
+        res.push_back(ar[2]);
+
+    }
+    return res;
+
+
+
+
+
+}
+
 

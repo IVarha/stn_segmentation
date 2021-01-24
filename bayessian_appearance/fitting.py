@@ -10,7 +10,7 @@ import fsl.data.image as fim
 import fsl.transform.flirt as fl
 import os
 import nibabel as nib
-
+import bayessian_appearance.settings as settings
 from datetime import datetime
 
 import sys
@@ -101,6 +101,91 @@ class FunctionHandler:
 
 
 
+#for multi mesh
+class FunctionHandlerMulti:
+
+    _image = None
+    _from_mni_to_vox = None
+    _vox_to_world = None
+    #label of single mesh
+    _label = None
+    _mesh = None
+    _cmesh = None
+    _num_of_points=None
+
+
+    _constraints = None
+    _kdes = None
+
+    def __init__(self):
+        pass
+
+    def set_image(self, filename):
+
+        vt = vtimage.Image(filename)
+        vt.setup_bspline(3)
+        self._image = vt
+
+        a = nib.load(filename)
+        self._vox_to_world = a.affine
+
+
+    #TODO rewrite to make it universal
+    def set_subject(self,subject_dir):
+
+        mni_im = fim.Image(subject_dir + os.sep + "t1_brain_to_mni_stage2_apply.nii.gz" )
+
+        native_im = fim.Image(subject_dir + os.sep + "t1_acpc_extracted.nii.gz" )
+
+        from_mni_mat = fl.readFlirt(subject_dir + os.sep + "combined_affine_reverse.mat")
+
+
+        mni_w = fl.fromFlirt(from_mni_mat,mni_im,native_im,"world","world")
+        a = np.linalg.inv(self._vox_to_world)
+        self._from_mni_to_vox = np.dot(a,mni_w)
+
+
+    def __call__(self, *args, **kwargs):
+        coords = np.array(args[0])
+
+
+        coords = self._kdes.vector_2_points(coords)
+        #coords2 = coords.reshape((self._num_of_points,3))
+
+        #print(datetime.now())
+        #self._mesh.modify_points(coords2)
+
+        #normals = self._mesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
+        #print(datetime.now())
+        nits = None
+        for i in range(self._constraints):
+
+            self._cmesh.modify_points(coords[i*3*self._num_of_points:(i+1)*3*self._num_of_points ])
+
+
+            normals = self._cmesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
+        #print(datetime.now())
+            mesh_pts = utils.apply_transf_2_pts(self._cmesh.generate_mesh_points(10),transf=self._from_mni_to_vox)
+
+            normals = utils.apply_transf_2_norms(normals,self._from_mni_to_vox)
+
+
+            ips = np.array(self._image.interpolate_list(mesh_pts)).mean()
+
+
+            norm_intens = np.array(self._image.interpolate_normals(normals))
+
+        #normalise intensity
+            norm_intens  = norm_intens - ips
+
+            norm_intens = norm_intens.reshape((norm_intens.shape[0]*norm_intens.shape[1]))
+            if nits is None:
+                nits = norm_intens
+            else:
+                nits = np.concatenate((nits,norm_intens))
+        #distr_coords = np.concatenate((coords,norm_intens))
+
+        return - self._kdes(coords,nits)
 
 
 
@@ -275,7 +360,107 @@ class Fitter:
 
 
     def fit_multiple(self):
-        cds = self._pdm.recompute_conditional_shape_int_distribution(self._best_meshes_mni[0].gen_num_of_points())
+        cds = self._pdm.recompute_conditional_structure_structure(self._best_meshes_mni[0].gen_num_of_points())
+        for i_test_sub in range(len(self._test_subj)):
+
+
+
+            for lab in range(len(settings.settings.dependent_constraint.keys())):
+                fc = FunctionHandlerMulti()
+                #todo fix set
+                fc.set_image(  self._test_subj[i_test_sub] + os.sep + "t2_acpc_normalised.nii.gz/t2_resampled_fcm.nii.gz"   )
+                fc.set_subject(self._test_subj[i_test_sub])
+                fc._mesh = self._best_meshes_mni[0]
+                fc._cmesh = self._best_meshes_c[0]
+
+                keys1 = list(settings.settings.dependent_constraint.keys())[lab]
+
+                keys2= keys1.split(',')
+
+                num_of_pts = None
+                joined_s2 = None
+                for i in range(len(keys2)):
+
+                    mesh = ExtPy.cMesh(self._test_subj[i_test_sub] + os.sep + keys2[i] + "_fitted.obj")
+                    a = mesh.get_unpacked_coords()
+                    num_of_pts = len(a)/3
+                    if joined_s2 is None:
+                        joined_s2 = np.array(a)
+                    else:
+                        joined_s2 = np.concatenate(joined_s2,a)
+
+
+                fc._mesh.calculate_closest_points()
+                fc._kdes = cds[lab]
+                fc._kdes.set_S2(joined_s2) # set readed shape
+
+                fc._num_of_points= int(num_of_pts)
+
+                #constraint for interception
+                vals1 = settings.settings.dependent_constraint[keys1].split(',')
+
+                fc._constraints = len(vals1)
+
+                X0 = np.zeros((fc._kdes.get_num_eigenvecs()))
+
+                #####SAVE initi
+                res_points = fc._kdes.vector_2_points(X0)
+                #cmp =
+
+                for i in range(len(vals1 )):
+
+                    Xr = res_points[3*fc._num_of_points*i:3*fc._num_of_points*(i+1)]
+
+                    l = len(Xr.tolist())
+                    fc._mesh.modify_points(Xr.reshape(( int(l/3),3)))
+                    fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
+                    fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + vals1[i] + "_initialise.obj")
+
+
+
+                ##########################################################
+                print(datetime.now())
+                #print(fc._cmesh.selfIntersectionTest(list(cds[lab][0].vector_2_points(X0))))
+                print(datetime.now())
+                #print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
+                print(datetime.now())
+
+
+                bounds = fc._kdes.generate_bounds(3)
+
+
+                print("Start optimising ")
+                mimiser = opt.minimize(fc, X0, method='TNC',bounds=bounds, options={"disp": True})
+                r_x = mimiser.fun
+                while True:
+                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True})
+                    mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
+                                          options={"disp": True})
+
+                    if r_x - mimiser.fun < 0.1:
+                        break
+                    r_x = mimiser.fun
+                #mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
+                #mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
+
+                #mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
+                print(datetime.now())
+                res_points = fc._kdes.vector_2_points(mimiser.x)
+
+                for i in range(len(vals1 )):
+
+                    Xr = res_points[3*fc._num_of_points*i:3*fc._num_of_points*(i+1)]
+
+
+                    l = len(Xr.tolist())
+                    fc._mesh.modify_points(Xr.reshape(( int(l/3),3)))
+                    fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
+
+                    fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + vals1[i] + "_fitted.obj")
+
+                a = fc(X0)
+            pass
+        pass
 
 
         pass

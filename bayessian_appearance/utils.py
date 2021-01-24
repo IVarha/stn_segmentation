@@ -5,6 +5,8 @@ import numpy as np
 import fsl.transform.flirt as fl
 import fsl.data.image as f_im
 import os
+import json
+
 
 def read_label_desc(file_name):
     fm = open(file=file_name,mode='rt')
@@ -69,9 +71,12 @@ def read_segmentation_config(file_name):
             #res.append( [keys[i],cfg['segmentation_conf'][keys[i]]])
         settings.settings.use_constraint = res['use_constraint']
 
+
+
     settings.settings.atlas_dir = res['atlas_dir']
     res['labels_to_segment'] = res['labels_to_segment'].split(',')
     settings.settings.labels_to_segment = res['labels_to_segment']
+    settings.settings.dependent_constraint = json.loads(res['dependent_constraint'])
 
     return res
 

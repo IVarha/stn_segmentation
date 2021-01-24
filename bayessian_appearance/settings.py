@@ -9,6 +9,7 @@ class Settings:
     all_labels = None
     atlas_dir = None
 
+
     def __init__(self):
         pass
 

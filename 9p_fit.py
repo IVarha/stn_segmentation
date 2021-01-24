@@ -39,11 +39,15 @@ def main_proc(train_subjects, test_subjects, label_names, config_name, modalitie
     fitter.set_modalities(mod)
     fitter.set_overlaped(workdir + os.sep + "overlaped.mat")
     print(datetime.now())
+
+    fitter.fit_multiple()
     fitter.fit_single()
 
 
 
     print(datetime.now())
+
+
     fitter.fit_multiple()
 
 

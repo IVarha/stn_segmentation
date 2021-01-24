@@ -42,6 +42,8 @@ public:
 
     std::vector<std::vector<double>> getInsideMeshPoints( int discretisation);
 
+
+    std::vector<double> getUnpackedCords();
     virtual ~pySurface() {
         if (mesh!= nullptr) delete mesh;
     }
