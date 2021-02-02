@@ -103,39 +103,49 @@ if __name__ == '__main__':
     inv_transf = np.linalg.inv(transform)
     ac_i = tmp_names.index('ac')
     pc_i = tmp_names.index('pc')
-    ics_i = tmp_names.index('ics')
-    genu_i = tmp_names.index('genu')
+    m1_i = tmp_names.index('m1')
+    m2_i = tmp_names.index('m2')
+    m3_i = tmp_names.index('m3')
+    m4_i = tmp_names.index('m4')
 
     ac = np.array([float(x) for x in tmp_xyz[ac_i]] + [1])
     pc = np.array([float(x) for x in tmp_xyz[pc_i]] + [1])
 
-    ics = np.array([float(x) for x in tmp_xyz[ics_i]])
-    genu = np.array([float(x) for x in tmp_xyz[genu_i]])
+    m1 = np.array([float(x) for x in tmp_xyz[m1_i]])
+    m2 = np.array([float(x) for x in tmp_xyz[m2_i]])
+    m3 = np.array([float(x) for x in tmp_xyz[m3_i]])
+    m4 = np.array([float(x) for x in tmp_xyz[m4_i]])
 
-    mid = (ics + genu)/2
+    mid = (m1 + m2 + m3 + m4)/4
     mid = np.array( mid.tolist() + [1])
     a1 = ac - pc
     a2 = mid - pc
     a1 = a1[0:3]
     a2 = a2[0:3]
     a_cross = np.cross(a1, a2)
+
+
     mni_a = np.array([0, 0, 0])  # pc
     mni_b = np.array([0, 0, 25])  # mid
     mni_c = np.array([0, 25, 0])  # ac
     mni_a1 = mni_c - mni_a
     mni_a2 = mni_b - mni_a
     mni_across = np.cross(mni_a1, mni_a2)
+
+
     d1 = -np.dot(a_cross, ac[:3])
     d2 = -np.dot(mni_across, mni_b)
-
+    #caclulate intersection of data MNI coords and MNI origin PLANE
     res_intr = plane_intersect(list(a_cross) + [d1], list(mni_across) + [d2])
 
     p = res_intr[0]
-    N = res_intr[1] / np.linalg.norm(res_intr[1])
+    N = (res_intr[1] - res_intr[0]) / np.linalg.norm(res_intr[1] - res_intr[0])
+    #angle between two planes (MNI coords and MNI origin PLANE)
     alpha = np.arccos(np.dot(mni_across, a_cross) / (np.linalg.norm(mni_across) * np.linalg.norm(a_cross)))
     if (alpha > np.pi / 2):
         alpha = 0 - (np.pi - alpha)
     print(alpha)
+
     rotA = rotate_axis(N, alpha)
 
     mov_b = translate_p(-p)
@@ -174,7 +184,7 @@ if __name__ == '__main__':
         rot_a1 = rot_a2
 
     tr_res = np.dot(rot_a1, np.dot(combined_aff, transform))
-    #    tr_res = np.dot(combined_aff,transform)
+    #tr_res = np.dot(combined_aff,transform)
 
     #write pickle file
     f = open(outp_mat,'wb')

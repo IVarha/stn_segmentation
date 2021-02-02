@@ -126,7 +126,7 @@ if __name__ == '__main__':
     res_intr = plane_intersect(list(a_cross) + [d1], list(mni_across) + [d2])
 
     p = res_intr[0]
-    N = res_intr[1] / np.linalg.norm(res_intr[1])
+    N = (res_intr[1] - res_intr[0]) / np.linalg.norm(res_intr[1] - res_intr[0])
     alpha = np.arccos(np.dot(mni_across, a_cross) / (np.linalg.norm(mni_across) * np.linalg.norm(a_cross)))
     if (alpha > np.pi / 2):
         alpha = 0 - (np.pi - alpha)
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         rot_a1 = rot_a2
 
     tr_res = np.dot(rot_a1, np.dot(combined_aff, transform))
-    #    tr_res = np.dot(combined_aff,transform)
+    #tr_res = np.dot(combined_aff,transform)
 
     #write pickle file
     f = open(outp_mat,'wb')

@@ -32,7 +32,8 @@ for d in $work_dir//$prefix_subdirs*; do
 #        echo $i
 #        cp $i $d/t2_precl_RAW.nii.gz
 #    done
-    python to_ac_pc.py $d/t1_precl_RAW.nii.gz $d/fiducials.fcsv $d/t1_acpc.nii.gz $d/transformACPC
-    python to_ac_pc.py $d/t2_precl_wt1.nii.gz $d/fiducials.fcsv $d/t2_acpc_wt1.nii.gz $d/transformACPC
+    echo "$d/t1_precl_RAW.nii.gz $d/fiducials.fcsv $d/t1_acpc.nii.gz $d/transformACPC"
+    python new_data_to_ac_pc.py $d/t1_precl_RAW.nii.gz $d/fiducials.fcsv $d/t1_acpc.nii.gz $d/transformACPC
+    python new_data_to_ac_pc.py $d/t2_precl_RAW.nii.gz $d/fiducials.fcsv $d/t2_acpc_wt1.nii.gz $d/transformACPC
 #    mri_gcut $d/$name_1 $d/t1_extracted.nii.gz
 done
