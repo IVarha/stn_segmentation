@@ -1,12 +1,13 @@
-work_dir="/mnt/f/processing/labels/imaging/bids"
-prefix_subdirs="sub"
-cp_script="/tmp/tmp.9HaHyiykJ1/cmake-build-debug-remote-host/bayessian_segmentation_cpp"
-label_desc="/mnt/f/processing/labels/label_desk.txt"
-subjects="/mnt/f/processing/labels/imaging/training_subjects.txt"
-opts_cnf="/mnt/f/processing/labels/imaging/config_ini.txt"
-working="/mnt/f/processing/labels/imaging/workdir"
-modalities_cnf="/mnt/f/processing/labels/imaging/modalities.ini"
-test_subj="/mnt/f/processing/labels/imaging/test_subjects.txt"
+work_dir="/data/home/varga/processing_data/new_data_sorted"
+prefix_subdirs="sub-"
+cp_script="/tmp/tmp.qdPaSxoIoZ/cmake-build-debug-tuplak/bayessian_segmentation_cpp"
+label_desc="/data/home/varga/processing_data/label_desk.txt"
+subjects="/data/home/varga/processing_data/training_subjects.txt"
+opts_cnf="/data/home/varga/processing_data/config_ini.txt"
+working="/data/home/varga/processing_data/workdir"
+modalities_cnf="/data/home/varga/processing_data/modalities.ini"
+test_subj="/data/home/varga/processing_data/test_subjects.txt"
+/data/home/varga/processing_data/
 #ssss
 #while  IFS= read -r line
 #do
@@ -18,14 +19,14 @@ name="mri.nii.gz"
 name_1="t1_acpc.nii.gz"
 # segment alex data
 
-export PYTHONPATH=/tmp/bayessian_segmentation_cpp/cmake-build-debug-remote-host/:$PYTHONPATH
+export PYTHONPATH=/tmp/tmp.qdPaSxoIoZ/cmake-build-debug-tuplak/:$PYTHONPATH
 #./1_brain_surface_extract.sh $work_dir $prefix_subdirs
 #./2_linear_registration.sh $work_dir $prefix_subdirs
 #./3_WM_SEG.sh $work_dir $prefix_subdirs
 #./4_intensity_normalisation.sh $work_dir $prefix_subdirs
-#./5p_generate_meshes.sh $work_dir $prefix_subdirs $cp_script $label_desc
-#python 6p_calculate_overlap.py $subjects $label_desc $working
-echo "$subjects $label_desc $opts_cnf $working $modalities_cnf"
+./5p_generate_meshes.sh $work_dir $prefix_subdirs $cp_script $label_desc
+python 6p_calculate_overlap.py $subjects $label_desc $working
+#echo "$subjects $label_desc $opts_cnf $working $modalities_cnf"
 python 7p_calculate_norm_intensities.py $subjects $label_desc $opts_cnf $working $modalities_cnf
-python 8p_construct_constraints.py $subjects $label_desc $opts_cnf $working $modalities_cnf
-python 9p_fit.py $subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj
+#python 8p_construct_constraints.py $subjects $label_desc $opts_cnf $working $modalities_cnf
+#python 9p_fit.py $subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj

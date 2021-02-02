@@ -18,11 +18,25 @@ for d in $work_dir//$prefix_subdirs*; do
     #echo "$d/$name_1"
     #
 
-    ./bfc_h.sh $d/$name_1 $d/t1_bfc_ac_pc.nii.gz
+    ./bfc_h.sh $d/$name_1 $d/t1_bfc_ac_pc.nii.gz &
     rm -rf $d/temp_t1_acpc_extracted.nii.gz
     rm -rf $d/t1_acpc_extracted.nii.gz
-    bet $d/t1_bfc_ac_pc.nii.gz $d/t1_acpc_extracted.nii.gz -R -S -B
+    #bet $d/t1_bfc_ac_pc.nii.gz $d/t1_acpc_extracted.nii.gz -R -S -B
     #-B
 #    runROBEX.sh $d/t1_bfc_ac_pc.nii.gz $d/t1_acpc_extracted.nii.gz
 #    mri_gcut $d/$name_1 $d/t1_acpc_extracted.nii.gz -T 0.95
 done
+
+wait
+for d in $work_dir//$prefix_subdirs*; do
+    echo "$d"
+    #echo "$d/$name_1"
+    #
+
+    bet $d/t1_bfc_ac_pc.nii.gz $d/t1_acpc_extracted.nii.gz -R -S -B &
+    #-B
+#    runROBEX.sh $d/t1_bfc_ac_pc.nii.gz $d/t1_acpc_extracted.nii.gz
+#    mri_gcut $d/$name_1 $d/t1_acpc_extracted.nii.gz -T 0.95
+done
+
+wait
