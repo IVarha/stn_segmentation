@@ -23,3 +23,4 @@ for d in $work_dir//$prefix_subdirs*; do
     #create mask
 
 done
+wait

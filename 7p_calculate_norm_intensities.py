@@ -7,7 +7,7 @@
 import csv
 import os
 import sys
-
+import vtk
 import ExtPy
 import fsl.data.image as fim
 import fsl.transform.flirt as fl

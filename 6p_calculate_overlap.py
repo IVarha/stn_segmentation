@@ -166,7 +166,10 @@ def main_proc(train, label_names, workdir):
 
 
     overlap_stat = np.array(overlap_stat)
-    os.remove(workdir + os.sep + "overlaped.mat")
+    try:
+        os.remove(workdir + os.sep + "overlaped.mat")
+    except:
+        pass
     np.savetxt(workdir + os.sep + "overlaped.mat",X=overlap_stat)
     mesh_min_max= np.array(m_mx)
 
