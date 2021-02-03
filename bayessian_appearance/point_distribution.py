@@ -25,7 +25,8 @@ class PointDistribution:
     def _prolongue_label(self, label_vec, mask_vec):
         res = label_vec.copy()
         i_f = mask_vec.index(True)
-
+        # if min(mask_vec) == False:
+        #     print("HAS FALSE")
         ##f
         for i in (range(i_f)):
             res[i]=res[i_f]

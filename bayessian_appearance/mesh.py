@@ -603,4 +603,74 @@ class Mesh:
 
         return curr_pt
 
-        
+    # generates point array
+    @staticmethod
+    def generate_mask(x_r, y_r, z_r, dt):
+
+        x_min = x_r[0]
+        x_max = x_r[1]
+
+        x_arr = []
+        i = 0
+        while True:
+            x_arr.append(x_min + i * dt)
+            if (x_min + i * dt) >= x_max:
+                break
+            i += 1
+        y_min = y_r[0]
+        y_max = y_r[1]
+        y_arr = []
+        i = 0
+        while True:
+            y_arr.append(y_min + i * dt)
+            if (y_min + i * dt) >= y_max:
+                break
+            i += 1
+
+        z_min = z_r[0]
+        z_max = z_r[1]
+        z_arr = []
+        i = 0
+        while True:
+            z_arr.append(z_min + i * dt)
+            if (z_min + i * dt) >= z_max:
+                break
+            i += 1
+
+        res_arr = np.zeros((len(x_arr), len(y_arr), len(z_arr), 3))
+        for i in range(len(x_arr)):
+            for j in range(len(y_arr)):
+                for k in range(len(z_arr)):
+                    res_arr[i, j, k, 0] = x_arr[i]
+                    res_arr[i, j, k, 1] = y_arr[j]
+                    res_arr[i, j, k, 2] = z_arr[k]
+        return res_arr
+
+
+    @staticmethod
+    def meshes_overlap(mesh_main, mesh_test, method):
+
+
+        pt_m  = mesh_main.get_all_points()
+
+        pt_test = mesh_test.get_all_points()
+
+        pt_c = np.array(pt_m + pt_test)
+
+        min_X = pt_c[:,0].min()
+        max_X = pt_c[:, 0].max()
+        min_Y = pt_c[:,1].min()
+        max_Y = pt_c[:, 1].max()
+        min_Z = pt_c[:,2].min()
+        max_Z = pt_c[:, 2].max()
+
+
+        point_array = Mesh.generate_mask([min_X,max_X],[min_Y,max_Y],[min_Z,max_Z],0.2)
+
+        mask_main = mesh_main.points_is_inside(point_array)
+        mask_test = mesh_test.points_is_inside(point_array)
+
+
+        return  method(mask_main,mask_test)
+
+

@@ -11,6 +11,8 @@ import bayessian_appearance.utils as util
 import bayessian_appearance.point_distribution as pd
 import os
 
+import datetime
+
 def main_proc(train, label_names, config_name,modalities, workdir):
     tr_subjects = util.read_subjects(train)
     labels = util.read_label_desc(label_names)
@@ -19,10 +21,13 @@ def main_proc(train, label_names, config_name,modalities, workdir):
 
     seg_cnf = util.read_segmentation_config(modalities_name)
     cnf = util.read_config_ini(config_name)
-
+    print("processing started at")
+    print(datetime.datetime.now())
     meshes = []
     pdm = pd.PointDistribution(train_subjects=tr_subjects,labels=labels,segmentation_conf=seg_cnf)
 
+    print("processing finished at")
+    print(datetime.datetime.now())
     pdm.save_pdm(workdir + os.sep + "pdm.pysave")
         # read im
 

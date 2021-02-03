@@ -13,8 +13,14 @@ import bayessian_appearance.point_distribution as pd
 import os
 import bayessian_appearance.fitting as fitt
 
-def main_proc(train_subjects, test_subjects, label_names, config_name, modalities, workdir):
-    tr_subjects = util.read_subjects(train_subjects)
+import bayessian_appearance.mesh as mesh
+
+import  numpy as np
+
+
+
+
+def main_proc( test_subjects, label_names, config_name, modalities, workdir):
     test_subjs = util.read_subjects(test_subjects)
 
     labels = util.read_label_desc(label_names)
@@ -22,32 +28,42 @@ def main_proc(train_subjects, test_subjects, label_names, config_name, modalitie
     mod = util.read_modalities_config(modalities)
     seg_cnf = util.read_segmentation_config(modalities)
     cnf = util.read_config_ini(config_name)
-    import ExtPy
-    tri = [ [0,0,0],
-            [0,0,2],
-            [0,2,0],
 
-            [1,0,0],
-            [-1,0,0],
-            [-0.5,0.5,0.5]]
-    a = ExtPy.is_triangle_intersected(tri)
+    #functions
+    dice_f = lambda x, y: 2 * (x & y).sum() / (x.sum() + y.sum())
+    jac_f = lambda x, y: 2 * (x & y).sum() / (x | y).sum()
 
-    meshes = []
-    fitter  = fitt.Fitter(tr_subjects,test_subj=test_subjs)
-    fitter.read_pdm(workdir + os.sep + "pdm.pysave")
-    fitter.set_modalities(mod)
-    fitter.set_overlaped(workdir + os.sep + "overlaped.mat")
-    print(datetime.now())
-
-    fitter.fit_single()
-    fitter.fit_multiple()
+    for sub_i in range(len(test_subjs)):
 
 
+        res = []
+        for lab1 in range(len(labels)):
 
-    print(datetime.now())
+
+            tmp = []
+            mesh_labeled = mesh.Mesh(test_subjs[sub_i] + os.sep+  labels[lab1] + "_1.obj")
+
+            mesh_fitted = mesh.Mesh(test_subjs[sub_i] + os.sep + labels[lab1] + "_fitted.obj")
+            tmp.append( mesh.Mesh.meshes_overlap(mesh_labeled,mesh_fitted,dice_f))
+            tmp.append(mesh.Mesh.meshes_overlap(mesh_labeled, mesh_fitted, jac_f))
+
+            res.append(tmp)
 
 
-    fitter.fit_multiple()
+
+        np.savetxt(fname=test_subjs[sub_i] + os.sep + "overlap.csv" ,X=np.array(res),delimiter=',' )
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -67,7 +83,7 @@ if __name__ == '__main__':
     modalities_name = sys.argv[5]
     test_subjects_file = sys.argv[6]
     a = util.read_segmentation_config(modalities_name)
-    main_proc(train_subjects=train_subjects_file,test_subjects=test_subjects_file,
+    main_proc(test_subjects=test_subjects_file,
               label_names=labels_desc_file,config_name=conf_file,
               modalities=modalities_name,workdir=outp)
 
