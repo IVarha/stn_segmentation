@@ -170,7 +170,7 @@ class FunctionHandlerMulti:
             normals = utils.apply_transf_2_norms(normals,self._from_mni_to_vox)
 
 
-            ips = np.array(self._image.interpolate_list(mesh_pts)).mean()
+            ips = np.nanmean(np.array(self._image.interpolate_list(mesh_pts)))
 
 
             norm_intens = np.array(self._image.interpolate_normals(normals))
@@ -334,15 +334,21 @@ class Fitter:
                 mimiser = opt.minimize(fc, X0, method='TNC',bounds=bounds, options={"disp": True})
                 r_x = mimiser.fun
                 while True:
-                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True})
+                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True, 'ftol': 1})
                     mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
-                                          options={"disp": True})
+                                          options={"disp": True
+                                              # ,'ftol':1
+                                                   })
 
                     if r_x - mimiser.fun < 0.1:
                         break
                     r_x = mimiser.fun
-                #mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
-                #mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
+                mimiser = opt.minimize(fc, mimiser.x, method='CG',tol=1, options={"disp": True,
+                                                                                  # 'ftol': 1
+                                                                                  })
+                r_x = mimiser.fun
+                # mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
+                # mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
 
                 #mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
                 print(datetime.now())
@@ -433,9 +439,11 @@ class Fitter:
                 mimiser = opt.minimize(fc, X0, method='TNC',bounds=bounds, options={"disp": True})
                 r_x = mimiser.fun
                 while True:
-                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True})
+                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds,tol=0.5, options={"disp": True, 'ftol': 0.5})
                     mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
-                                          options={"disp": True})
+                                          options={"disp": True
+                                               ,'ftol':0.5
+                                                   })
 
                     if r_x - mimiser.fun < 0.1:
                         break

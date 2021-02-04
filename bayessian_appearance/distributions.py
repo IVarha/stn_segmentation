@@ -139,8 +139,9 @@ class NormalConditional:
         """
         return np.array([0 if abs(x) <= eps else 1 / x for x in v], dtype=float)
 
-    def __init__(self, mean1, mean2, cov_all, num_of_pts):
-
+    def __init__(self, mean1, mean2, cov_all, num_of_pts,tol =-1):
+        if tol ==-1:
+            tol = 0
         self._mean1 = mean1
         self._mean2 = mean2
 
@@ -163,9 +164,10 @@ class NormalConditional:
 
         self._prec_12 = prec
         ################ =============================================
-
+        if tol>eps:
+            eps = tol
+        self._eig_val[self._eig_val < eps] = 0
         # self._l_12 = np.dot(U,U.transpose())
-
         self._main_vecs = self._eig_vec[:, self._eig_val > 0]
         self._l_cov = np.dot(cov11, self._prec_12)
 
@@ -244,7 +246,7 @@ class NormalConditionalBayes():
 
     _pdf_prior = None
 
-    def __init__(self, mean_all, cov_all, num_of_pts):
+    def __init__(self, mean_all, cov_all, num_of_pts,tol = -1):
         self._mean1 = mean_all[:num_of_pts]
         self._mean2 = mean_all[num_of_pts:]
         self._cov_11 = cov_all[:num_of_pts, :num_of_pts]
@@ -260,6 +262,10 @@ class NormalConditionalBayes():
         prec_all = np.dot(U, U.transpose())
         self._eig_vec = u
         self._eig_val = s
+        if tol>eps:
+            eps = tol
+        self._eig_val[self._eig_val < eps] = 0
+
         self._main_vecs = self._eig_vec[:, self._eig_val > 0]
         self._l_cov = np.dot(cov_all[num_of_pts:, num_of_pts:], prec_all[num_of_pts:, :num_of_pts])
 
@@ -284,8 +290,8 @@ class JointDependentDistribution:
 
     def __init__(self, mean_s_1, mean_s_2, cov_s, mean_si1, mean_si2, cov_si):
         self._mean_s2 = mean_s_2
-        self.dist_s1s2 = NormalConditional(mean_s_1, mean_s_2, cov_s, mean_s_1.shape[0])
-        self.dist_I_s1 = NormalConditional(mean_si1, mean_si2, cov_si, mean_si1.shape[0])
+        self.dist_s1s2 = NormalConditional(mean_s_1, mean_s_2, cov_s, mean_s_1.shape[0],tol=0.5)
+        self.dist_I_s1 = NormalConditional(mean_si1, mean_si2, cov_si, mean_si1.shape[0],tol=0.5)
         pass
 
     def set_S2(self, pts):
