@@ -290,8 +290,8 @@ class JointDependentDistribution:
 
     def __init__(self, mean_s_1, mean_s_2, cov_s, mean_si1, mean_si2, cov_si):
         self._mean_s2 = mean_s_2
-        self.dist_s1s2 = NormalConditional(mean_s_1, mean_s_2, cov_s, mean_s_1.shape[0],tol=0.5)
-        self.dist_I_s1 = NormalConditional(mean_si1, mean_si2, cov_si, mean_si1.shape[0],tol=0.5)
+        self.dist_s1s2 = NormalConditional(mean_s_1, mean_s_2, cov_s, mean_s_1.shape[0],tol=5)
+        self.dist_I_s1 = NormalConditional(mean_si1, mean_si2, cov_si, mean_si1.shape[0],tol=5)
         pass
 
     def set_S2(self, pts):

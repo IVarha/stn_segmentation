@@ -80,19 +80,21 @@ class FunctionHandler:
         #print(datetime.now())
         self._cmesh.modify_points(coords)
         normals = self._cmesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
-        #print(datetime.now())
-        mesh_pts = utils.apply_transf_2_pts(self._cmesh.generate_mesh_points(10),transf=self._from_mni_to_vox)
 
-        normals = utils.apply_transf_2_norms(normals,self._from_mni_to_vox)
+        #mesh_pts = ExtPy.apply_transform_2_pts(self._cmesh.generate_mesh_points(10), self._from_mni_to_vox.tolist())
+
+        normals = ExtPy.apply_transform_2_norms(normals, self._from_mni_to_vox.tolist())
+        #c = datetime.now()
 
 
-        ips = np.array(self._image.interpolate_list(mesh_pts)).mean()
+        #intens
+        #ips = np.array(self._image.interpolate_list(mesh_pts)).mean()
 
 
         norm_intens = np.array(self._image.interpolate_normals(normals))
 
         #normalise intensity
-        norm_intens  = norm_intens - ips
+        #norm_intens  = norm_intens - ips
 
         norm_intens = norm_intens.reshape((norm_intens.shape[0]*norm_intens.shape[1]))
         #distr_coords = np.concatenate((coords,norm_intens))
@@ -165,17 +167,18 @@ class FunctionHandlerMulti:
 
             normals = self._cmesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
         #print(datetime.now())
-            mesh_pts = utils.apply_transf_2_pts(self._cmesh.generate_mesh_points(10),transf=self._from_mni_to_vox)
+            #mesh_pts = ExtPy.apply_transform_2_pts(self._cmesh.generate_mesh_points(10),self._from_mni_to_vox.tolist())
 
-            normals = utils.apply_transf_2_norms(normals,self._from_mni_to_vox)
+            normals = ExtPy.apply_transform_2_norms(normals,self._from_mni_to_vox)
 
-
-            ips = np.nanmean(np.array(self._image.interpolate_list(mesh_pts)))
+            ###here are mean intensity normalisation( removed )
+            #ips = np.nanmean(np.array(self._image.interpolate_list(mesh_pts)))
 
 
             norm_intens = np.array(self._image.interpolate_normals(normals))
 
         #normalise intensity
+            ips = 0 # need to remove aftr
             norm_intens  = norm_intens - ips
 
             norm_intens = norm_intens.reshape((norm_intens.shape[0]*norm_intens.shape[1]))

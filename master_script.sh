@@ -29,7 +29,7 @@ echo $PYTHONPATH
 #echo "$subjects $label_desc $working"
 #python 6p_calculate_overlap.py $subjects $label_desc $working
 #echo "$subjects $label_desc $opts_cnf $working $modalities_cnf"
-#python 7p_calculate_norm_intensities.py $subjects $label_desc $opts_cnf $working $modalities_cnf
+python 7p_calculate_norm_intensities.py $subjects $label_desc $opts_cnf $working $modalities_cnf
 echo "$subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj"
-#python 8p_construct_constraints.py $subjects $label_desc $opts_cnf $working $modalities_cnf
+python 8p_construct_constraints.py $subjects $label_desc $opts_cnf $working $modalities_cnf
 #python 9p_fit.py $subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj

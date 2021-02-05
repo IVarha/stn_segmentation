@@ -122,7 +122,9 @@ def calculate_intensites_subject(modalities,labels,subject, discretisation, norm
 
             profile= calc_intensities(norms_native, images[j][1])
             mp2 = util.apply_transf_2_pts(mp,images[j][1]._world_2_vox)
-            mn = np.array(images[j][1].interpolate_list(mp2)).mean()
+            ######intensity blok(-mean)
+            #mn = np.array(images[j][1].interpolate_list(mp2)).mean()
+            mn = 0
             profiles = concatenate_intensities(profiles,(np.array(profile) -mn).tolist())
         norm_vecs = norms_2_coords(normals=mni_norms)
 
