@@ -221,8 +221,8 @@ class PointDistribution:
 
             mean_all1  = self._kdes.distr.mean[num_per_structure*i:num_per_structure*(i+1)]
             cov_all1 = self._kdes.distr.cov[num_per_structure*i:num_per_structure*(i+1),num_per_structure*i:num_per_structure*(i+1)]
-            norm_cond = distros.NormalConditional(mean1=mn,mean2=mn2,cov_all=cov_all1,num_of_pts=num_of_pts*3,tol=0.5)
-            norm_cond_b = distros.NormalConditionalBayes(mean_all=mean_all1,cov_all=cov_all1,num_of_pts=3*num_of_pts,tol=0.5)
+            norm_cond = distros.NormalConditional(mean1=mn,mean2=mn2,cov_all=cov_all1,num_of_pts=num_of_pts*3,tol=10)
+            norm_cond_b = distros.NormalConditionalBayes(mean_all=mean_all1,cov_all=cov_all1,num_of_pts=3*num_of_pts,tol=10)
 
             res.append([norm_cond,norm_cond_b])
 

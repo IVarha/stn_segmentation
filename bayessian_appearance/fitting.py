@@ -292,12 +292,6 @@ class Fitter:
                 X0 = fc._mesh.get_unpacked_coords()
                 X0 = cds[lab][0].decompose_coords_to_eigcords(X0)
                 X0[:] = 0
-                #####SAVE initi
-                res_points = cds[lab][0].vector_2_points(X0)
-                l = len(res_points.tolist())
-                fc._mesh.modify_points(res_points.reshape(( int(l/3),3)))
-                fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
-                fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + self._pdm._label_kde[lab] + "_initialise.obj")
 
                 ##########################################################
                 print(datetime.now())
@@ -306,35 +300,43 @@ class Fitter:
                 #print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
                 print(datetime.now())
 
-
+                a = fc(X0)
                 bounds = cds[lab][0].generate_bounds(3)
                 #mimiser = opt.minimize(fc,X0,method="cg",options={"disp":True})
 
-                # Xpt = X0.copy()
-                # for bd in range(1,len(bounds)+1):
-                #     bound = bounds[-bd]
-                #
-                #     curr = bound[0]
-                #     arr = []
-                #     dt = bound[1]*2/100
-                #     cnt = 0
-                #     while (bound[0] + dt*cnt < bound[1]):
-                #         Xpt[-bd] = bound[0] + dt*cnt
-                #         arr.append(fc(Xpt))
-                #         cnt = cnt+1
-                #
-                #     arr = np.array(arr)
-                #     ind = np.where( arr == min(arr))[0][0]
-                #     Xpt[-bd] = bound[0] +ind*dt
-                #
-                # X0 = Xpt
+                Xpt = X0.copy()
+                for bd in range(1,len(bounds)+1):
+                    bound = bounds[-bd]
 
+                    curr = bound[0]
+                    arr = []
+                    dt = bound[1]*2/100
+                    cnt = 0
+                    while (bound[0] + dt*cnt < bound[1]):
+                        Xpt[-bd] = bound[0] + dt*cnt
+                        arr.append(fc(Xpt))
+                        cnt = cnt+1
+
+                    arr = np.array(arr)
+                    ind = np.where( arr == np.nanmin(arr))[0][0]
+                    Xpt[-bd] = bound[0] +ind*dt
+
+                X0 = Xpt
+
+                #####SAVE initi
+                res_points = cds[lab][0].vector_2_points(X0)
+                l = len(res_points.tolist())
+                fc._mesh.modify_points(res_points.reshape(( int(l/3),3)))
+                fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
+                fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + self._pdm._label_kde[lab] + "_initialise.obj")
 
                 print("Start optimising ")
                 mimiser = opt.minimize(fc, X0, method='TNC',bounds=bounds, options={"disp": True})
                 r_x = mimiser.fun
                 while True:
-                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True, 'ftol': 1})
+                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True
+                        #, 'ftol': 1
+                                                                                                })
                     mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
                                           options={"disp": True
                                               # ,'ftol':1
