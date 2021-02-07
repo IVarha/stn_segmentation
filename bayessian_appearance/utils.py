@@ -76,8 +76,10 @@ def read_segmentation_config(file_name):
     settings.settings.atlas_dir = res['atlas_dir']
     res['labels_to_segment'] = res['labels_to_segment'].split(',')
     settings.settings.labels_to_segment = res['labels_to_segment']
-    settings.settings.dependent_constraint = json.loads(res['dependent_constraint'])
-
+    if 'dependent_constraint' in res.keys():
+        settings.settings.dependent_constraint = json.loads(res['dependent_constraint'])
+    else:
+        settings.settings.dependent_constraint = []
     return res
 
 def apply_transf_2_pts(pts,transf):
