@@ -42,6 +42,9 @@ public:
 
     std::vector<std::vector<double>> getInsideMeshPoints( int discretisation);
 
+    void saveObj(std::string filename);
+
+
 
     std::vector<double> getUnpackedCords();
     virtual ~pySurface() {

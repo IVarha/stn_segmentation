@@ -52,7 +52,7 @@ void NiftiImage::read_nifti_image(string file) {
 
 
     auto reader = vtkSmartPointer<vtkNIFTIImageReader>::New();
-    reader->DebugOn();
+    //reader->DebugOn();
     auto val = reader->CanReadFile(file.c_str());
     reader->SetFileName(file.c_str());
     reader->Update();
@@ -357,7 +357,7 @@ double NiftiImage::bSplineInterp(double* x) {
 
 
         this->bspline_coeff->SetInputData(this->niimg);
-        this->bspline_coeff->SetSplineDegree(5);
+        this->bspline_coeff->SetSplineDegree(3);
         this->bspline_coeff->Update();
 
     }
@@ -372,6 +372,22 @@ TransformMatrix NiftiImage::get_world_to_voxel() {
     auto res =  TransformMatrix();
     res.setMatrix(inv(this->transform));
     return res;
+}
+
+double NiftiImage::bSplineInterp(vector<double>& x) {
+
+    if (this->bspline_coeff == nullptr){
+        this->bspline_coeff = vtkSmartPointer<vtkImageBSplineCoefficients>::New();
+
+        this->bspline_coeff->SetInputData(this->niimg);
+        this->bspline_coeff->SetSplineDegree(3);
+        this->bspline_coeff->Update();
+
+    }
+    return this->bspline_coeff->Evaluate(x[0],x[1],x[2]);
+    //auto bb = interp->Interpolate(x[0],x[1],x[2],1);
+    //return interp->Interpolate(x[0],x[1],x[2],0);
+
 }
 
 

@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pySurface.h>
+//#include <pyNiftiImage.h>
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
@@ -89,8 +90,15 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             .def("selfIntersectionTest", &pySurface::self_intersection_test)
             .def("apply_transform", &pySurface::apply_transformation)
             .def("generate_normals", &pySurface::generateNormals)
+            .def("save_obj",&pySurface::saveObj)
             .def("generate_mesh_points", &pySurface::getInsideMeshPoints)
             .def("get_unpacked_coords",&pySurface::getUnpackedCords);
+
+
+//    py::class_<pyNiftiImage>(m,"cImage")
+//            .def(py::init<std::string>())
+//            .def("loadMask", &pyNiftiImage::setMask)
+//            .def("interpolate_normals", &pyNiftiImage::interpolate_normals);
 
 #ifdef VERSION_INFO
 m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

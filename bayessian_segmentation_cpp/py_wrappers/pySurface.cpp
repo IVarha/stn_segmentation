@@ -113,7 +113,7 @@ void pySurface::apply_transformation(const std::vector<std::vector<double>>& arr
     a(3,1) = arr[3][1];
     a(3,2) = arr[3][2];
     a(3,3) = arr[3][3];
-    a.print(std::cout);
+    //a.print(std::cout);
 
     this->mesh->apply_transformation(a);
     this->points = this->mesh->getPoints();
@@ -289,6 +289,10 @@ std::vector<double> pySurface::getUnpackedCords() {
 
 
 
+}
+
+void pySurface::saveObj(std::string filename) {
+    this->mesh->write_obj(filename);
 }
 
 

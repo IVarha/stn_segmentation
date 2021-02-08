@@ -52,7 +52,7 @@ include_directories(pybind11_INCLUDE_DIRS)
          segmentation/NiftiImage.cpp segmentation/NiftiImage.h segmentation/Point.cpp )
 
 add_executable(bayessian_segmentation_cpp main.cpp ${SOURCES})
- pybind11_add_module(ExtPy pybind_test.cpp py_wrappers/pySurface.cpp)
+ pybind11_add_module(ExtPy pybind_test.cpp py_wrappers/pySurface.cpp )
 
 
 

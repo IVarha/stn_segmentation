@@ -180,6 +180,7 @@ public:
 
     double bSplineInterp(double* x);
 
+    double bSplineInterp(vector<double>& x);
 
 };
 

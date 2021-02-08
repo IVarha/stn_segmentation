@@ -110,7 +110,7 @@ void Surface::expand_volume(double mm) {
 void Surface::write_volume(const std::string file_name) {
     auto writer = vtkSmartPointer<vtkPolyDataWriter>::New();
     writer->SetFileName(file_name.c_str());
-    writer->DebugOn();
+    //writer->DebugOn();
     writer->SetInputData(this->mesh);
     writer->Write();
 }
