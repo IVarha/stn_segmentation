@@ -3,6 +3,8 @@ import scipy.stats as stat
 import scipy as scp
 import scipy.optimize as opt
 
+import sklearn.covariance as rob_cov
+
 
 class NormalDistribution:
     #
@@ -31,15 +33,20 @@ class NormalDistribution:
     # cols = variables
     def __init__(self, data):
         data = np.array(data)
-        mean = []
-        for i in range(data.shape[1]):
-            mean.append(data[:, i].mean())
-        pass
 
-        mean = np.array(mean)
-        mean_vec = mean
-        cov = np.cov(data.transpose())
-        matr = cov
+        rob = rob_cov.EllipticEnvelope(random_state=0)
+
+        rob.fit(X=data)
+
+        #mean = data.mean(0)
+
+        mean = rob.location_
+
+
+        #cov = np.cov(data.transpose())
+
+
+        cov = rob.covariance_
 
         self.distr = stat.multivariate_normal(mean=mean, cov=cov, allow_singular=True)
 
@@ -48,6 +55,52 @@ class NormalDistribution:
     def __call__(self, *args, **kwargs):
         x = args[0]
         return self.distr.logpdf(x) - self.mean_logN
+
+    @staticmethod
+    def calculate_median(data):
+
+
+
+        np_med = None
+        for arr in data:
+
+            a = NormalDistribution(arr)
+
+            arr_vals = []
+            for i in range(arr.shape[0]):
+
+                arr_vals.append(a.distr.logpdf(arr[i,:]))
+
+            arr_vals = np.array(arr_vals)
+
+            #get median index
+            arr2 = arr_vals.copy()
+            arr2.sort()
+            ind_1 = arr2.shape[0]//2
+
+            ind = np.where(  arr_vals == arr2[ind_1])
+
+
+            if np_med is None:
+                np_med = np.reshape(arr[ind,:],(arr.shape[1]))
+
+            else:
+                np_med = np.concatenate( (np_med,np.reshape(arr[ind,:],(arr.shape[1]))),axis=-1)
+
+
+
+
+
+
+        for arr in data:
+
+
+            if np_med is None:
+                np_med = np.median(arr, 0)
+            else:
+                np_med = np.concatenate((np_med,np.median(arr, 0)),axis=-1)
+
+        return np_med
 
 
 def _eigvalsh_to_eps(spectrum, cond=None, rcond=None):
