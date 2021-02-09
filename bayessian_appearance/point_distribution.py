@@ -100,7 +100,6 @@ class PointDistribution:
             data = datasets[lab_i]
             #compute pca
             pca = decomp.PCA(n_components=settings.settings.pca_precision,svd_solver='full')
-
             pca.fit(data)
             pca_shapes.append(pca)
             # recompute shapes
@@ -339,8 +338,8 @@ class PointDistribution:
     def _recompute_cond_matrices(self, key, value, cov_all, mean_all, num_pts):
         ##consts initialisation
 
-        els_in_structure = num_pts * 3 + num_pts * settings.settings.discretisation
-        els_pts_per_struct = num_pts * 3
+        #els_in_structure = num_pts * 3 + num_pts * settings.settings.discretisation
+        #els_pts_per_struct = num_pts * 3
         #################
         keys = key.split(',')
         values = value.split(',')
@@ -362,8 +361,8 @@ class PointDistribution:
         range_shape_indices = []
         for i in indices_keys:
             tmp = []
-            tmp.append(i * els_in_structure)
-            tmp.append(i * els_in_structure + els_pts_per_struct)
+            tmp.append(self._shape_coords[i][0])
+            tmp.append(self._shape_coords[i][1])
             range_shape_indices.append(tmp)
 
         #####join shapes of depended structures
@@ -372,13 +371,13 @@ class PointDistribution:
         for i in indices_values:
             # s
             tmp = []
-            tmp.append(i * els_in_structure)
-            tmp.append(i * els_in_structure + els_pts_per_struct)
+            tmp.append(self._shape_coords[i][0])
+            tmp.append(self._shape_coords[i][1])
             range_dependent_shapes.append(tmp)
             # int
             tmp1 = []
-            tmp1.append(i * els_in_structure + els_pts_per_struct)
-            tmp1.append((i + 1) * els_in_structure)
+            tmp1.append(self._intens_coords[i][0])
+            tmp1.append(self._intens_coords[i][1])
             range_dependent_intensities.append(tmp1)
 
         #####################################################
