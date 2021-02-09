@@ -85,7 +85,7 @@ class PointDistribution:
             #compute
             np_intensties_new = pca.transform(np_intensties)
             new_intens.append(np_intensties_new)
-        self.pca_intensities = pcas
+        self._pca_intensities = pcas
         return new_intens
 
 
@@ -317,21 +317,20 @@ class PointDistribution:
             # recompute coord pos
             ind = self._labels.index(self._label_kde[i])
 
-            num_intensity_coords = settings.settings.discretisation * num_of_pts
+            num_intensity_coords = self._intens_coords[ind][1]-self._intens_coords[ind][0]
             num_per_structure = 3 * num_of_pts + num_intensity_coords
 
-            mn = self._kdes.distr.mean[i * num_per_structure:i * num_per_structure + 3 * num_of_pts]
-            mn2 = self._kdes.distr.mean[num_per_structure * i + 3 * num_of_pts: num_per_structure * (i + 1)]
-            cv = self._kdes.distr.cov[i * num_per_structure: i * num_per_structure + 3 * num_of_pts
-            , i * num_per_structure:i * num_per_structure + 3 * num_of_pts]
+            mean_shape = self._kdes.distr.mean[self._shape_coords[ind][0]:self._shape_coords[ind][1]]
+            mean_intens = self._kdes.distr.mean[self._intens_coords[ind][0]: self._intens_coords[ind][1]]
 
-            mean_all1 = self._kdes.distr.mean[num_per_structure * i:num_per_structure * (i + 1)]
-            cov_all1 = self._kdes.distr.cov[num_per_structure * i:num_per_structure * (i + 1),
-                       num_per_structure * i:num_per_structure * (i + 1)]
-            norm_cond = distros.NormalConditional(mean1=mn, mean2=mn2, cov_all=cov_all1, num_of_pts=num_of_pts * 3,
+
+            mean_all1 = self._kdes.distr.mean[self._shape_coords[ind][0]:self._intens_coords[ind][1]]
+            cov_all1 = self._kdes.distr.cov[self._shape_coords[ind][0]:self._intens_coords[ind][1],
+                       self._shape_coords[ind][0]:self._intens_coords[ind][1]]
+            norm_cond = distros.NormalConditional(mean1=mean_shape, mean2=mean_intens, cov_all=cov_all1,
                                                   tol=10)
             norm_cond_b = distros.NormalConditionalBayes(mean_all=mean_all1, cov_all=cov_all1,
-                                                         num_of_pts=3 * num_of_pts, tol=10)
+                                                         num_of_pts=mean_shape.shape[0])
 
             res.append([norm_cond, norm_cond_b])
 
@@ -504,3 +503,10 @@ class PointDistribution:
 
             res.append(t_Res)
         return res
+
+
+    def get_shape_pca(self, ind):
+        return self._pca_shapes[ind]
+
+    def get_intens_pca(self,ind):
+        return  self._pca_intensities[ind]

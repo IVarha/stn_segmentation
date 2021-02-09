@@ -22,10 +22,38 @@ import ExtPy
 import bayessian_appearance.settings as gl_set
 
 import scipy.optimize as opt
+
+
+
+
+
+def compute_pd_single_labed(subject,label,func):
+
+    cm = ExtPy.cMesh(subject + os.sep + label + "_1.obj")
+
+    cdw = cm.get_unpacked_coords()
+
+    cm.apply_transform(np.linalg.inv(func._mni_world).tolist() )
+    coords = cm.get_unpacked_coords()
+    normals = cm.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
+    normals = ExtPy.apply_transform_2_norms(normals, func._from_mni_to_vox.tolist())
+
+
+    norm_intens = np.array(func._image.interpolate_normals(normals))
+
+
+
+    norm_intens = norm_intens.reshape((norm_intens.shape[0] * norm_intens.shape[1]))
+    # distr_coords = np.concatenate((coords,norm_intens))
+    return - func._kdes[0](coords, norm_intens)
+
+
+
 #for single mesh
 class FunctionHandler:
 
     _image = None
+    _cimage =None
     _from_mni_to_vox = None
     _vox_to_world = None
     #label of single mesh
@@ -33,7 +61,10 @@ class FunctionHandler:
     _mesh = None
     _cmesh = None
     _num_of_points=None
+    _mni_world = None
 
+    intens_pca = None
+    shape_pca = None
 
     _constraints = None
     _kdes = None
@@ -62,6 +93,7 @@ class FunctionHandler:
 
 
         mni_w = fl.fromFlirt(from_mni_mat,mni_im,native_im,"world","world")
+        self._mni_world = mni_w
         a = np.linalg.inv(self._vox_to_world)
         self._from_mni_to_vox = np.dot(a,mni_w)
 
@@ -71,36 +103,36 @@ class FunctionHandler:
 
 
         coords = self._kdes[0].vector_2_points(coords)
-        coords2 = coords.reshape((self._num_of_points,3))
 
-        #print(datetime.now())
-        #self._mesh.modify_points(coords2)
+        coords1 = self.shape_pca.inverse_transform(coords.reshape((1,coords.shape[0])))[0]
 
-        #normals = self._mesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
-        #print(datetime.now())
-        self._cmesh.modify_points(coords)
+        self._cmesh.modify_points(coords1)
         normals = self._cmesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
 
         #mesh_pts = ExtPy.apply_transform_2_pts(self._cmesh.generate_mesh_points(10), self._from_mni_to_vox.tolist())
 
         normals = ExtPy.apply_transform_2_norms(normals, self._from_mni_to_vox.tolist())
-        #c = datetime.now()
-
 
         #intens
         #ips = np.array(self._image.interpolate_list(mesh_pts)).mean()
 
-
         norm_intens = np.array(self._image.interpolate_normals(normals))
+
 
         #normalise intensity
         #norm_intens  = norm_intens - ips
 
-        norm_intens = norm_intens.reshape((norm_intens.shape[0]*norm_intens.shape[1]))
+        norm_intens = norm_intens.reshape((1,norm_intens.shape[0]*norm_intens.shape[1]))
+
+        norm_intens = self.intens_pca.transform(norm_intens)[0]
         #distr_coords = np.concatenate((coords,norm_intens))
+        return  - self._kdes[0](coords,norm_intens)
 
-        return - self._kdes[1](coords,norm_intens)
+    def set_cimage(self, filename):
 
+        vt = ExtPy.cImage(filename)
+        self._cimage = vt
+        pass
 
 
 #for multi mesh
@@ -114,7 +146,7 @@ class FunctionHandlerMulti:
     _mesh = None
     _cmesh = None
     _num_of_points=None
-
+    _mni_world = None
 
     _constraints = None
     _kdes = None
@@ -143,6 +175,7 @@ class FunctionHandlerMulti:
 
 
         mni_w = fl.fromFlirt(from_mni_mat,mni_im,native_im,"world","world")
+        self._mni_world = mni_w
         a = np.linalg.inv(self._vox_to_world)
         self._from_mni_to_vox = np.dot(a,mni_w)
 
@@ -189,19 +222,6 @@ class FunctionHandlerMulti:
         #distr_coords = np.concatenate((coords,norm_intens))
 
         return - self._kdes(coords,nits)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -280,10 +300,13 @@ class Fitter:
                 fc = FunctionHandler()
                 #todo fix set
                 fc.set_image(  self._test_subj[i_test_sub] + os.sep + "t2_acpc_normalised.nii.gz/t2_resampled_fcm.nii.gz"   )
+                #fc.set_cimage(self._test_subj[i_test_sub] + os.sep + "t2_acpc_normalised.nii.gz/t2_resampled_fcm.nii.gz")
                 fc.set_subject(self._test_subj[i_test_sub])
                 fc._mesh = self._best_meshes_mni[lab]
                 fc._cmesh = self._best_meshes_c[lab]
-
+                #copute pca
+                fc.shape_pca = self._pdm.get_shape_pca(lab)
+                fc.intens_pca = self._pdm.get_intens_pca(lab)
                 fc._mesh.calculate_closest_points()
                 fc._kdes = cds[lab]
                 fc._num_of_points= self._best_meshes_mni[lab].gen_num_of_points()
@@ -293,41 +316,44 @@ class Fitter:
 
 
                 X0 = fc._mesh.get_unpacked_coords()
+                X0 = fc.shape_pca.transform(np.array(X0).reshape((1,len(X0))))[0]
                 X0 = cds[lab][0].decompose_coords_to_eigcords(X0)
                 X0[:] = 0
 
                 ##########################################################
                 print(datetime.now())
-                print(fc._cmesh.selfIntersectionTest(list(cds[lab][0].vector_2_points(X0))))
+                Xx = cds[lab][0].vector_2_points(X0)
+                print(fc._cmesh.selfIntersectionTest(fc.shape_pca.inverse_transform(np.array(Xx).reshape((1,len(Xx))))[0]))
                 print(datetime.now())
-                #print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
                 print(datetime.now())
 
                 a = fc(X0)
+
+                #b = compute_pd_single_labed(self._test_subj[i_test_sub],self._pdm._label_kde[lab], fc)
                 bounds = cds[lab][0].generate_bounds(3)
-                #mimiser = opt.minimize(fc,X0,method="cg",options={"disp":True})
 
                 Xpt = X0.copy()
-                for bd in range(1,len(bounds)+1):
-                    bound = bounds[-bd]
-
-                    curr = bound[0]
-                    arr = []
-                    dt = bound[1]*2/100
-                    cnt = 0
-                    while (bound[0] + dt*cnt < bound[1]):
-                        Xpt[-bd] = bound[0] + dt*cnt
-                        arr.append(fc(Xpt))
-                        cnt = cnt+1
-
-                    arr = np.array(arr)
-                    ind = np.where( arr == np.nanmin(arr))[0][0]
-                    Xpt[-bd] = bound[0] +ind*dt
+                # for bd in range(1,len(bounds)+1):
+                #     bound = bounds[-bd]
+                #
+                #     curr = bound[0]
+                #     arr = []
+                #     dt = bound[1]*2/100
+                #     cnt = 0
+                #     while (bound[0] + dt*cnt < bound[1]):
+                #         Xpt[-bd] = bound[0] + dt*cnt
+                #         arr.append(fc(Xpt))
+                #         cnt = cnt+1
+                #
+                #     arr = np.array(arr)
+                #     ind = np.where( arr == np.nanmin(arr))[0][0]
+                #     Xpt[-bd] = bound[0] +ind*dt
 
                 X0 = Xpt
 
                 #####SAVE initi
                 res_points = cds[lab][0].vector_2_points(X0)
+                res_points = fc.shape_pca.inverse_transform(res_points.reshape((1,res_points.shape[0])))[0]
                 l = len(res_points.tolist())
                 fc._mesh.modify_points(res_points.reshape(( int(l/3),3)))
                 fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
@@ -356,21 +382,23 @@ class Fitter:
                 # mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
 
                 #mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
-                print(datetime.now())
+                # print(datetime.now())
                 res_points = cds[lab][0].vector_2_points(mimiser.x)
+                res_points = fc.shape_pca.inverse_transform(res_points.reshape((1,res_points.shape[0])))[0]
                 l = len(res_points.tolist())
                 fc._mesh.modify_points(res_points.reshape(( int(l/3),3)))
                 fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
 
                 fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + self._pdm._label_kde[lab] + "_fitted.obj")
 
-                a = fc(X0)
             pass
         pass
 
 
 
     def fit_multiple(self):
+        if not settings.settings.dependent_constraint:
+            return
         cds = self._pdm.recompute_conditional_structure_structure(self._best_meshes_mni[0].gen_num_of_points())
         for i_test_sub in range(len(self._test_subj)):
 
@@ -444,10 +472,12 @@ class Fitter:
                 mimiser = opt.minimize(fc, X0, method='TNC',bounds=bounds, options={"disp": True})
                 r_x = mimiser.fun
                 while True:
-                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds,tol=0.5, options={"disp": True, 'ftol': 0.5})
+                    mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True,
+                                                                                                #'ftol': 0.5
+                                                                                                })
                     mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
                                           options={"disp": True
-                                               ,'ftol':0.5
+       #                                        ,'ftol':0.5
                                                    })
 
                     if r_x - mimiser.fun < 0.1:

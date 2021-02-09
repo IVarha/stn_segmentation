@@ -184,12 +184,12 @@ class NormalConditional:
         """
         return np.array([0 if abs(x) <= eps else 1 / x for x in v], dtype=float)
 
-    def __init__(self, mean1, mean2, cov_all, num_of_pts,tol =-1):
+    def __init__(self, mean1, mean2, cov_all,tol =-1):
         if tol ==-1:
             tol = 0
         self._mean1 = mean1
         self._mean2 = mean2
-
+        num_of_pts = mean1.shape[0]
         cov11 = cov_all[:num_of_pts, :num_of_pts]
         self._cov_11 = cov11
 

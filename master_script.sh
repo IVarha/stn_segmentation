@@ -1,5 +1,5 @@
 work_dir="/data/home/varga/processing_data/new_data_sorted"
-prefix_subdirs="sub-"
+prefix_subdirs="sub-P027"
 cp_script="/tmp/tmp.qdPaSxoIoZ/cmake-build-debug-tuplak/bayessian_segmentation_cpp"
 label_desc="/data/home/varga/processing_data/label_desk.txt"
 subjects="/data/home/varga/processing_data/subjects.txt"
@@ -25,11 +25,11 @@ echo $PYTHONPATH
 #./2_linear_registration.sh $work_dir $prefix_subdirs
 #./3_WM_SEG.sh $work_dir $prefix_subdirs
 #./4_intensity_normalisation.sh $work_dir $prefix_subdirs
-#./5p_generate_meshes.sh $work_dir $prefix_subdirs $cp_script $label_desc
+./5p_generate_meshes.sh $work_dir $prefix_subdirs $cp_script $label_desc
 #echo "$subjects $label_desc $working"
 #python 6p_calculate_overlap.py $subjects $label_desc $working
 #echo "$subjects $label_desc $opts_cnf $working $modalities_cnf"
 python 7p_calculate_norm_intensities.py $subjects $label_desc $opts_cnf $working $modalities_cnf
-echo "$subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj"
-python 8p_construct_constraints.py $subjects $label_desc $opts_cnf $working $modalities_cnf
+#echo "$subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj"
+#python 8p_construct_constraints.py $subjects $label_desc $opts_cnf $working $modalities_cnf
 #python 9p_fit.py $subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj
