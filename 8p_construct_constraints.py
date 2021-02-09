@@ -7,6 +7,7 @@
 import sys
 
 import bayessian_appearance.utils as util
+import vtk
 
 import bayessian_appearance.point_distribution as pd
 import os

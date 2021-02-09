@@ -8,7 +8,10 @@ class Settings:
     discretisation = None
     all_labels = None
     atlas_dir = None
+    modalities = None
 
+
+    pca_precision = 0.995
 
     def __init__(self):
         pass

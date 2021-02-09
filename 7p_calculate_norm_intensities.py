@@ -82,7 +82,7 @@ def save_intensities_csv(pdm, filename):
     wr.writerows(pdm)
     f.close()
 
-def calculate_intensites_subject(modalities,labels,subject, discretisation, norm_len):
+def calculate_intensites_subject(modalities,labels,subject, discretisation, norm_len,mesh_name_end):
 
     images= []
     for i in range(len( modalities)):
@@ -103,7 +103,7 @@ def calculate_intensites_subject(modalities,labels,subject, discretisation, norm
 
     mask_im = nm.ni_mask(subject + os.sep + "t2_mask.nii.gz")
     for i in range(len(labels)):
-        surf = ExtPy.cMesh(subject + os.sep + labels[i] + "_1.obj")  # read mesh
+        surf = ExtPy.cMesh(subject + os.sep + labels[i] + mesh_name_end)  # read mesh
         surf.apply_transform(to_mni.tolist())
 
         mni_norms = surf.generate_normals(norm_len, discretisation)
@@ -159,7 +159,7 @@ def main_proc(train, label_names, config_name,modalities, workdir):
         # read im
 
         calculate_intensites_subject(modalities=mod,labels=labels,subject=tr_subjects[sub_i],
-                                     discretisation=cnf['discretisation'],norm_len=cnf['norm_length'])
+                                     discretisation=cnf['discretisation'],norm_len=cnf['norm_length'],mesh_name_end ="_1.obj")
 
 
 

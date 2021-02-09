@@ -6,6 +6,12 @@ import fsl.transform.flirt as fl
 import fsl.data.image as f_im
 import os
 import json
+import vtk
+import csv
+import bayessian_appearance.vt_image as vtim
+import bayessian_appearance.nifti_mask as nm
+import ExtPy
+
 
 
 def read_label_desc(file_name):

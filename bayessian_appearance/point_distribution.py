@@ -3,9 +3,12 @@ import bayessian_appearance.distributions as distros
 import os
 import csv
 import sklearn.neighbors as neighb
+import sklearn.decomposition as decomp
 import distutils.util
 import numpy as np
 import pickle
+import ExtPy
+import bayessian_appearance.utils as utils
 
 import scipy.stats as scp_stats
 
@@ -13,8 +16,15 @@ import scipy.stats as scp_stats
 class PointDistribution:
     use_constraint = None
     _original_data = None
+    _tr_subjects =None
+    _num_of_pts = None
 
+    _median_all = None
     _labels = None
+
+    _shape_coords = None
+    _intens_coords = None
+
 
     _kdes = None
     # description of each label
@@ -31,47 +41,22 @@ class PointDistribution:
             res[i] = res[i_f]
         return res
 
-    def _construct_pdm(self):
 
-        # find what we segmenting
-        list_pos = []  # positions of labels which we segmenting
-        for i in range(len(settings.settings.labels_to_segment)):
-            pos = self._labels.index(settings.settings.labels_to_segment[i])
-            list_pos.append(pos)
 
-        pass
+    def _compute_insities(self, labels, subjects):
+        #recompute subjects
+        for subj in subjects:
 
-        posit_of_cent = int(settings.settings.discretisation / 2)
+            utils.calculate_intensites_subject(modalities=settings.settings.modalities,labels=labels,subject=subj
+                                               ,discretisation=settings.settings.discretisation,norm_len=settings.settings.norm_length,
+                                               mesh_name_end="_pca.obj")
 
-        kde_combined = []
-        # construct combined ONE PDM for ALL labels here
-        comb_array = None
-        for i in range(len(self._labels)):
-            pdm_label_data = self._original_data[i]
-            # get locations]
 
-            # calculate cumulative coordinate of each coord. row sample col
-            coordinates = []
-            for j in range(len(pdm_label_data[0])):
-                vec_j = [x[j][0][posit_of_cent] for x in pdm_label_data]
-                coordinates.append(vec_j)
-
-            # generate kdes for coords
-            posit_kdes = []
-
-            # here we form joint coordinates rows = sample col = coords (x y z)
-            np_coord = None
-            for j in range(len(coordinates)):
-                if j == 0:
-                    np_coord = np.array(coordinates[j])
-                    continue
-                np_coord = np.concatenate((np_coord, np.array(coordinates[j])), axis=1)
-
-            #############INTENSITY KDES
-            ##RECord KDE like as whole profile (ESTIMATE THROUGH Whoole profile)!!!
-            kdes_norms = []
-            # TODO add multiple modalities here
-            num_of_mods = int(len(pdm_label_data[0][0][2]) / settings.settings.discretisation)
+        self._original_data = self._read_labels(labels=labels,train_subjects=subjects)
+        new_intens = []
+        pcas = []
+        for lab_i in range(len(labels)):
+            pdm_label_data = self._original_data[lab_i]
 
             intensity_profs = []
             intensity_kdes = []
@@ -93,14 +78,163 @@ class PointDistribution:
                     continue
                 np_intensties = np.concatenate((np_intensties, np.array(intensity_profs[j])), axis=1)
 
-            # formulate shape+intensity distribution
-            if comb_array is None:
+            #compute PCA
+            pca = decomp.PCA(n_components=settings.settings.pca_precision,svd_solver='full')
+            pca.fit(np_intensties)
+            pcas.append(pca)
+            #compute
+            np_intensties_new = pca.transform(np_intensties)
+            new_intens.append(np_intensties_new)
+        self.pca_intensities = pcas
+        return new_intens
 
-                comb_array = np.concatenate((np_coord, np_intensties), axis=1)
+
+        pass
+    def _compute_pca_components(self, labels, subjects,datasets ):
+
+        pca_shapes = []
+
+        new_dataset = [] # those new data
+        for lab_i in range(len(labels)):
+
+            data = datasets[lab_i]
+            #compute pca
+            pca = decomp.PCA(n_components=settings.settings.pca_precision,svd_solver='full')
+
+            pca.fit(data)
+            pca_shapes.append(pca)
+            # recompute shapes
+            new_shape_coords = None
+            for sub_i in range(len(subjects)):
+
+                el = ExtPy.cMesh(subjects[sub_i] + os.sep + labels[lab_i] + "_1.obj")
+
+                points = el.get_unpacked_coords()
+
+
+                to_mni = utils.read_fsl_native2mni_w(subjects[sub_i])
+                el.apply_transform(to_mni)
+                points = el.get_unpacked_coords()
+                pts  = pca.inverse_transform(pca.transform([points]))
+                if new_shape_coords is None:
+                    new_shape_coords = pts[0]
+                else:
+                    new_shape_coords = np.concatenate((new_shape_coords,pts[0]))
+                el.modify_points(pts[0])
+                el.apply_transform(np.linalg.inv(to_mni))
+                el.save_obj(subjects[sub_i] + os.sep + labels[lab_i] + "_pca.obj")
+
+
+            new_dataset.append(pca.transform(data))
+
+
+        self._pca_shapes = pca_shapes
+        return new_dataset
+        pass
+
+    def _exclude_norm(self):
+        pass
+
+    def _construct_pdm(self):
+
+        # find what we segmenting
+        list_pos = []  # positions of labels which we segmenting
+        for i in range(len(settings.settings.labels_to_segment)):
+            pos = self._labels.index(settings.settings.labels_to_segment[i])
+            list_pos.append(pos)
+
+        pass
+
+        posit_of_cent = int(settings.settings.discretisation / 2)
+
+        kde_combined = []
+        # construct combined ONE PDM for ALL labels here
+        comb_array = None
+
+
+        comb_shapes = [] # array of array of shapes
+        for i in range(len(self._labels)):
+            pdm_label_data = self._original_data[i]
+            # get locations]
+
+            # calculate cumulative coordinate of each coord. row sample col
+            coordinates = []
+            for j in range(len(pdm_label_data[0])):
+                vec_j = [x[j][0][posit_of_cent] for x in pdm_label_data]
+                coordinates.append(vec_j)
+
+            # generate kdes for coords
+            posit_kdes = []
+
+            # here we form joint coordinates rows = sample col = coords (x y z)
+            np_coord = None
+            for j in range(len(coordinates)):
+                if j == 0:
+                    np_coord = np.array(coordinates[j])
+                    continue
+                np_coord = np.concatenate((np_coord, np.array(coordinates[j])), axis=1)
+
+            #add coordinates
+            comb_shapes.append(np_coord)
+            #############INTENSITY KDES
+            ##RECord KDE like as whole profile (ESTIMATE THROUGH Whoole profile)!!!
+            kdes_norms = []
+            # TODO add multiple modalities here
+            # num_of_mods = int(len(pdm_label_data[0][0][2]) / settings.settings.discretisation)
+            #
+            # intensity_profs = []
+            # for vert in range(len(pdm_label_data[0])):
+            #     profile = []
+            #     for sub in range(len(pdm_label_data)):
+            #         single_profile = self._prolongue_label(label_vec=pdm_label_data[sub][vert][2],
+            #                                                mask_vec=pdm_label_data[sub][vert][1])
+            #         profile.append(single_profile)
+            #
+            #     intensity_profs.append(profile)
+            #     # i_kde = scp_stats.gaussian_kde(profile.transpose()) #TODO MAYBE ADD CONSTRAINTS FOR OUTSIDE
+            #
+            # # here we form joint intensity rows = sample col = coords (x y z)
+            # np_intensties = None
+            # for j in range(len(pdm_label_data[0])):
+            #     if j == 0:
+            #         np_intensties = np.array(intensity_profs[j])
+            #         continue
+            #     np_intensties = np.concatenate((np_intensties, np.array(intensity_profs[j])), axis=1)
+
+            # formulate shape+intensity distribution
+            # if comb_array is None:
+            #
+            #     comb_array = np.concatenate((np_coord, np_intensties), axis=1)
+            # else:
+            #     a = np.concatenate((np_coord, np_intensties), axis=1)
+            #     comb_array = np.concatenate((comb_array, a), axis=1)
+
+        c_s_new = self._compute_pca_components(labels=self._labels,subjects=self._tr_subjects,datasets=comb_shapes)
+
+        intenses = self._compute_insities(labels=self._labels,subjects=self._tr_subjects)
+
+        self._shape_coords = []
+        self._intens_coords = []
+        for i in range(len(c_s_new)):
+
+            len_cur_shape = c_s_new[i].shape[1]
+            len_intenses = intenses[i].shape[1]
+            if i == 0:
+                self._shape_coords.append([0,len_cur_shape])
+                self._intens_coords.append([len_cur_shape,len_cur_shape+len_intenses])
             else:
-                a = np.concatenate((np_coord, np_intensties), axis=1)
+                self._shape_coords.append([self._intens_coords[i-1][1]
+                                              ,self._intens_coords[i-1][1] + len_cur_shape])
+                self._intens_coords.append( [self._shape_coords[i][1],
+                                            self._shape_coords[i][1] + len_intenses])
+
+            if comb_array is None:
+                comb_array = np.concatenate((c_s_new[i],intenses[i]),axis=1)
+            else:
+                a = np.concatenate((c_s_new[i],intenses[i]),axis=1)
                 comb_array = np.concatenate((comb_array, a), axis=1)
 
+        self._median_all = distros.NormalDistribution.calculate_median(c_s_new)
         jd = distros.NormalDistribution(comb_array)
 
         kde_combined = jd
@@ -138,7 +272,7 @@ class PointDistribution:
 
     def _read_labels(self, labels, train_subjects):
         res = [[] for i in range(len(labels))]
-
+        self._tr_subjects = train_subjects
         for i in range(len(train_subjects)):
             for j in range(len(labels)):
                 res[j].append(self._parse_label(train_subjects[i], labels[j]))  # sort for labels.

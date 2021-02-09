@@ -5,6 +5,7 @@ import scipy.optimize as opt
 
 import sklearn.covariance as rob_cov
 
+import sklearn.svm as svm
 
 class NormalDistribution:
     #
@@ -38,13 +39,7 @@ class NormalDistribution:
 
         rob.fit(X=data)
 
-        #mean = data.mean(0)
-
         mean = rob.location_
-
-
-        #cov = np.cov(data.transpose())
-
 
         cov = rob.covariance_
 
@@ -89,16 +84,13 @@ class NormalDistribution:
 
 
 
-
-
-
-        for arr in data:
-
-
-            if np_med is None:
-                np_med = np.median(arr, 0)
-            else:
-                np_med = np.concatenate((np_med,np.median(arr, 0)),axis=-1)
+        # for arr in data:
+        #
+        #
+        #     if np_med is None:
+        #         np_med = np.median(arr, 0)
+        #     else:
+        #         np_med = np.concatenate((np_med,np.median(arr, 0)),axis=-1)
 
         return np_med
 
