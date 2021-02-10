@@ -161,6 +161,7 @@ class NormalConditional:
     _eig_vec = None
     _eig_val = None
 
+    _pca = None
     def _pinv_1d(self, v, eps=1e-5):
         """
         A helper function for computing the pseudoinverse.
@@ -180,38 +181,54 @@ class NormalConditional:
         """
         return np.array([0 if abs(x) <= eps else 1 / x for x in v], dtype=float)
 
-    def __init__(self, mean1, mean2, cov_all,tol =-1):
+    def __init__(self, data_main,data_condition,tol =-1):
         if tol ==-1:
             tol = 0
+
+        pca = decomp.PCA(n_components=0.995,svd_solver='full')
+        pca.fit(np.concatenate((data_main,data_condition),axis=-1))
+
+        cov12 = np.cov(data_main,data_condition)
+        cov_all = pca.get_covariance()
+        pca2 = decomp.PCA(n_components=0.995, svd_solver='full')
+        pca2.fit(data_main)
+        self._pca = pca2
+        mean1 = pca.mean_[:data_main.shape[0]]
+        mean2 = pca.mean_[data_main.shape[0]:]
         self._mean1 = mean1
         self._mean2 = mean2
         num_of_pts = mean1.shape[0]
+
         cov11 = cov_all[:num_of_pts, :num_of_pts]
         self._cov_11 = cov11
 
-        s, u = scp.linalg.eigh(cov11, lower=True, check_finite=True)
+        # s, u = scp.linalg.eigh(cov11, lower=True, check_finite=True)
 
-        eps = _eigvalsh_to_eps(s)
-        s[s < eps] = 0
-        self._eig_vec = u
-        self._eig_val = s
-        ###########################
-        s, u = scp.linalg.eigh(cov_all, lower=True, check_finite=True)
-        s_pinv = self._pinv_1d(s, eps)
 
-        U = np.multiply(u, np.sqrt(s_pinv))
 
-        prec = np.dot(U, U.transpose())[:num_of_pts, num_of_pts:]
 
-        self._prec_12 = prec
-        ################ =============================================
-        if tol>eps:
-            eps = tol
-        self._eig_val[self._eig_val < eps] = 0
-        # self._l_12 = np.dot(U,U.transpose())
-        self._main_vecs = self._eig_vec[:, self._eig_val > 0]
+        # eps = _eigvalsh_to_eps(s)
+        # s[s < eps] = 0
+        # self._eig_vec = u
+        # self._eig_val = s
+        # ###########################
+        # s, u = scp.linalg.eigh(cov_all, lower=True, check_finite=True)
+        # s_pinv = self._pinv_1d(s, eps)
+        #
+        # U = np.multiply(u, np.sqrt(s_pinv))
+        #
+        # prec = np.dot(U, U.transpose())[:num_of_pts, num_of_pts:]
+        #
+        # self._prec_12 = prec
+        # ################ =============================================
+        # if tol>eps:
+        #     eps = tol
+        # self._eig_val[self._eig_val < eps] = 0
+        # # self._l_12 = np.dot(U,U.transpose())
+        # self._main_vecs = self._eig_vec[:, self._eig_val > 0]
+        # self._l_cov = np.dot(cov11, self._prec_12)
+        self._prec_12 = pca.get_precision()[:num_of_pts, num_of_pts:]
         self._l_cov = np.dot(cov11, self._prec_12)
-
         self._dist = stat.multivariate_normal(mean=mean1, cov=cov11, allow_singular=True)
 
     def __call__(self, *args, **kwargs):
@@ -222,50 +239,22 @@ class NormalConditional:
         return self._dist.logpdf(x0)
 
     def decompose_coords_to_eigcords(self, X):
-        res = scp.linalg.solve(self._eig_vec, X - self._mean1)
-        res = res[self._eig_val > 0]
-        res[:] = 0
-        fc = lambda x: np.linalg.norm(self.vector_2_points(x) - X)
+        X1 = X.reshape((1,X.shape[0]))
+        return self._pca.transform(X1)[0]
 
-        bounds = self.generate_bounds(3)
-        Xpt = res.copy()
-        for bd in range(1, len(bounds) + 1):
-            bound = bounds[-bd]
 
-            curr = bound[0]
-            arr = []
-            dt = bound[1] * 2 / 100
-            cnt = 0
-            while (bound[0] + dt * cnt < bound[1]):
-                Xpt[-bd] = bound[0] + dt * cnt
-                arr.append(fc(Xpt))
-                cnt = cnt + 1
-
-            arr = np.array(arr)
-            ind = np.where(arr == min(arr))[0][0]
-            Xpt[-bd] = bound[0] + ind * dt
-
-        res = Xpt
-        mimise = opt.minimize(fc, res, method='TNC', bounds=self.generate_bounds(3))
-        r_x = mimise.fun
-        for i in range(10):
-            mimise = opt.minimize(fc, mimise.x, method='TNC', bounds=self.generate_bounds(3), options={"disp": True})
-            mimise = opt.minimize(fc, mimise.x, method='Powell', bounds=self.generate_bounds(3), options={"disp": True})
-
-            if r_x - mimise.fun < 1:
-                break
-            r_x = mimise.fun
-        return mimise.x
 
     def vector_2_points(self, X):
 
-        return self._mean1 + np.dot(self._main_vecs, X)
+        X1 = X.reshape((1, X.shape[0]))
+        return self._pca.inverse_transform(X1)[0]
 
     def generate_bounds(self, n):
         res = []
-        r_vec = self._eig_val[self._eig_val > 0]
-        for i in range(self._main_vecs.shape[1]):
-            m = np.sqrt(r_vec[i])
+
+        expl_var = self._pca.explained_variance_
+        for i in range(expl_var.shape[0]):
+            m = np.sqrt(expl_var[i])
             res.append([-n * m, n * m])
         return res
 
