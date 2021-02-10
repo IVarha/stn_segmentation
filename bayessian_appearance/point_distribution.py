@@ -25,6 +25,8 @@ class PointDistribution:
     _shape_coords = None
     _intens_coords = None
 
+    shape_pca = None
+    intens_pca = None
 
     _kdes = None
     # description of each label
@@ -509,3 +511,9 @@ class PointDistribution:
 
     def get_intens_pca(self,ind):
         return  self._pca_intensities[ind]
+
+    def get_shape_coords(self, ind):
+        return self._shape_coords[ind]
+
+    def get_intens_coords(self,ind):
+        return  self._intens_coords[ind]

@@ -128,6 +128,9 @@ def read_fsl_native2mni_w(subject):
     a = read_fsl_mni2native_w(subject)
     return np.linalg.inv(a)
 
+# method for compute position of label in data based on label
+def comp_posit_in_data(label):
+    return settings.settings.all_labels.index(label)
 
 #generates point array
 def generate_mask(x_r,y_r,z_r,dt):

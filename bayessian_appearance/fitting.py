@@ -148,6 +148,10 @@ class FunctionHandlerMulti:
     _num_of_points=None
     _mni_world = None
 
+    intens_pcas = None
+    shape_pcas = None
+    shape_lens = None
+
     _constraints = None
     _kdes = None
 
@@ -185,17 +189,15 @@ class FunctionHandlerMulti:
 
 
         coords = self._kdes.vector_2_points(coords)
-        #coords2 = coords.reshape((self._num_of_points,3))
 
-        #print(datetime.now())
-        #self._mesh.modify_points(coords2)
 
-        #normals = self._mesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
-        #print(datetime.now())
         nits = None
         for i in range(self._constraints):
 
-            self._cmesh.modify_points(coords[i*3*self._num_of_points:(i+1)*3*self._num_of_points ])
+            st = sum(self.shape_lens[:i])
+            cd = coords[st:st+self.shape_lens[i]].reshape((1,self.shape_lens[i]))
+            cd = self.shape_pcas[i].inverse_transform(cd)[0]
+            self._cmesh.modify_points(cd)
 
 
             normals = self._cmesh.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
@@ -210,11 +212,13 @@ class FunctionHandlerMulti:
 
             norm_intens = np.array(self._image.interpolate_normals(normals))
 
+
         #normalise intensity
             ips = 0 # need to remove aftr
             norm_intens  = norm_intens - ips
 
-            norm_intens = norm_intens.reshape((norm_intens.shape[0]*norm_intens.shape[1]))
+            norm_intens = norm_intens.reshape((1,norm_intens.shape[0]*norm_intens.shape[1]))
+            norm_intens = self.intens_pcas[i].transform(norm_intens)[0]
             if nits is None:
                 nits = norm_intens
             else:
@@ -402,8 +406,6 @@ class Fitter:
         cds = self._pdm.recompute_conditional_structure_structure(self._best_meshes_mni[0].gen_num_of_points())
         for i_test_sub in range(len(self._test_subj)):
 
-
-
             for lab in range(len(settings.settings.dependent_constraint.keys())):
                 fc = FunctionHandlerMulti()
                 #todo fix set
@@ -422,12 +424,13 @@ class Fitter:
 
                     mesh = ExtPy.cMesh(self._test_subj[i_test_sub] + os.sep + keys2[i] + "_fitted.obj")
                     a = mesh.get_unpacked_coords()
+                    ind_key = utils.comp_posit_in_data(keys2[i])#index of label
                     num_of_pts = len(a)/3
+                    a = self._pdm.get_shape_pca(ind_key).transform(np.array(a).reshape((1, len(a))))[0]
                     if joined_s2 is None:
                         joined_s2 = np.array(a)
                     else:
                         joined_s2 = np.concatenate(joined_s2,a)
-
 
                 fc._mesh.calculate_closest_points()
                 fc._kdes = cds[lab]
@@ -446,16 +449,31 @@ class Fitter:
                 res_points = fc._kdes.vector_2_points(X0)
                 #cmp =
 
+                shape_lens = [] #len of shapes
+                shape_pcas = []
+                intens_pcas = []
                 for i in range(len(vals1 )):
+                    ind_of_label = utils.comp_posit_in_data(vals1[i])
+                    coords1 = self._pdm.get_shape_coords(ind_of_label)
+                    len1 = coords1[1] - coords1[0]
+                    shape_lens.append(len1)
+                    st = shape_lens[:i]
+                    st = sum(st)
+                    Xr = res_points[st:st+len1]
 
-                    Xr = res_points[3*fc._num_of_points*i:3*fc._num_of_points*(i+1)]
-
+                    pca1 = self._pdm.get_shape_pca(ind_of_label)
+                    shape_pcas.append(pca1)#shape pcas
+                    intens_pcas.append(self._pdm.get_intens_pca(ind_of_label))
+                    Xr = pca1.inverse_transform(  Xr.reshape((1,Xr.shape[0])))[0]
                     l = len(Xr.tolist())
                     fc._mesh.modify_points(Xr.reshape(( int(l/3),3)))
                     fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
                     fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + vals1[i] + "_initialise.obj")
 
 
+                fc.shape_lens = shape_lens
+                fc.intens_pcas = intens_pcas
+                fc.shape_pcas = shape_pcas
 
                 ##########################################################
                 print(datetime.now())
@@ -491,10 +509,11 @@ class Fitter:
                 res_points = fc._kdes.vector_2_points(mimiser.x)
 
                 for i in range(len(vals1 )):
+                    st = shape_lens[:i]
+                    st = sum(st)
+                    Xr = res_points[st:st+shape_lens[i]]
 
-                    Xr = res_points[3*fc._num_of_points*i:3*fc._num_of_points*(i+1)]
-
-
+                    Xr = shape_pcas[i].inverse_transform(  Xr.reshape((1,Xr.shape[0])))[0]
                     l = len(Xr.tolist())
                     fc._mesh.modify_points(Xr.reshape(( int(l/3),3)))
                     fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
