@@ -24,6 +24,9 @@ class PointDistribution:
 
     _shape_coords = None
     _intens_coords = None
+    #shape+intens data
+    shape_data = None
+    intens_data = None
 
     shape_pca = None
     intens_pca = None
@@ -235,6 +238,9 @@ class PointDistribution:
                 a = np.concatenate((c_s_new[i],intenses[i]),axis=1)
                 comb_array = np.concatenate((comb_array, a), axis=1)
 
+
+        self.shape_data = c_s_new
+        self.intens_data = intenses
         self._median_all = distros.NormalDistribution.calculate_median(c_s_new)
         jd = distros.NormalDistribution(comb_array)
 
