@@ -2,6 +2,7 @@
 import configparser
 import bayessian_appearance.settings as settings
 import numpy as np
+import fsl.data.image as fim
 import fsl.transform.flirt as fl
 import fsl.data.image as f_im
 import os
@@ -57,6 +58,7 @@ def read_modalities_config(file_name):
     keys = [x for x in cfg['modalities']]
     for i in range(len(keys)):
         res.append( [keys[i],cfg['modalities'][keys[i]]])
+    settings.settings.modalities = res
     return res
 
 def read_segmentation_config(file_name):
