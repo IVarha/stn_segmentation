@@ -125,6 +125,8 @@ class FunctionHandler:
         norm_intens = norm_intens.reshape((1,norm_intens.shape[0]*norm_intens.shape[1]))
 
         norm_intens = self.intens_pca.transform(norm_intens)[0]
+
+        #norm_intens[:] = 0 #for debug
         #distr_coords = np.concatenate((coords,norm_intens))
         return  - self._kdes[0](coords,norm_intens)
 
@@ -322,8 +324,9 @@ class Fitter:
                 X0 = fc._mesh.get_unpacked_coords()
                 X0 = fc.shape_pca.transform(np.array(X0).reshape((1,len(X0))))[0]
                 X0 = cds[lab][0].decompose_coords_to_eigcords(X0)
-                X0[:] = 0
 
+                #X0[:] = 0
+                X0 = cds[lab][0]._pca.transform(cds[lab][2][0,:,:])[0]
                 ##########################################################
                 print(datetime.now())
                 Xx = cds[lab][0].vector_2_points(X0)

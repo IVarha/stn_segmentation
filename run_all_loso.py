@@ -23,8 +23,8 @@ import subprocess
 
 
 def run_script(script):
-
-    subprocess.run(['sh',script])
+    proces= "source /home/varga/venvs/pystn/bin/activate;"
+    subprocess.call(proces + script,shell=True,executable="/bin/bash")
 
 
 def write_subjs_2_file(subjs, filename):
