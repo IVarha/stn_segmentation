@@ -9,6 +9,7 @@ import bayessian_appearance.settings as settings
 
 import sklearn.svm as svm
 
+
 class NormalDistribution:
     #
     # matr = None
@@ -18,7 +19,6 @@ class NormalDistribution:
     mean_logN = None
 
     _internal_pca = None
-
 
     # rows = samples
     # cols = variables
@@ -33,7 +33,7 @@ class NormalDistribution:
 
         cov = rob.covariance_
 
-        pca = decomp.PCA(n_components=settings.settings.pca_precision,svd_solver='full')
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
 
         pca.fit(X=data)
 
@@ -50,8 +50,6 @@ class NormalDistribution:
     @staticmethod
     def calculate_median(data):
 
-
-
         np_med = None
         for arr in data:
 
@@ -59,26 +57,22 @@ class NormalDistribution:
 
             arr_vals = []
             for i in range(arr.shape[0]):
-
-                arr_vals.append(a.distr.logpdf(arr[i,:]))
+                arr_vals.append(a.distr.logpdf(arr[i, :]))
 
             arr_vals = np.array(arr_vals)
 
-            #get median index
+            # get median index
             arr2 = arr_vals.copy()
             arr2.sort()
-            ind_1 = arr2.shape[0]//2
+            ind_1 = arr2.shape[0] // 2
 
-            ind = np.where(  arr_vals == arr2[ind_1])
-
+            ind = np.where(arr_vals == arr2[ind_1])
 
             if np_med is None:
-                np_med = np.reshape(arr[ind,:],(arr.shape[1]))
+                np_med = np.reshape(arr[ind, :], (arr.shape[1]))
 
             else:
-                np_med = np.concatenate( (np_med,np.reshape(arr[ind,:],(arr.shape[1]))),axis=-1)
-
-
+                np_med = np.concatenate((np_med, np.reshape(arr[ind, :], (arr.shape[1]))), axis=-1)
 
         # for arr in data:
         #
@@ -162,6 +156,7 @@ class NormalConditional:
     _eig_val = None
 
     _pca = None
+
     def _pinv_1d(self, v, eps=1e-5):
         """
         A helper function for computing the pseudoinverse.
@@ -181,14 +176,14 @@ class NormalConditional:
         """
         return np.array([0 if abs(x) <= eps else 1 / x for x in v], dtype=float)
 
-    def __init__(self, data_main,data_condition,tol =-1):
-        if tol ==-1:
+    def __init__(self, data_main, data_condition, tol=-1):
+        if tol == -1:
             tol = 0
 
-        pca = decomp.PCA(n_components=0.995,svd_solver='full')
-        pca.fit(np.concatenate((data_main,data_condition),axis=-1))
+        pca = decomp.PCA(n_components=0.995, svd_solver='full')
+        pca.fit(np.concatenate((data_main, data_condition), axis=-1))
 
-        cov12 = np.cov(data_main,data_condition)
+        cov12 = np.cov(data_main, data_condition)
         cov_all = pca.get_covariance()
         pca2 = decomp.PCA(n_components=0.995, svd_solver='full')
         pca2.fit(data_main)
@@ -203,9 +198,6 @@ class NormalConditional:
         self._cov_11 = cov11
 
         # s, u = scp.linalg.eigh(cov11, lower=True, check_finite=True)
-
-
-
 
         # eps = _eigvalsh_to_eps(s)
         # s[s < eps] = 0
@@ -239,10 +231,8 @@ class NormalConditional:
         return self._dist.logpdf(x0)
 
     def decompose_coords_to_eigcords(self, X):
-        X1 = X.reshape((1,X.shape[0]))
+        X1 = X.reshape((1, X.shape[0]))
         return self._pca.transform(X1)[0]
-
-
 
     def vector_2_points(self, X):
 
@@ -276,7 +266,7 @@ class NormalConditionalBayes():
 
     _pdf_prior = None
 
-    def __init__(self, mean_all, cov_all, num_of_pts,tol = -1):
+    def __init__(self, mean_all, cov_all, num_of_pts, tol=-1):
         self._mean1 = mean_all[:num_of_pts]
         self._mean2 = mean_all[num_of_pts:]
         self._cov_11 = cov_all[:num_of_pts, :num_of_pts]
@@ -292,7 +282,7 @@ class NormalConditionalBayes():
         prec_all = np.dot(U, U.transpose())
         self._eig_vec = u
         self._eig_val = s
-        if tol>eps:
+        if tol > eps:
             eps = tol
         self._eig_val[self._eig_val < eps] = 0
 
@@ -320,8 +310,8 @@ class JointDependentDistribution:
 
     def __init__(self, mean_s_1, mean_s_2, cov_s, mean_si1, mean_si2, cov_si):
         self._mean_s2 = mean_s_2
-        self.dist_s1s2 = NormalConditional(mean_s_1, mean_s_2, cov_s ,tol=0.5)
-        self.dist_I_s1 = NormalConditional(mean_si1, mean_si2, cov_si,tol=0.5)
+        self.dist_s1s2 = NormalConditional(mean_s_1, mean_s_2, cov_s, tol=0.5)
+        self.dist_I_s1 = NormalConditional(mean_si1, mean_si2, cov_si, tol=0.5)
         pass
 
     def set_S2(self, pts):
@@ -337,8 +327,7 @@ class JointDependentDistribution:
         return self.dist_s1s2.vector_2_points(X)
 
     def get_num_eigenvecs(self):
+        return (self.dist_s1s2._eig_val > 0).sum()
 
-        return  (self.dist_s1s2._eig_val > 0).sum()
-    def generate_bounds(self,n):
-
+    def generate_bounds(self, n):
         return self.dist_s1s2.generate_bounds(n)

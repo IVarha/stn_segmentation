@@ -334,7 +334,8 @@ class PointDistribution:
             mean_all1 = self._kdes.distr.mean[self._shape_coords[ind][0]:self._intens_coords[ind][1]]
             cov_all1 = self._kdes.distr.cov[self._shape_coords[ind][0]:self._intens_coords[ind][1],
                        self._shape_coords[ind][0]:self._intens_coords[ind][1]]
-            norm_cond = distros.NormalConditional(mean1=mean_shape, mean2=mean_intens, cov_all=cov_all1,
+            norm_cond = distros.NormalConditional(data_main=self.shape_data[ind]
+                                                  ,data_condition=self.intens_data[ind],
                                                   tol=10)
             norm_cond_b = distros.NormalConditionalBayes(mean_all=mean_all1, cov_all=cov_all1,
                                                          num_of_pts=mean_shape.shape[0])
