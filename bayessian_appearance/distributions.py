@@ -50,7 +50,7 @@ class NormalDistribution:
     @staticmethod
     def calculate_median(data):
 
-        np_med = None
+        np_med = []
         for arr in data:
 
             a = NormalDistribution(arr)
@@ -68,11 +68,8 @@ class NormalDistribution:
 
             ind = np.where(arr_vals == arr2[ind_1])
 
-            if np_med is None:
-                np_med = np.reshape(arr[ind, :], (arr.shape[1]))
 
-            else:
-                np_med = np.concatenate((np_med, np.reshape(arr[ind, :], (arr.shape[1]))), axis=-1)
+            np_med.append(arr[ind, :])
 
         # for arr in data:
         #
