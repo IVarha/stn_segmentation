@@ -157,39 +157,20 @@ class NormalConditional:
 
     _pca = None
 
-    def _pinv_1d(self, v, eps=1e-5):
-        """
-        A helper function for computing the pseudoinverse.
-
-        Parameters
-        ----------
-        v : iterable of numbers
-            This may be thought of as a vector of eigenvalues or singular values.
-        eps : float
-            Values with magnitude no greater than eps are considered negligible.
-
-        Returns
-        -------
-        v_pinv : 1d float ndarray
-            A vector of pseudo-inverted numbers.
-
-        """
-        return np.array([0 if abs(x) <= eps else 1 / x for x in v], dtype=float)
 
     def __init__(self, data_main, data_condition, tol=-1):
         if tol == -1:
             tol = 0
 
-        pca = decomp.PCA(n_components=0.995, svd_solver='full')
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
         pca.fit(np.concatenate((data_main, data_condition), axis=-1))
 
-        cov12 = np.cov(data_main, data_condition)
         cov_all = pca.get_covariance()
-        pca2 = decomp.PCA(n_components=0.995, svd_solver='full')
+        pca2 = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
         pca2.fit(data_main)
         self._pca = pca2
-        mean1 = pca.mean_[:data_main.shape[0]]
-        mean2 = pca.mean_[data_main.shape[0]:]
+        mean1 = pca.mean_[:data_main.shape[1]]
+        mean2 = pca.mean_[data_main.shape[1]:]
         self._mean1 = mean1
         self._mean2 = mean2
         num_of_pts = mean1.shape[0]
@@ -253,6 +234,7 @@ class NormalConditionalBayes():
     _mean1 = None
     _mean2 = None
     _m1_m2 = None
+    _pca1 = None
 
     _cov_12 = None
     _l_12 = None
@@ -266,27 +248,24 @@ class NormalConditionalBayes():
 
     _pdf_prior = None
 
-    def __init__(self, mean_all, cov_all, num_of_pts, tol=-1):
-        self._mean1 = mean_all[:num_of_pts]
-        self._mean2 = mean_all[num_of_pts:]
+    def __init__(self, data_main, data_condition):
+
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+
+        pca.fit(np.concatenate((data_main, data_condition), axis=-1))
+        self._mean1 = pca.mean_[:data_main.shape[1]]
+        self._mean2 = pca.mean_[data_main.shape[1]:]
+        cov_all = pca.get_covariance()
+        num_of_pts = self._mean1.shape[0]
         self._cov_11 = cov_all[:num_of_pts, :num_of_pts]
 
         self._pdf_prior = stat.multivariate_normal(mean=self._mean1, cov=self._cov_11, allow_singular=True)
-        s, u = scp.linalg.eigh(cov_all, lower=True, check_finite=True)
 
-        eps = _eigvalsh_to_eps(s)
-        s[s < eps] = 0
-        s_pinv = _pinv_1d(s, eps)
 
-        U = np.multiply(u, np.sqrt(s_pinv))
-        prec_all = np.dot(U, U.transpose())
-        self._eig_vec = u
-        self._eig_val = s
-        if tol > eps:
-            eps = tol
-        self._eig_val[self._eig_val < eps] = 0
+        prec_all = pca.get_precision()
 
-        self._main_vecs = self._eig_vec[:, self._eig_val > 0]
+
+        #self._main_vecs = self._eig_vec[:, self._eig_val > 0]
         self._l_cov = np.dot(cov_all[num_of_pts:, num_of_pts:], prec_all[num_of_pts:, :num_of_pts])
 
         self._dist = stat.multivariate_normal(mean=self._mean2, cov=prec_all[num_of_pts:, num_of_pts:],
@@ -308,10 +287,10 @@ class JointDependentDistribution:
     dist_s1s2 = None
     _mean_s2 = None
 
-    def __init__(self, mean_s_1, mean_s_2, cov_s, mean_si1, mean_si2, cov_si):
-        self._mean_s2 = mean_s_2
-        self.dist_s1s2 = NormalConditional(mean_s_1, mean_s_2, cov_s, tol=0.5)
-        self.dist_I_s1 = NormalConditional(mean_si1, mean_si2, cov_si, tol=0.5)
+    def __init__(self,data_s1,data_s2,data_I1):
+        self._mean_s2 = None
+        self.dist_s1s2 = NormalConditional(data_main=data_s1, data_condition=data_s2)
+        self.dist_I_s1 = NormalConditional(data_main=data_I1,data_condition=data_s1)
         pass
 
     def set_S2(self, pts):
@@ -321,13 +300,14 @@ class JointDependentDistribution:
         shape = args[0]
         intenstities = args[1]
 
+
         return self.dist_I_s1(intenstities, shape) + self.dist_s1s2(shape, self._mean_s2)
 
     def vector_2_points(self, X):
         return self.dist_s1s2.vector_2_points(X)
 
     def get_num_eigenvecs(self):
-        return (self.dist_s1s2._eig_val > 0).sum()
+        return self.dist_s1s2._pca.components_.shape[0]
 
     def generate_bounds(self, n):
         return self.dist_s1s2.generate_bounds(n)

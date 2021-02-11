@@ -324,21 +324,21 @@ class PointDistribution:
             # recompute coord pos
             ind = self._labels.index(self._label_kde[i])
 
-            num_intensity_coords = self._intens_coords[ind][1]-self._intens_coords[ind][0]
-            num_per_structure = 3 * num_of_pts + num_intensity_coords
-
-            mean_shape = self._kdes.distr.mean[self._shape_coords[ind][0]:self._shape_coords[ind][1]]
-            mean_intens = self._kdes.distr.mean[self._intens_coords[ind][0]: self._intens_coords[ind][1]]
-
-
-            mean_all1 = self._kdes.distr.mean[self._shape_coords[ind][0]:self._intens_coords[ind][1]]
-            cov_all1 = self._kdes.distr.cov[self._shape_coords[ind][0]:self._intens_coords[ind][1],
-                       self._shape_coords[ind][0]:self._intens_coords[ind][1]]
+            # num_intensity_coords = self._intens_coords[ind][1]-self._intens_coords[ind][0]
+            # num_per_structure = 3 * num_of_pts + num_intensity_coords
+            #
+            # mean_shape = self._kdes.distr.mean[self._shape_coords[ind][0]:self._shape_coords[ind][1]]
+            # mean_intens = self._kdes.distr.mean[self._intens_coords[ind][0]: self._intens_coords[ind][1]]
+            #
+            #
+            # mean_all1 = self._kdes.distr.mean[self._shape_coords[ind][0]:self._intens_coords[ind][1]]
+            # cov_all1 = self._kdes.distr.cov[self._shape_coords[ind][0]:self._intens_coords[ind][1],
+            #            self._shape_coords[ind][0]:self._intens_coords[ind][1]]
             norm_cond = distros.NormalConditional(data_main=self.shape_data[ind]
                                                   ,data_condition=self.intens_data[ind],
                                                   tol=10)
-            norm_cond_b = distros.NormalConditionalBayes(mean_all=mean_all1, cov_all=cov_all1,
-                                                         num_of_pts=mean_shape.shape[0])
+            norm_cond_b = distros.NormalConditionalBayes(data_main=self.shape_data[ind]
+                                                  ,data_condition=self.intens_data[ind])
 
             res.append([norm_cond, norm_cond_b])
 
@@ -366,132 +366,154 @@ class PointDistribution:
             indices_values.append(ind)
 
         ##join values of conditional structure shape representation
-
-        range_shape_indices = []
-        for i in indices_keys:
-            tmp = []
-            tmp.append(self._shape_coords[i][0])
-            tmp.append(self._shape_coords[i][1])
-            range_shape_indices.append(tmp)
-
-        #####join shapes of depended structures
-        range_dependent_shapes = []
-        range_dependent_intensities = []
-        for i in indices_values:
-            # s
-            tmp = []
-            tmp.append(self._shape_coords[i][0])
-            tmp.append(self._shape_coords[i][1])
-            range_dependent_shapes.append(tmp)
-            # int
-            tmp1 = []
-            tmp1.append(self._intens_coords[i][0])
-            tmp1.append(self._intens_coords[i][1])
-            range_dependent_intensities.append(tmp1)
-
-        #####################################################
-        ######## join shapes into two representations
-        ######## result two covariance matrices
-
-        shape_shape_mat_indices_1 = range_dependent_shapes + range_shape_indices
-
-        shape_shape_res = []
-        for i in range(len(shape_shape_mat_indices_1)):
-            tmp = []
-            for j in range(len(shape_shape_mat_indices_1)):
-                tmp.append([shape_shape_mat_indices_1[i], shape_shape_mat_indices_1[j]])
-            shape_shape_res.append(tmp)
-
-        shape_shape_cov_mat = None
-        for i in range(len(shape_shape_mat_indices_1)):
-            tmp = None
-            for j in range(len(shape_shape_mat_indices_1)):
-                ss1_0 = shape_shape_res[i][j][0][0]
-                ss1_1 = shape_shape_res[i][j][0][1]
-                ss2_0 = shape_shape_res[i][j][1][0]
-                ss2_1 = shape_shape_res[i][j][1][1]
-                if tmp is None:
-                    tmp = cov_all[ss1_0:ss1_1, ss2_0:ss2_1]
-                else:
-                    tmp = np.concatenate((tmp, cov_all[ss1_0:ss1_1, ss2_0:ss2_1]), axis=1)
-            if shape_shape_cov_mat is None:
-                shape_shape_cov_mat = tmp
+        s2_data = None
+        for ind in indices_keys:
+            if s2_data is None:
+                s2_data = self.shape_data[ind]
             else:
-                shape_shape_cov_mat = np.concatenate((shape_shape_cov_mat, tmp))
+                s2_data = np.concatenate((s2_data,self.shape_data[ind]),axis=-1)
 
-        mean_sc1 = None
-        mean_sc2 = None
-
-        for i in range(len(range_dependent_shapes)):
-            sc1 = range_dependent_shapes[i][0]
-            sc2 = range_dependent_shapes[i][1]
-            if mean_sc1 is None:
-                mean_sc1 = mean_all[sc1:sc2]
+        s1_data = None
+        i1_data = None
+        for ind in indices_values:
+            if s1_data is None:
+                s1_data = self.shape_data[ind]
             else:
-                mean_sc1 = np.concatenate((mean_sc1, mean_all[sc1:sc2]))
-
-        for i in range(len(range_shape_indices)):
-            sc1 = range_shape_indices[i][0]
-            sc2 = range_shape_indices[i][1]
-            if mean_sc2 is None:
-                mean_sc2 = mean_all[sc1:sc2]
+                s1_data = np.concatenate((s1_data,self.shape_data[ind]),axis=-1)
+            if i1_data is None:
+                i1_data = self.intens_data[ind]
             else:
-                mean_sc2 = np.concatenate((mean_sc2, mean_all[sc1:sc2]))
+                i1_data = np.concatenate( (i1_data,self.intens_data[ind]),axis=-1)
 
-        ############################################################################
-        ############################################################################
-        ##################### Shape INTENSITY CONDITIONAL COV MAT
-        ############################################################
-
-        shape_int_indices = range_dependent_intensities + range_dependent_shapes
-
-        shape_int_mat_indices_1 = []
-
-        for i in range(len(shape_int_indices)):
-            tmp = []
-            for j in range(len(shape_int_indices)):
-                tmp.append([shape_int_indices[i], shape_int_indices[j]])
-            shape_int_mat_indices_1.append(tmp)
-
-        shape_int_mat = None
-
-        for i in range(len(shape_int_indices)):
-            tmp = None
-            for j in range(len(shape_int_indices)):
-                ss1_0 = shape_int_mat_indices_1[i][j][0][0]
-                ss1_1 = shape_int_mat_indices_1[i][j][0][1]
-                ss2_0 = shape_int_mat_indices_1[i][j][1][0]
-                ss2_1 = shape_int_mat_indices_1[i][j][1][1]
-
-                if tmp is None:
-                    tmp = cov_all[ss1_0:ss1_1, ss2_0:ss2_1]
-                else:
-                    tmp = np.concatenate((tmp, cov_all[ss1_0:ss1_1, ss2_0:ss2_1]), axis=1)
-            if shape_int_mat is None:
-                shape_int_mat = tmp
-            else:
-                shape_int_mat = np.concatenate((shape_int_mat, tmp))
-        # means
-        mean_si1 = None
-        mean_si2 = None
-
-        for i in range(len(range_dependent_shapes)):
-            sc1 = range_dependent_shapes[i][0]
-            sc2 = range_dependent_shapes[i][1]
-            if mean_si2 is None:
-                mean_si2 = mean_all[sc1:sc2]
-            else:
-                mean_si2 = np.concatenate((mean_si2, mean_all[sc1:sc2]))
-
-        for i in range(len(range_dependent_intensities)):
-            sc1 = range_dependent_intensities[i][0]
-            sc2 = range_dependent_intensities[i][1]
-            if mean_si1 is None:
-                mean_si1 = mean_all[sc1:sc2]
-            else:
-                mean_si1 = np.concatenate((mean_si1, mean_all[sc1:sc2]))
-
-        return [[mean_sc1, mean_sc2, shape_shape_cov_mat], [mean_si1, mean_si2, shape_int_mat]]
+        return [i1_data,s1_data,s2_data]
+        #
+        #
+        #
+        # range_shape_indices = []
+        # for i in indices_keys:
+        #     tmp = []
+        #     tmp.append(self._shape_coords[i][0])
+        #     tmp.append(self._shape_coords[i][1])
+        #     range_shape_indices.append(tmp)
+        #
+        # #####join shapes of depended structures
+        # range_dependent_shapes = []
+        # range_dependent_intensities = []
+        # for i in indices_values:
+        #     # s
+        #     tmp = []
+        #     tmp.append(self._shape_coords[i][0])
+        #     tmp.append(self._shape_coords[i][1])
+        #     range_dependent_shapes.append(tmp)
+        #     # int
+        #     tmp1 = []
+        #     tmp1.append(self._intens_coords[i][0])
+        #     tmp1.append(self._intens_coords[i][1])
+        #     range_dependent_intensities.append(tmp1)
+        #
+        # #####################################################
+        # ######## join shapes into two representations
+        # ######## result two covariance matrices
+        #
+        # shape_shape_mat_indices_1 = range_dependent_shapes + range_shape_indices
+        #
+        # shape_shape_res = []
+        # for i in range(len(shape_shape_mat_indices_1)):
+        #     tmp = []
+        #     for j in range(len(shape_shape_mat_indices_1)):
+        #         tmp.append([shape_shape_mat_indices_1[i], shape_shape_mat_indices_1[j]])
+        #     shape_shape_res.append(tmp)
+        #
+        # shape_shape_cov_mat = None
+        # for i in range(len(shape_shape_mat_indices_1)):
+        #     tmp = None
+        #     for j in range(len(shape_shape_mat_indices_1)):
+        #         ss1_0 = shape_shape_res[i][j][0][0]
+        #         ss1_1 = shape_shape_res[i][j][0][1]
+        #         ss2_0 = shape_shape_res[i][j][1][0]
+        #         ss2_1 = shape_shape_res[i][j][1][1]
+        #         if tmp is None:
+        #             tmp = cov_all[ss1_0:ss1_1, ss2_0:ss2_1]
+        #         else:
+        #             tmp = np.concatenate((tmp, cov_all[ss1_0:ss1_1, ss2_0:ss2_1]), axis=1)
+        #     if shape_shape_cov_mat is None:
+        #         shape_shape_cov_mat = tmp
+        #     else:
+        #         shape_shape_cov_mat = np.concatenate((shape_shape_cov_mat, tmp))
+        #
+        # mean_sc1 = None
+        # mean_sc2 = None
+        #
+        # for i in range(len(range_dependent_shapes)):
+        #     sc1 = range_dependent_shapes[i][0]
+        #     sc2 = range_dependent_shapes[i][1]
+        #     if mean_sc1 is None:
+        #         mean_sc1 = mean_all[sc1:sc2]
+        #     else:
+        #         mean_sc1 = np.concatenate((mean_sc1, mean_all[sc1:sc2]))
+        #
+        # for i in range(len(range_shape_indices)):
+        #     sc1 = range_shape_indices[i][0]
+        #     sc2 = range_shape_indices[i][1]
+        #     if mean_sc2 is None:
+        #         mean_sc2 = mean_all[sc1:sc2]
+        #     else:
+        #         mean_sc2 = np.concatenate((mean_sc2, mean_all[sc1:sc2]))
+        #
+        # ############################################################################
+        # ############################################################################
+        # ##################### Shape INTENSITY CONDITIONAL COV MAT
+        # ############################################################
+        #
+        # shape_int_indices = range_dependent_intensities + range_dependent_shapes
+        #
+        # shape_int_mat_indices_1 = []
+        #
+        # for i in range(len(shape_int_indices)):
+        #     tmp = []
+        #     for j in range(len(shape_int_indices)):
+        #         tmp.append([shape_int_indices[i], shape_int_indices[j]])
+        #     shape_int_mat_indices_1.append(tmp)
+        #
+        # shape_int_mat = None
+        #
+        # for i in range(len(shape_int_indices)):
+        #     tmp = None
+        #     for j in range(len(shape_int_indices)):
+        #         ss1_0 = shape_int_mat_indices_1[i][j][0][0]
+        #         ss1_1 = shape_int_mat_indices_1[i][j][0][1]
+        #         ss2_0 = shape_int_mat_indices_1[i][j][1][0]
+        #         ss2_1 = shape_int_mat_indices_1[i][j][1][1]
+        #
+        #         if tmp is None:
+        #             tmp = cov_all[ss1_0:ss1_1, ss2_0:ss2_1]
+        #         else:
+        #             tmp = np.concatenate((tmp, cov_all[ss1_0:ss1_1, ss2_0:ss2_1]), axis=1)
+        #     if shape_int_mat is None:
+        #         shape_int_mat = tmp
+        #     else:
+        #         shape_int_mat = np.concatenate((shape_int_mat, tmp))
+        # # means
+        # mean_si1 = None
+        # mean_si2 = None
+        #
+        # for i in range(len(range_dependent_shapes)):
+        #     sc1 = range_dependent_shapes[i][0]
+        #     sc2 = range_dependent_shapes[i][1]
+        #     if mean_si2 is None:
+        #         mean_si2 = mean_all[sc1:sc2]
+        #     else:
+        #         mean_si2 = np.concatenate((mean_si2, mean_all[sc1:sc2]))
+        #
+        # for i in range(len(range_dependent_intensities)):
+        #     sc1 = range_dependent_intensities[i][0]
+        #     sc2 = range_dependent_intensities[i][1]
+        #     if mean_si1 is None:
+        #         mean_si1 = mean_all[sc1:sc2]
+        #     else:
+        #         mean_si1 = np.concatenate((mean_si1, mean_all[sc1:sc2]))
+        #
+        # return [[mean_sc1, mean_sc2, shape_shape_cov_mat], [mean_si1, mean_si2, shape_int_mat]]
 
     def recompute_conditional_structure_structure(self, num_of_pts):
         res = []
@@ -500,14 +522,11 @@ class PointDistribution:
             return
         for i in range(len(settings.settings.dependent_constraint.keys())):
             key = list(settings.settings.dependent_constraint.keys())[i]
-            [shape_shape, shape_int] = self._recompute_cond_matrices(key, settings.settings.dependent_constraint[key],
+            [ i1_data, s1_data, s2_data] = self._recompute_cond_matrices(key, settings.settings.dependent_constraint[key],
                                                                      self._kdes.distr.cov, self._kdes.distr.mean,
                                                                      num_of_pts)
 
-            t_Res = distros.JointDependentDistribution(mean_s_1=shape_shape[0], mean_s_2=shape_shape[1],
-                                                       cov_s=shape_shape[2],
-                                                       mean_si1=shape_int[0], mean_si2=shape_int[1],
-                                                       cov_si=shape_int[2])
+            t_Res = distros.JointDependentDistribution(data_s1=s1_data,data_s2=s2_data,data_I1=i1_data)
 
             res.append(t_Res)
         return res
