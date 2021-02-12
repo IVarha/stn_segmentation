@@ -65,20 +65,7 @@ def compute_pd_single_labed(subject,label,func,pca):
     coords = func._kdes[0].decompose_coords_to_eigcords(coords)
 
     return func(coords)
-    # normals = cm.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
-    #
-    # normals = ExtPy.apply_transform_2_norms(normals, func._from_mni_to_vox.tolist())
-    #
-    #
-    # norm_intens = np.array(func._image.interpolate_normals(normals))
-    #
-    #
-    #
-    # norm_intens = norm_intens.reshape((1,norm_intens.shape[0] * norm_intens.shape[1]))
-    # ni = pca[1].transform(norm_intens)[0]
-    # norm_cords= pca[0].transform(np.array(coords).reshape(1,len(coords)))[0]
-    # # distr_coords = np.concatenate((coords,norm_intens))
-    # return - func._kdes[0](coords, norm_intens)
+
 
 
 

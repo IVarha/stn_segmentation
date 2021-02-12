@@ -82,55 +82,6 @@ def save_intensities_csv(pdm, filename):
     wr.writerows(pdm)
     f.close()
 
-def calculate_intensites_subject(modalities,labels,subject, discretisation, norm_len,mesh_name_end):
-
-    images= []
-    for i in range(len( modalities)):
-        im = vtim.Image(subject + os.sep + modalities[i][1])
-        im.setup_bspline(3)
-        images.append( [modalities[i][0], im])
-
-    im_ref = fim.Image(subject + os.sep + "t1_acpc_extracted.nii.gz")
-    im_mni = fim.Image(subject + os.sep + "t1_brain_to_mni_stage2_apply.nii.gz")
-
-    forward_transf_fsl = fl.readFlirt(subject + os.sep + "combined_affine_t1.mat")
-
-    to_mni = fl.fromFlirt(forward_transf_fsl, src=im_ref, ref=im_mni, from_="world", to="world")
-    from_mni = np.linalg.inv(to_mni)
-
-    lab_im = fim.Image(subject + os.sep + "labels_clean.nii.gz")
-    tr_World_voxel = lab_im.getAffine("world", "voxel")
-
-    mask_im = nm.ni_mask(subject + os.sep + "t2_mask.nii.gz")
-    for i in range(len(labels)):
-        surf = ExtPy.cMesh(subject + os.sep + labels[i] + mesh_name_end)  # read mesh
-        surf.apply_transform(to_mni.tolist())
-
-        mni_norms = surf.generate_normals(norm_len, discretisation)
-        norms_native = apply_transf_2_norms(mni_norms, from_mni)
-        #calculate overlap of normal with mask in world coords
-        mask_norm = calculate_mask_touches(mask=mask_im,norms= norms_native)
-        norms_native = apply_transf_2_norms(norms_native, tr_World_voxel)
-        surf.apply_transform(from_mni.tolist())
-        #calc points
-        mp = surf.generate_mesh_points(20)
-
-
-        #calculate intensities mask,1st_modal,2nd...
-        profiles = mask_norm
-        for j in range(len(images)):
-
-            profile= calc_intensities(norms_native, images[j][1])
-            mp2 = util.apply_transf_2_pts(mp,images[j][1]._world_2_vox)
-            ######intensity blok(-mean)
-            #mn = np.array(images[j][1].interpolate_list(mp2)).mean()
-            mn = 0
-            profiles = concatenate_intensities(profiles,(np.array(profile) -mn).tolist())
-        norm_vecs = norms_2_coords(normals=mni_norms)
-
-        # calc result mat
-        res = concatenate_intensities(norm_vecs,profiles)
-        save_intensities_csv(pdm=res,filename=subject+os.sep+labels[i]+"_profiles.csv")
 
 
 
@@ -158,7 +109,7 @@ def main_proc(train, label_names, config_name,modalities, workdir):
     for sub_i in range(len(tr_subjects)):
         # read im
 
-        calculate_intensites_subject(modalities=mod,labels=labels,subject=tr_subjects[sub_i],
+        util.calculate_intensites_subject(modalities=mod,labels=labels,subject=tr_subjects[sub_i],
                                      discretisation=cnf['discretisation'],norm_len=cnf['norm_length'],mesh_name_end ="_1.obj")
 
 
