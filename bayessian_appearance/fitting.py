@@ -27,25 +27,58 @@ import scipy.optimize as opt
 
 
 
-def compute_pd_single_labed(subject,label,func):
+def save_normal_as_csv(normals,subj):
+    try:
+        os.remove(path=subj + os.sep + "normals.fcsv")
+    except:
+        pass
+
+    with open(subj + os.sep + "normals.fcsv",'wt') as the_file:
+        the_file.write("# Markups fiducial file version = 4.10\n")
+        the_file.write("# CoordinateSystem = 0\n")
+        the_file.write("# columns = id,x,y,z,ow,ox,oy,oz,vis,sel,lock,label,desc,associatedNodeID\n")
+
+        for i in range(len(normals)):
+            st = str(i) + ","
+            st += str(normals[i][0]) + "," + str(normals[i][1]) + "," + str(normals[i][2])
+
+            st += ",0.000,0.000,0.000,1.000,1,1,0,n"+str(i)+ ",,vtkMRMLScalarVolumeNode1\n"
+            the_file.write(st)
+
+
+def compute_pd_single_labed(subject,label,func,pca):
 
     cm = ExtPy.cMesh(subject + os.sep + label + "_1.obj")
 
     cdw = cm.get_unpacked_coords()
 
+    norm2 = cm.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
+    save_normal_as_csv(norm2[0],subject)
+
+
     cm.apply_transform(np.linalg.inv(func._mni_world).tolist() )
     coords = cm.get_unpacked_coords()
-    normals = cm.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
-    normals = ExtPy.apply_transform_2_norms(normals, func._from_mni_to_vox.tolist())
 
+    coords = np.array(coords)
+    coords = coords.reshape((1,coords.shape[0]))
+    coords = pca[0].transform(coords)[0]
+    coords = func._kdes[0].decompose_coords_to_eigcords(coords)
 
-    norm_intens = np.array(func._image.interpolate_normals(normals))
-
-
-
-    norm_intens = norm_intens.reshape((norm_intens.shape[0] * norm_intens.shape[1]))
-    # distr_coords = np.concatenate((coords,norm_intens))
-    return - func._kdes[0](coords, norm_intens)
+    return func(coords)
+    # normals = cm.generate_normals(gl_set.settings.norm_length,gl_set.settings.discretisation)
+    #
+    # normals = ExtPy.apply_transform_2_norms(normals, func._from_mni_to_vox.tolist())
+    #
+    #
+    # norm_intens = np.array(func._image.interpolate_normals(normals))
+    #
+    #
+    #
+    # norm_intens = norm_intens.reshape((1,norm_intens.shape[0] * norm_intens.shape[1]))
+    # ni = pca[1].transform(norm_intens)[0]
+    # norm_cords= pca[0].transform(np.array(coords).reshape(1,len(coords)))[0]
+    # # distr_coords = np.concatenate((coords,norm_intens))
+    # return - func._kdes[0](coords, norm_intens)
 
 
 
@@ -125,7 +158,7 @@ class FunctionHandler:
         norm_intens = norm_intens.reshape((1,norm_intens.shape[0]*norm_intens.shape[1]))
 
         norm_intens = self.intens_pca.transform(norm_intens)[0]
-
+        #coords[:] = 0 # debug
         #norm_intens[:] = 0 #for debug
         #distr_coords = np.concatenate((coords,norm_intens))
         return  - self._kdes[0](coords,norm_intens)
@@ -318,7 +351,7 @@ class Fitter:
                 fc._num_of_points= self._best_meshes_mni[lab].gen_num_of_points()
 
                 #constraint for interception
-                int_Cons = opt.NonlinearConstraint(fc._mesh.calculate_interception_from_newPTS,lb=0,ub=2)
+                #int_Cons = opt.NonlinearConstraint(fc._mesh.calculate_interception_from_newPTS,lb=0,ub=2)
 
 
                 X0 = fc._mesh.get_unpacked_coords()
@@ -335,8 +368,15 @@ class Fitter:
                 print(datetime.now())
 
                 a = fc(X0)
+                print ( " INITIALISE AT MEDIAN ")
+                print( a)
+                print("------------------------------------------------------")
 
-                #b = compute_pd_single_labed(self._test_subj[i_test_sub],self._pdm._label_kde[lab], fc)
+                b = compute_pd_single_labed(self._test_subj[i_test_sub],self._pdm._label_kde[lab], fc,[fc.shape_pca,fc.intens_pca])
+
+                print ( " FUNC VALUE AT MANUAL")
+                print( b)
+                print("------------------------------------------------------")
                 bounds = cds[lab][0].generate_bounds(3)
 
                 Xpt = X0.copy()
@@ -385,6 +425,10 @@ class Fitter:
                                                                                   # 'ftol': 1
                                                                                   })
                 r_x = mimiser.fun
+
+                print ( " FUNC VALUE AT FINAL")
+                print( r_x)
+                print("------------------------------------------------------")
                 # mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
                 # mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
 
@@ -397,7 +441,8 @@ class Fitter:
                 fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
 
                 fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + self._pdm._label_kde[lab] + "_fitted.obj")
-
+                print ( " END SUBJECT")
+                print("------------------------------------------------------")
             pass
         pass
 
