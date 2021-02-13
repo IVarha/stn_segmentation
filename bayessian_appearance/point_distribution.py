@@ -337,7 +337,7 @@ class PointDistribution:
             norm_cond = distros.NormalConditional(data_main=self.shape_data[ind]
                                                   ,data_condition=self.intens_data[ind],
                                                   tol=10)
-            norm_cond_b = distros.NormalConditionalBayes(data_main=self.shape_data[ind]
+            norm_cond_b = distros.ProductJoined_ShInt_Distribution(data_main=self.shape_data[ind]
                                                   ,data_condition=self.intens_data[ind])
 
             res.append([norm_cond, norm_cond_b,self._median_all[ind]])

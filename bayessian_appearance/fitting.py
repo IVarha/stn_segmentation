@@ -148,7 +148,7 @@ class FunctionHandler:
         #coords[:] = 0 # debug
         #norm_intens[:] = 0 #for debug
         #distr_coords = np.concatenate((coords,norm_intens))
-        return  - self._kdes[0](coords,norm_intens)
+        return  - self._kdes[1](coords,norm_intens)
 
     def set_cimage(self, filename):
 

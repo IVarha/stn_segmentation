@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats as stat
 import scipy as scp
 import scipy.optimize as opt
+import sklearn.neighbors as neib
 
 import sklearn.covariance as rob_cov
 import sklearn.decomposition as decomp
@@ -82,6 +83,58 @@ class NormalDistribution:
         return np_med
 
 
+class ProductJoined_ShInt_Distribution:
+
+    _norm1 = None
+    _norm2 = None
+    _pca_main = None
+    def __init__(self, data_main, data_condition, tol=-1):
+        if tol == -1:
+            tol = 0
+
+        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+        pcaS.fit(data_main)
+
+
+        norm1 = rob_cov.EllipticEnvelope()
+        norm1.fit(data_main)
+
+        norm2 = rob_cov.EllipticEnvelope()
+        norm2.fit(data_condition)
+
+        self._norm1 = norm1
+        self._norm2 = norm2
+        self._pca_main = pcaS
+
+    def __call__(self, *args, **kwargs):
+        x0 = args[0]
+        x1 = args[1]
+
+
+
+        return -(self._norm1.mahalanobis(x0.reshape((1,x0.shape[0])))[0]
+                + self._norm2.mahalanobis(x1.reshape((1,x1.shape[0])))[0])
+
+    def decompose_coords_to_eigcords(self, X):
+        X1 = X.reshape((1, X.shape[0]))
+        return self._pca_main.transform(X1)[0]
+
+    def vector_2_points(self, X):
+
+        X1 = X.reshape((1, X.shape[0]))
+        return self._pca_main.inverse_transform(X1)[0]
+
+    def generate_bounds(self, n):
+        res = []
+
+        expl_var = self._pca_main.explained_variance_
+        for i in range(expl_var.shape[0]):
+            m = np.sqrt(expl_var[i])
+            res.append([-n * m, n * m])
+        return res
+
+    pass
+
 def _eigvalsh_to_eps(spectrum, cond=None, rcond=None):
     """
     Determine which eigenvalues are "small" given the spectrum.
@@ -146,7 +199,7 @@ class NormalConditional:
     _l_12 = None
     _l_cov = None
     _dist = None
-
+    _gaus_kernel = None
     _main_vecs = None
 
     _eig_vec = None
@@ -163,7 +216,7 @@ class NormalConditional:
         pca.fit(np.concatenate((data_main, data_condition), axis=-1))
 
         cov_all = pca.get_covariance()
-        pca2 = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+        pca2 = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full') #used only for recalculate
         pca2.fit(data_main)
         self._pca = pca2
         mean1 = pca.mean_[:data_main.shape[1]]
@@ -200,11 +253,15 @@ class NormalConditional:
         self._prec_12 = pca.get_precision()[:num_of_pts, num_of_pts:]
         self._l_cov = np.dot(cov11, self._prec_12)
         self._dist = stat.multivariate_normal(mean=mean1, cov=cov11, allow_singular=True)
+        #self._gaus_kernel = neib.KernelDensity()
+        #self._gaus_kernel.fit(X=np.concatenate((data_main, data_condition), axis=1))
 
     def __call__(self, *args, **kwargs):
         x0 = args[0]
         x1 = args[1]
 
+        a = np.concatenate((x0,x1),axis=-1)
+        #return self._gaus_kernel.score(a.reshape((1,a.shape[0])))
         self._dist.mean = self._mean1 - np.dot(self._l_cov, x1 - self._mean2)
         return self._dist.logpdf(x0)
 
@@ -283,11 +340,30 @@ class JointDependentDistribution:
     dist_I_s1 = None
     dist_s1s2 = None
     _mean_s2 = None
+    _pca_main = None
 
     def __init__(self,data_s1,data_s2,data_I1):
         self._mean_s2 = None
-        self.dist_s1s2 = NormalConditional(data_main=data_s1, data_condition=data_s2)
-        self.dist_I_s1 = NormalConditional(data_main=data_I1,data_condition=data_s1)
+
+        #########
+        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+        pcaS.fit(data_s1)
+
+
+        norm1 = rob_cov.EllipticEnvelope()
+        norm1.fit(np.concatenate((data_s1,data_s2),axis=-1))
+
+
+        self._norm1 = norm1
+
+        self._pca_main = pcaS
+
+        ###########
+        #self.dist_s1s2 = NormalConditional(data_main=data_s1, data_condition=data_s2)
+        #self.dist_I_s1 = NormalConditional(data_main=data_I1,data_condition=data_s1)
+        a = rob_cov.EllipticEnvelope()
+        a.fit(data_I1)
+        self.dist_I_s1 = a
         pass
 
     def set_S2(self, pts):
@@ -295,16 +371,39 @@ class JointDependentDistribution:
 
     def __call__(self, *args, **kwargs):
         shape = args[0]
+
         intenstities = args[1]
 
+        shape = np.concatenate((shape,self._mean_s2),axis=-1)
+        shape = shape.reshape((1,shape.shape[0]))
 
-        return self.dist_I_s1(intenstities, shape) + self.dist_s1s2(shape, self._mean_s2)
+        return -(self.dist_I_s1.mahalanobis(intenstities.reshape((1,intenstities.shape[0])))[0]
+               + self._norm1.mahalanobis(shape)[0])
+
+    # def vector_2_points(self, X):
+    #     return self.dist_s1s2.vector_2_points(X)
+    #
+    # def get_num_eigenvecs(self):
+    #     return self.dist_s1s2._pca.components_.shape[0]
+    #
+    # def generate_bounds(self, n):
+    #     return self.dist_s1s2.generate_bounds(n)
+    def decompose_coords_to_eigcords(self, X):
+        X1 = X.reshape((1, X.shape[0]))
+        return self._pca_main.transform(X1)[0]
 
     def vector_2_points(self, X):
-        return self.dist_s1s2.vector_2_points(X)
 
-    def get_num_eigenvecs(self):
-        return self.dist_s1s2._pca.components_.shape[0]
+        X1 = X.reshape((1, X.shape[0]))
+        return self._pca_main.inverse_transform(X1)[0]
 
     def generate_bounds(self, n):
-        return self.dist_s1s2.generate_bounds(n)
+        res = []
+
+        expl_var = self._pca_main.explained_variance_
+        for i in range(expl_var.shape[0]):
+            m = np.sqrt(expl_var[i])
+            res.append([-n * m, n * m])
+        return res
+    def get_num_eigenvecs(self):
+        return self._pca_main.components_.shape[0]
