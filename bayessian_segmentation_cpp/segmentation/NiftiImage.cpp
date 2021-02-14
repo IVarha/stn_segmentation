@@ -137,7 +137,7 @@ void NiftiImage::read_nifti_image(string file) {
 
     auto x_cord = tr_mat->GetElement(0,3);
     auto resp  = data->GetPoint(0);
-    cout << data->GetPoint(0)[0] << endl;
+    //cout << data->GetPoint(0)[0] << endl;
 
     this->niimg = data;
     this->type = data->GetDataObjectType();

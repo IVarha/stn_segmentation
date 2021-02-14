@@ -9,7 +9,8 @@ import numpy as np
 import pickle
 import ExtPy
 import bayessian_appearance.utils as utils
-
+import matplotlib.pyplot as plt
+import sklearn.covariance as rob_cov
 import scipy.stats as scp_stats
 
 
@@ -298,13 +299,14 @@ class PointDistribution:
 
         self._construct_pdm()
 
-    def save_pdm(self, file_name, save_orig=False):
+    def save_pdm(self,workdir, file_name, save_orig=False):
         try:
             os.remove(file_name)
         except:
             pass
         if (~ save_orig):
             self._original_data = None
+        self._plot_2_components(workdir+ os.sep + "pic")
         f = open(file_name, 'wb')
         pickle.dump(self, f)
 
@@ -543,3 +545,26 @@ class PointDistribution:
 
     def get_intens_coords(self,ind):
         return  self._intens_coords[ind]
+
+    def _plot_2_components(self, filename):
+        i = 0
+        for shape in self.shape_data:
+            print("----------------------------")
+            print("label")
+            print(self._labels[i])
+            print("----------------------------")
+
+            e = rob_cov.EllipticEnvelope()
+            e.fit(shape)
+            sc = e.predict(shape)
+            for ind in np.where(sc==-1)[0]:
+                print(self._tr_subjects[ind])
+            plt.figure(i)
+            plt.title("2 componnents for figure " + self._labels[i])
+            plt.scatter(shape[sc==-1,0],shape[sc==-1,1],color="red")
+            plt.scatter(shape[sc == 1, 0], shape[sc == 1, 1], color="green")
+            plt.scatter(0,0,color="blue")
+            plt.savefig(filename +self._labels[i] + ".png" )
+            i+=1
+
+

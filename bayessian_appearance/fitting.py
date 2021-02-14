@@ -321,7 +321,10 @@ class Fitter:
         cds = self._pdm.recompute_conditional_shape_int_distribution(self._best_meshes_mni[0].gen_num_of_points())
 
         for i_test_sub in range(len(self._test_subj)):
-
+            print("###################################################")
+            print("Subject")
+            print(self._test_subj[i_test_sub])
+            print("---------------------------------------")
             for lab in range(len(self._best_meshes_mni)):
                 fc = FunctionHandler()
                 #todo fix set

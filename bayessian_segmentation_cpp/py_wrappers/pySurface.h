@@ -21,11 +21,11 @@ public:
     explicit pySurface(const std::string &name) : name(name) {
         this->mesh = new Surface();
         this->mesh->read_obj(name);
-        std::cout << 1 << std::endl;
+        //std::cout << 1 << std::endl;
         this->triangles = this->mesh->getTrianglesAsVec();
-        std::cout << 2 << std::endl;
+        //std::cout << 2 << std::endl;
         this->points = this->mesh->getPoints();
-        std::cout << 3 << std::endl;
+        //std::cout << 3 << std::endl;
         this->neighb_tri = compute_neighbours();
     }
     const std::string &getName() const { return name; }

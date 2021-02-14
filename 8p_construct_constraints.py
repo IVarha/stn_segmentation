@@ -29,7 +29,7 @@ def main_proc(train, label_names, config_name,modalities, workdir):
 
     print("processing finished at")
     print(datetime.datetime.now())
-    pdm.save_pdm(workdir + os.sep + "pdm.pysave")
+    pdm.save_pdm(workdir, file_name="pdm.pysave")
         # read im
 
 

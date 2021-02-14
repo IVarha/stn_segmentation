@@ -667,8 +667,8 @@ class Mesh:
 
         point_array = Mesh.generate_mask([min_X,max_X],[min_Y,max_Y],[min_Z,max_Z],0.2)
 
-        mask_main = mesh_main.points_is_inside(point_array)
-        mask_test = mesh_test.points_is_inside(point_array)
+        mask_main = mesh_main.points_is_inside(point_array) >0
+        mask_test = mesh_test.points_is_inside(point_array) >0
 
 
         return  method(mask_main,mask_test)
