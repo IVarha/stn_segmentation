@@ -473,7 +473,8 @@ class Fitter:
                 fc._mesh.calculate_closest_points()
                 fc._kdes = cds[lab]
                 fc._kdes.set_S2(joined_s2) # set readed shape
-
+                X0 = fc._kdes.get_mean_conditional()
+                X0 = fc._kdes.decompose_coords_to_eigcords(X0)
                 fc._num_of_points= int(num_of_pts)
 
                 #constraint for interception
@@ -481,7 +482,7 @@ class Fitter:
 
                 fc._constraints = len(vals1)
 
-                X0 = np.zeros((fc._kdes.get_num_eigenvecs()))
+                #X0 = np.zeros((fc._kdes.get_num_eigenvecs()))
 
                 #####SAVE initi
                 res_points = fc._kdes.vector_2_points(X0)

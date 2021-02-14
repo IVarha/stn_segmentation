@@ -265,6 +265,8 @@ class NormalConditional:
         self._dist.mean = self._mean1 - np.dot(self._l_cov, x1 - self._mean2)
         return self._dist.logpdf(x0)
 
+    def get_mean_conditional(self,shape2):
+        return self._mean1 - np.dot(self._l_cov, shape2 - self._mean2)
     def decompose_coords_to_eigcords(self, X):
         X1 = X.reshape((1, X.shape[0]))
         return self._pca.transform(X1)[0]
@@ -354,12 +356,12 @@ class JointDependentDistribution:
         norm1.fit(np.concatenate((data_s1,data_s2),axis=-1))
 
 
-        self._norm1 = norm1
+        #self.dist_s1s2 = norm1
 
         self._pca_main = pcaS
 
         ###########
-        #self.dist_s1s2 = NormalConditional(data_main=data_s1, data_condition=data_s2)
+        self.dist_s1s2 = NormalConditional(data_main=data_s1, data_condition=data_s2)
         #self.dist_I_s1 = NormalConditional(data_main=data_I1,data_condition=data_s1)
         a = rob_cov.EllipticEnvelope()
         a.fit(data_I1)
@@ -378,7 +380,11 @@ class JointDependentDistribution:
         shape = shape.reshape((1,shape.shape[0]))
 
         return -(self.dist_I_s1.mahalanobis(intenstities.reshape((1,intenstities.shape[0])))[0]
-               + self._norm1.mahalanobis(shape)[0])
+               + self.dist_s1s2(args[0],self._mean_s2))
+
+    def get_mean_conditional(self ):
+        return self.dist_s1s2.get_mean_conditional(self._mean_s2)
+
 
     # def vector_2_points(self, X):
     #     return self.dist_s1s2.vector_2_points(X)
