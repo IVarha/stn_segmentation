@@ -34,17 +34,22 @@ def main_proc( test_subjects, label_names):
 
         res = []
         for lab1 in range(len(labels)):
-            tmp = []
-            mesh_labeled = mesh.Mesh(test_subjs[sub_i] + os.sep+  labels[lab1] + "_pca.obj")
+            try:
+                tmp = []
+                mesh_labeled = mesh.Mesh(test_subjs[sub_i] + os.sep+  labels[lab1] + "_pca.obj")
 
-            mesh_fitted = mesh.Mesh(test_subjs[sub_i] + os.sep + labels[lab1] + "_fitted.obj")
-            tmp.append( mesh.Mesh.meshes_overlap(mesh_labeled,mesh_fitted,dice_f))
-            tmp.append(mesh.Mesh.meshes_overlap(mesh_labeled, mesh_fitted, jac_f))
+                mesh_fitted = mesh.Mesh(test_subjs[sub_i] + os.sep + labels[lab1] + "_fitted.obj")
+                tmp.append( mesh.Mesh.meshes_overlap(mesh_labeled,mesh_fitted,dice_f))
+                tmp.append(mesh.Mesh.meshes_overlap(mesh_labeled, mesh_fitted, jac_f))
 
-            res.append(tmp)
+                res.append(tmp)
+            except:
+                pass
 
-
-
+        try:
+            os.remove(test_subjs[sub_i] + os.sep + "overlap.csv")
+        except:
+            pass
         np.savetxt(fname=test_subjs[sub_i] + os.sep + "overlap.csv" ,X=np.array(res),delimiter=',' )
 
 

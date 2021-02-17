@@ -42,7 +42,7 @@ def main_proc(train_subjects, test_subjects, label_names, config_name, modalitie
 
     fitter.fit_single()
 
-    fitter.fit_multiple()
+    #fitter.fit_multiple()
 
     print(datetime.now())
 

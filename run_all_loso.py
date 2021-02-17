@@ -40,7 +40,7 @@ def write_subjs_2_file(subjs, filename):
 
 
 def train_test_file_create(subjects, ind_of_subject,out_train_file, out_test_file):
-    subs = subjects
+    subs = subjects.copy()
 
     sub = subs[ind_of_subject]
 

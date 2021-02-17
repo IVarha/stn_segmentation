@@ -119,6 +119,13 @@ class ProductJoined_ShInt_Distribution:
         X1 = X.reshape((1, X.shape[0]))
         return self._pca_main.transform(X1)[0]
 
+    def inliers_return(self, dataset):
+        lab= self._norm1.predict(dataset)
+
+        return dataset[lab==1,:]
+
+
+
     def vector_2_points(self, X):
 
         X1 = X.reshape((1, X.shape[0]))

@@ -517,6 +517,72 @@ class PointDistribution:
         #
         # return [[mean_sc1, mean_sc2, shape_shape_cov_mat], [mean_si1, mean_si2, shape_int_mat]]
 
+
+
+    def compute_4_median_components(self, label,distr):
+
+        ind = utils.comp_posit_in_data(label)
+
+        data_full = self.shape_data[ind]
+        data_full = distr.inliers_return(data_full)
+        pca = self._pca_shapes[ind]
+
+        data = data_full[:,:2]
+
+        result = []
+        ######
+        dist1 = []
+        pt = np.array([pca.explained_variance_[0],0])
+        for i in range ( data.shape[0]):
+            a = data[i,:]
+            dist1.append( np.linalg.norm(a-pt ))
+        pos = dist1.index(min(dist1))
+
+        result.append(data_full[pos,:])
+        ######
+        dist1 = []
+        pt = np.array([-pca.explained_variance_[0],0])
+        for i in range ( data.shape[0]):
+            a = data[i,:]
+            dist1.append( np.linalg.norm(a-pt ))
+        pos = dist1.index(min(dist1))
+
+        result.append(data_full[pos,:])
+        ##########
+        dist1 = []
+        pt = np.array([0,pca.explained_variance_[1]])
+        for i in range ( data.shape[0]):
+            a = data[i,:]
+            dist1.append( np.linalg.norm(a-pt ))
+        pos = dist1.index(min(dist1))
+
+        result.append(data_full[pos,:])
+
+        ###########################
+        dist1 = []
+        pt = np.array([0,-pca.explained_variance_[1]])
+        for i in range ( data.shape[0]):
+            a = data[i,:]
+            dist1.append( np.linalg.norm(a-pt ))
+        pos = dist1.index(min(dist1))
+
+        result.append(data_full[pos,:])
+        ############################
+        dist1 = []
+        pt = np.array([0,0])
+        for i in range ( data.shape[0]):
+            a = data[i,:]
+            dist1.append( np.linalg.norm(a-pt ))
+        pos = dist1.index(min(dist1))
+
+        result.append(data_full[pos,:])
+        return result
+
+
+
+
+
+
     def recompute_conditional_structure_structure(self, num_of_pts):
         res = []
 
@@ -534,10 +600,12 @@ class PointDistribution:
         return res
 
 
-    def get_shape_pca(self, ind):
+    def get_shape_pca(self, label):
+        ind = utils.comp_posit_in_data(label)
         return self._pca_shapes[ind]
 
-    def get_intens_pca(self,ind):
+    def get_intens_pca(self,label):
+        ind = utils.comp_posit_in_data(label)
         return  self._pca_intensities[ind]
 
     def get_shape_coords(self, ind):
