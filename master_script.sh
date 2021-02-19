@@ -1,5 +1,5 @@
 work_dir="/data/home/varga/processing_data/new_data_sorted"
-prefix_subdirs="sub-P027"
+prefix_subdirs="sub-P"
 cp_script="/tmp/tmp.qdPaSxoIoZ/cmake-build-debug-tuplak/bayessian_segmentation_cpp"
 label_desc="/data/home/varga/processing_data/label_desk.txt"
 subjects="/data/home/varga/processing_data/subjects.txt"

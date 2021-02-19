@@ -39,6 +39,10 @@ class PointDistribution:
     # extrapolate to false
     def _prolongue_label(self, label_vec, mask_vec):
         res = label_vec.copy()
+        if True in mask_vec:
+            pass
+        else:
+            return res
         i_f = mask_vec.index(True)
         # if min(mask_vec) == False:
         #     print("HAS FALSE")
@@ -51,14 +55,14 @@ class PointDistribution:
 
     def _compute_insities(self, labels, subjects):
         #recompute subjects
-        for subj in subjects:
+        # for subj in subjects:
+        #
+        #     utils.calculate_intensites_subject(modalities=settings.settings.modalities,labels=labels,subject=subj
+        #                                        ,discretisation=settings.settings.discretisation,norm_len=settings.settings.norm_length,
+        #                                        mesh_name_end="_pca.obj")
 
-            utils.calculate_intensites_subject(modalities=settings.settings.modalities,labels=labels,subject=subj
-                                               ,discretisation=settings.settings.discretisation,norm_len=settings.settings.norm_length,
-                                               mesh_name_end="_pca.obj")
 
-
-        self._original_data = self._read_labels(labels=labels,train_subjects=subjects)
+        # self._original_data = self._read_labels(labels=labels,train_subjects=subjects)
         new_intens = []
         pcas = []
         for lab_i in range(len(labels)):
@@ -114,9 +118,6 @@ class PointDistribution:
 
                 el = ExtPy.cMesh(subjects[sub_i] + os.sep + labels[lab_i] + "_1.obj")
 
-                points = el.get_unpacked_coords()
-
-
                 to_mni = utils.read_fsl_native2mni_w(subjects[sub_i])
                 el.apply_transform(to_mni)
                 points = el.get_unpacked_coords()
@@ -165,7 +166,7 @@ class PointDistribution:
             # calculate cumulative coordinate of each coord. row sample col
             coordinates = []
             for j in range(len(pdm_label_data[0])):
-                vec_j = [x[j][0][posit_of_cent] for x in pdm_label_data]
+                vec_j = [x[j][0] for x in pdm_label_data]
                 coordinates.append(vec_j)
 
             # generate kdes for coords
@@ -250,19 +251,31 @@ class PointDistribution:
         self._kdes = kde_combined
 
     def _parse_label(self, subj, label):
-
+        #read mesh cords
+        cmesh = ExtPy.cMesh(subj + os.sep + label + "_1.obj")
+        cmesh.apply_transform(utils.read_fsl_native2mni_w(subj))
+        pts = cmesh.get_unpacked_coords()
+        point_coords1 = np.array(pts)
+        point_coords1 = point_coords1.reshape((int(len(pts) / 3), 3))
+        #
+        ind = 0
         points = []
         with open(subj + os.sep + label + "_profiles.csv", 'r') as file:
             reader = csv.reader(file)
 
             for row in reader:
                 point_coords = []
-                for i in range(settings.settings.discretisation):
-                    vox = []
-                    vox.append(float(row[3 * i]))
-                    vox.append(float(row[3 * i + 1]))
-                    vox.append(float(row[3 * i + 2]))
-                    point_coords.append(vox)
+                # for i in range(settings.settings.discretisation):
+                #     vox = []
+                #     vox.append(float(row[3 * i]))
+                #     vox.append(float(row[3 * i + 1]))
+                #     vox.append(float(row[3 * i + 2]))
+                #     point_coords.append(vox)
+
+                point_coords = point_coords1[ind,:].tolist()
+
+                ind +=1
+
                 rest = row[3 * settings.settings.discretisation:]
 
                 for i in range(settings.settings.discretisation):

@@ -57,10 +57,10 @@ CLIParser::~CLIParser() {
     CLIParser::options.clear();
 }
 
-const std::vector<std::string> CLIParser::getValue(std::string parameter) {
+std::vector<std::string> CLIParser::getValue(const std::string& parameter) {
     for (Option const& value: options)
     {
-        std::string key_t = value.getKey();
+        const std::string& key_t = value.getKey();
         if (key_t == parameter){
             return value.getValue();
         }

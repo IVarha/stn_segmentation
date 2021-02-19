@@ -16,7 +16,7 @@ echo $PYTHONPATH
 #python 6p_calculate_overlap.py $subjects $label_desc $working
 #echo "$subjects $label_desc $opts_cnf $working $modalities_cnf"
 echo "$train_subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj"
-python 7p_calculate_norm_intensities.py $train_subjects $label_desc $opts_cnf $working $modalities_cnf
+#python 7p_calculate_norm_intensities.py $train_subjects $label_desc $opts_cnf $working $modalities_cnf
 python 8p_construct_constraints.py $train_subjects $label_desc $opts_cnf $working $modalities_cnf
 python 9p_fit.py $train_subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj
 python 10p_analyse_result_overlap_loso.py $train_subjects $label_desc  $modalities_cnf $test_subj

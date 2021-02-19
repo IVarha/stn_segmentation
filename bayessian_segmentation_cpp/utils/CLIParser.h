@@ -52,7 +52,9 @@ private:
                 {"run", 1},
                 {"i",1},
                 {"labeldesk",1},
-                {"workdir",1}
+                {"workdir",1},
+                {"smooth",1},
+                {"shrink",1}
         };
     }
 
@@ -65,7 +67,7 @@ public:
 
     void parse_options(int argc, char *argv[]);
 
-    const std::vector<std::string> getValue(std::string parameter);
+    std::vector<std::string> getValue(const std::string& parameter);
 
 
 
