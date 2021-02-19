@@ -277,7 +277,6 @@ double Surface::calculate_volume() {
     mass_calc->SetInputData(this->mesh);
     mass_calc->Update();
     return mass_calc->GetVolume();
-
 }
 
 void Surface::apply_points(std::vector<double>& set_of_points) {

@@ -17,7 +17,7 @@ import scipy.stats as scp_stats
 class PointDistribution:
     use_constraint = None
     _original_data = None
-    _tr_subjects =None
+    _tr_subjects = None
     _num_of_pts = None
 
     _median_all = None
@@ -25,7 +25,7 @@ class PointDistribution:
 
     _shape_coords = None
     _intens_coords = None
-    #shape+intens data
+    # shape+intens data
     shape_data = None
     intens_data = None
 
@@ -51,16 +51,13 @@ class PointDistribution:
             res[i] = res[i_f]
         return res
 
-
-
     def _compute_insities(self, labels, subjects):
-        #recompute subjects
+        # recompute subjects
         # for subj in subjects:
         #
         #     utils.calculate_intensites_subject(modalities=settings.settings.modalities,labels=labels,subject=subj
         #                                        ,discretisation=settings.settings.discretisation,norm_len=settings.settings.norm_length,
         #                                        mesh_name_end="_pca.obj")
-
 
         # self._original_data = self._read_labels(labels=labels,train_subjects=subjects)
         new_intens = []
@@ -88,28 +85,28 @@ class PointDistribution:
                     continue
                 np_intensties = np.concatenate((np_intensties, np.array(intensity_profs[j])), axis=1)
 
-            #compute PCA
-            pca = decomp.PCA(n_components=settings.settings.pca_precision,svd_solver='full')
+            # compute PCA
+            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
             pca.fit(np_intensties)
             pcas.append(pca)
-            #compute
+            # compute
             np_intensties_new = pca.transform(np_intensties)
             new_intens.append(np_intensties_new)
         self._pca_intensities = pcas
         return new_intens
 
-
         pass
-    def _compute_pca_components(self, labels, subjects,datasets ):
+
+    def _compute_pca_components(self, labels, subjects, datasets):
 
         pca_shapes = []
 
-        new_dataset = [] # those new data
+        new_dataset = []  # those new data
         for lab_i in range(len(labels)):
 
             data = datasets[lab_i]
-            #compute pca
-            pca = decomp.PCA(n_components=settings.settings.pca_precision,svd_solver='full')
+            # compute pca
+            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
             pca.fit(data)
             pca_shapes.append(pca)
             # recompute shapes
@@ -121,18 +118,16 @@ class PointDistribution:
                 to_mni = utils.read_fsl_native2mni_w(subjects[sub_i])
                 el.apply_transform(to_mni)
                 points = el.get_unpacked_coords()
-                pts  = pca.inverse_transform(pca.transform([points]))
+                pts = pca.inverse_transform(pca.transform([points]))
                 if new_shape_coords is None:
                     new_shape_coords = pts[0]
                 else:
-                    new_shape_coords = np.concatenate((new_shape_coords,pts[0]))
+                    new_shape_coords = np.concatenate((new_shape_coords, pts[0]))
                 el.modify_points(pts[0])
                 el.apply_transform(np.linalg.inv(to_mni))
                 el.save_obj(subjects[sub_i] + os.sep + labels[lab_i] + "_pca.obj")
 
-
             new_dataset.append(pca.transform(data))
-
 
         self._pca_shapes = pca_shapes
         return new_dataset
@@ -157,8 +152,7 @@ class PointDistribution:
         # construct combined ONE PDM for ALL labels here
         comb_array = None
 
-
-        comb_shapes = [] # array of array of shapes
+        comb_shapes = []  # array of array of shapes
         for i in range(len(self._labels)):
             pdm_label_data = self._original_data[i]
             # get locations]
@@ -180,7 +174,7 @@ class PointDistribution:
                     continue
                 np_coord = np.concatenate((np_coord, np.array(coordinates[j])), axis=1)
 
-            #add coordinates
+            # add coordinates
             comb_shapes.append(np_coord)
             #############INTENSITY KDES
             ##RECord KDE like as whole profile (ESTIMATE THROUGH Whoole profile)!!!
@@ -215,9 +209,9 @@ class PointDistribution:
             #     a = np.concatenate((np_coord, np_intensties), axis=1)
             #     comb_array = np.concatenate((comb_array, a), axis=1)
 
-        c_s_new = self._compute_pca_components(labels=self._labels,subjects=self._tr_subjects,datasets=comb_shapes)
+        c_s_new = self._compute_pca_components(labels=self._labels, subjects=self._tr_subjects, datasets=comb_shapes)
 
-        intenses = self._compute_insities(labels=self._labels,subjects=self._tr_subjects)
+        intenses = self._compute_insities(labels=self._labels, subjects=self._tr_subjects)
 
         self._shape_coords = []
         self._intens_coords = []
@@ -226,20 +220,19 @@ class PointDistribution:
             len_cur_shape = c_s_new[i].shape[1]
             len_intenses = intenses[i].shape[1]
             if i == 0:
-                self._shape_coords.append([0,len_cur_shape])
-                self._intens_coords.append([len_cur_shape,len_cur_shape+len_intenses])
+                self._shape_coords.append([0, len_cur_shape])
+                self._intens_coords.append([len_cur_shape, len_cur_shape + len_intenses])
             else:
-                self._shape_coords.append([self._intens_coords[i-1][1]
-                                              ,self._intens_coords[i-1][1] + len_cur_shape])
-                self._intens_coords.append( [self._shape_coords[i][1],
+                self._shape_coords.append([self._intens_coords[i - 1][1]
+                                              , self._intens_coords[i - 1][1] + len_cur_shape])
+                self._intens_coords.append([self._shape_coords[i][1],
                                             self._shape_coords[i][1] + len_intenses])
 
             if comb_array is None:
-                comb_array = np.concatenate((c_s_new[i],intenses[i]),axis=1)
+                comb_array = np.concatenate((c_s_new[i], intenses[i]), axis=1)
             else:
-                a = np.concatenate((c_s_new[i],intenses[i]),axis=1)
+                a = np.concatenate((c_s_new[i], intenses[i]), axis=1)
                 comb_array = np.concatenate((comb_array, a), axis=1)
-
 
         self.shape_data = c_s_new
         self.intens_data = intenses
@@ -251,7 +244,7 @@ class PointDistribution:
         self._kdes = kde_combined
 
     def _parse_label(self, subj, label):
-        #read mesh cords
+        # read mesh cords
         cmesh = ExtPy.cMesh(subj + os.sep + label + "_1.obj")
         cmesh.apply_transform(utils.read_fsl_native2mni_w(subj))
         pts = cmesh.get_unpacked_coords()
@@ -272,9 +265,9 @@ class PointDistribution:
                 #     vox.append(float(row[3 * i + 2]))
                 #     point_coords.append(vox)
 
-                point_coords = point_coords1[ind,:].tolist()
+                point_coords = point_coords1[ind, :].tolist()
 
-                ind +=1
+                ind += 1
 
                 rest = row[3 * settings.settings.discretisation:]
 
@@ -312,14 +305,14 @@ class PointDistribution:
 
         self._construct_pdm()
 
-    def save_pdm(self,workdir, file_name, save_orig=False):
+    def save_pdm(self, workdir, file_name, save_orig=False):
         try:
             os.remove(file_name)
         except:
             pass
         if (~ save_orig):
             self._original_data = None
-        self._plot_2_components(workdir+ os.sep + "pic")
+        self._plot_2_components(workdir + os.sep + "pic")
         f = open(file_name, 'wb')
         pickle.dump(self, f)
 
@@ -350,20 +343,20 @@ class PointDistribution:
             # cov_all1 = self._kdes.distr.cov[self._shape_coords[ind][0]:self._intens_coords[ind][1],
             #            self._shape_coords[ind][0]:self._intens_coords[ind][1]]
             norm_cond = distros.NormalConditional(data_main=self.shape_data[ind]
-                                                  ,data_condition=self.intens_data[ind],
+                                                  , data_condition=self.intens_data[ind],
                                                   tol=10)
             norm_cond_b = distros.ProductJoined_ShInt_Distribution(data_main=self.shape_data[ind]
-                                                  ,data_condition=self.intens_data[ind])
+                                                                   , data_condition=self.intens_data[ind])
 
-            res.append([norm_cond, norm_cond_b,self._median_all[ind]])
+            res.append([norm_cond, norm_cond_b, self._median_all[ind]])
 
         return res
 
     def _recompute_cond_matrices(self, key, value, cov_all, mean_all, num_pts):
         ##consts initialisation
 
-        #els_in_structure = num_pts * 3 + num_pts * settings.settings.discretisation
-        #els_pts_per_struct = num_pts * 3
+        # els_in_structure = num_pts * 3 + num_pts * settings.settings.discretisation
+        # els_pts_per_struct = num_pts * 3
         #################
         keys = key.split(',')
         values = value.split(',')
@@ -386,7 +379,7 @@ class PointDistribution:
             if s2_data is None:
                 s2_data = self.shape_data[ind]
             else:
-                s2_data = np.concatenate((s2_data,self.shape_data[ind]),axis=-1)
+                s2_data = np.concatenate((s2_data, self.shape_data[ind]), axis=-1)
 
         s1_data = None
         i1_data = None
@@ -394,13 +387,13 @@ class PointDistribution:
             if s1_data is None:
                 s1_data = self.shape_data[ind]
             else:
-                s1_data = np.concatenate((s1_data,self.shape_data[ind]),axis=-1)
+                s1_data = np.concatenate((s1_data, self.shape_data[ind]), axis=-1)
             if i1_data is None:
                 i1_data = self.intens_data[ind]
             else:
-                i1_data = np.concatenate( (i1_data,self.intens_data[ind]),axis=-1)
+                i1_data = np.concatenate((i1_data, self.intens_data[ind]), axis=-1)
 
-        return [i1_data,s1_data,s2_data]
+        return [i1_data, s1_data, s2_data]
         #
         #
         #
@@ -530,9 +523,7 @@ class PointDistribution:
         #
         # return [[mean_sc1, mean_sc2, shape_shape_cov_mat], [mean_si1, mean_si2, shape_int_mat]]
 
-
-
-    def compute_4_median_components(self, label,distr):
+    def compute_4_median_components(self, label, distr):
 
         ind = utils.comp_posit_in_data(label)
 
@@ -540,61 +531,56 @@ class PointDistribution:
         data_full = distr.inliers_return(data_full)
         pca = self._pca_shapes[ind]
 
-        data = data_full[:,:2]
+        data = data_full[:, :2]
 
         result = []
         ######
         dist1 = []
-        pt = np.array([pca.explained_variance_[0],0])
-        for i in range ( data.shape[0]):
-            a = data[i,:]
-            dist1.append( np.linalg.norm(a-pt ))
+        pt = np.array([pca.explained_variance_[0], 0])
+        for i in range(data.shape[0]):
+            a = data[i, :]
+            dist1.append(np.linalg.norm(a - pt))
         pos = dist1.index(min(dist1))
 
-        result.append(data_full[pos,:])
+        result.append(data_full[pos, :])
         ######
         dist1 = []
-        pt = np.array([-pca.explained_variance_[0],0])
-        for i in range ( data.shape[0]):
-            a = data[i,:]
-            dist1.append( np.linalg.norm(a-pt ))
+        pt = np.array([-pca.explained_variance_[0], 0])
+        for i in range(data.shape[0]):
+            a = data[i, :]
+            dist1.append(np.linalg.norm(a - pt))
         pos = dist1.index(min(dist1))
 
-        result.append(data_full[pos,:])
+        result.append(data_full[pos, :])
         ##########
         dist1 = []
-        pt = np.array([0,pca.explained_variance_[1]])
-        for i in range ( data.shape[0]):
-            a = data[i,:]
-            dist1.append( np.linalg.norm(a-pt ))
+        pt = np.array([0, pca.explained_variance_[1]])
+        for i in range(data.shape[0]):
+            a = data[i, :]
+            dist1.append(np.linalg.norm(a - pt))
         pos = dist1.index(min(dist1))
 
-        result.append(data_full[pos,:])
+        result.append(data_full[pos, :])
 
         ###########################
         dist1 = []
-        pt = np.array([0,-pca.explained_variance_[1]])
-        for i in range ( data.shape[0]):
-            a = data[i,:]
-            dist1.append( np.linalg.norm(a-pt ))
+        pt = np.array([0, -pca.explained_variance_[1]])
+        for i in range(data.shape[0]):
+            a = data[i, :]
+            dist1.append(np.linalg.norm(a - pt))
         pos = dist1.index(min(dist1))
 
-        result.append(data_full[pos,:])
+        result.append(data_full[pos, :])
         ############################
         dist1 = []
-        pt = np.array([0,0])
-        for i in range ( data.shape[0]):
-            a = data[i,:]
-            dist1.append( np.linalg.norm(a-pt ))
+        pt = np.array([0, 0])
+        for i in range(data.shape[0]):
+            a = data[i, :]
+            dist1.append(np.linalg.norm(a - pt))
         pos = dist1.index(min(dist1))
 
-        result.append(data_full[pos,:])
+        result.append(data_full[pos, :])
         return result
-
-
-
-
-
 
     def recompute_conditional_structure_structure(self, num_of_pts):
         res = []
@@ -603,29 +589,29 @@ class PointDistribution:
             return
         for i in range(len(settings.settings.dependent_constraint.keys())):
             key = list(settings.settings.dependent_constraint.keys())[i]
-            [ i1_data, s1_data, s2_data] = self._recompute_cond_matrices(key, settings.settings.dependent_constraint[key],
-                                                                     self._kdes.distr.cov, self._kdes.distr.mean,
-                                                                     num_of_pts)
+            [i1_data, s1_data, s2_data] = self._recompute_cond_matrices(key,
+                                                                        settings.settings.dependent_constraint[key],
+                                                                        self._kdes.distr.cov, self._kdes.distr.mean,
+                                                                        num_of_pts)
 
-            t_Res = distros.JointDependentDistribution(data_s1=s1_data,data_s2=s2_data,data_I1=i1_data)
+            t_Res = distros.JointDependentDistribution(data_s1=s1_data, data_s2=s2_data, data_I1=i1_data)
 
             res.append(t_Res)
         return res
-
 
     def get_shape_pca(self, label):
         ind = utils.comp_posit_in_data(label)
         return self._pca_shapes[ind]
 
-    def get_intens_pca(self,label):
+    def get_intens_pca(self, label):
         ind = utils.comp_posit_in_data(label)
-        return  self._pca_intensities[ind]
+        return self._pca_intensities[ind]
 
     def get_shape_coords(self, ind):
         return self._shape_coords[ind]
 
-    def get_intens_coords(self,ind):
-        return  self._intens_coords[ind]
+    def get_intens_coords(self, ind):
+        return self._intens_coords[ind]
 
     def _plot_2_components(self, filename):
         i = 0
@@ -638,14 +624,12 @@ class PointDistribution:
             e = rob_cov.EllipticEnvelope()
             e.fit(shape)
             sc = e.predict(shape)
-            for ind in np.where(sc==-1)[0]:
+            for ind in np.where(sc == -1)[0]:
                 print(self._tr_subjects[ind])
             plt.figure(i)
             plt.title("2 componnents for figure " + self._labels[i])
-            plt.scatter(shape[sc==-1,0],shape[sc==-1,1],color="red")
+            plt.scatter(shape[sc == -1, 0], shape[sc == -1, 1], color="red")
             plt.scatter(shape[sc == 1, 0], shape[sc == 1, 1], color="green")
-            plt.scatter(0,0,color="blue")
-            plt.savefig(filename +self._labels[i] + ".png" )
-            i+=1
-
-
+            plt.scatter(0, 0, color="blue")
+            plt.savefig(filename + self._labels[i] + ".png")
+            i += 1

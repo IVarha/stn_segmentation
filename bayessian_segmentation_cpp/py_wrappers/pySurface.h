@@ -44,6 +44,8 @@ public:
 
     void saveObj(std::string filename);
 
+    double computeVolume();
+
 
 
     std::vector<double> getUnpackedCords();

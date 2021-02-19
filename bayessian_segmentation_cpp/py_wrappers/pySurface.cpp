@@ -295,4 +295,8 @@ void pySurface::saveObj(std::string filename) {
     this->mesh->write_obj(filename);
 }
 
+double pySurface::computeVolume() {
+    return this->mesh->calculate_volume();
+}
+
 

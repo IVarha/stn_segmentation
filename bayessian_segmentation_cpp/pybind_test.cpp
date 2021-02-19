@@ -92,7 +92,8 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             .def("generate_normals", &pySurface::generateNormals)
             .def("save_obj",&pySurface::saveObj)
             .def("generate_mesh_points", &pySurface::getInsideMeshPoints)
-            .def("get_unpacked_coords",&pySurface::getUnpackedCords);
+            .def("get_unpacked_coords",&pySurface::getUnpackedCords)
+            .def("calculate_volume",&pySurface::getUnpackedCords);
 
 
 //    py::class_<pyNiftiImage>(m,"cImage")
