@@ -32,6 +32,10 @@ class PointDistribution:
     shape_pca = None
     intens_pca = None
 
+    int_vls = None# volumes + mean intenstity
+    pdfs_vol = None
+    pdfs_int = None
+
     _kdes = None
     # description of each label
     _label_kde = None
@@ -253,6 +257,7 @@ class PointDistribution:
         #
         ind = 0
         points = []
+        mean_vol_int = None
         with open(subj + os.sep + label + "_profiles.csv", 'r') as file:
             reader = csv.reader(file)
 
@@ -264,6 +269,11 @@ class PointDistribution:
                 #     vox.append(float(row[3 * i + 1]))
                 #     vox.append(float(row[3 * i + 2]))
                 #     point_coords.append(vox)
+
+                if len(row) < settings.settings.discretisation:
+                    mean_vol_int = [float(x) for x in row]
+                    break
+
 
                 point_coords = point_coords1[ind, :].tolist()
 
@@ -280,19 +290,37 @@ class PointDistribution:
                     rest[i] = float(rest[i])
                 points.append([point_coords, bl_mask, rest])
 
-        return points
+        return [points, mean_vol_int]
 
         pass
 
     def _read_labels(self, labels, train_subjects):
         res = [[] for i in range(len(labels))]
+        int_vls = [[] for i in range(len(labels))]
         self._tr_subjects = train_subjects
+
         for i in range(len(train_subjects)):
             for j in range(len(labels)):
-                res[j].append(self._parse_label(train_subjects[i], labels[j]))  # sort for labels.
+                [pts,t] = self._parse_label(train_subjects[i], labels[j])
+                int_vls[j].append(t)
+                res[j].append(pts)  # sort for labels.
                 # 1 coords of norm 2 touched finish 3 end
                 pass
 
+        self.pdfs_vol = [None for i in range(len(labels))]
+        self.pdfs_int = [None for i in range(len(labels))]
+        for j in range(len(labels)):
+            pdfI = rob_cov.EllipticEnvelope()
+            Is = np.array([x[0] for x in int_vls[j]])
+            pdfI.fit(Is.reshape((Is.shape[0],1)))
+            self.pdfs_int[j] = pdfI
+
+            pdfVols = rob_cov.EllipticEnvelope()
+            Vols = np.array([x[1] for x in int_vls[j]])
+            pdfI.fit(Is.reshape((Vols.shape[0],1)))
+            self.pdfs_vol[j] = pdfVols
+
+        self.int_vls =int_vls
         return res
 
     def __init__(self, train_subjects, labels, segmentation_conf):
@@ -310,7 +338,7 @@ class PointDistribution:
             os.remove(file_name)
         except:
             pass
-        if (~ save_orig):
+        if ~ save_orig:
             self._original_data = None
         self._plot_2_components(workdir + os.sep + "pic")
         f = open(file_name, 'wb')

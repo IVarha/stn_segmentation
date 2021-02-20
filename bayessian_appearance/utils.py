@@ -256,6 +256,8 @@ def calculate_intensites_subject(modalities,labels,subject, discretisation, norm
         surf = ExtPy.cMesh(subject + os.sep + labels[i] + mesh_name_end)  # read mesh
         surf.apply_transform(to_mni.tolist())
 
+        volum = surf.calculate_volume()
+
         mni_norms = surf.generate_normals(norm_len, discretisation)
         norms_native = apply_transf_2_norms(mni_norms, from_mni)
         #calculate overlap of normal with mask in world coords
@@ -268,18 +270,20 @@ def calculate_intensites_subject(modalities,labels,subject, discretisation, norm
 
         #calculate intensities mask,1st_modal,2nd...
         profiles = mask_norm
+        means = []
         for j in range(len(images)):
 
             profile= calc_intensities(norms_native, images[j][1])
             mp2 = apply_transf_2_pts(mp,images[j][1]._world_2_vox)
             ######intensity blok(-mean)
-            #mn = np.array(images[j][1].interpolate_list(mp2)).mean()
-            mn = 0
-            profiles = concatenate_intensities(profiles,(np.array(profile) -mn).tolist())
+            mn = np.array(images[j][1].interpolate_list(mp2)).mean()
+            means.append(mn)
+            mn = 0 # for clean mean
+            profiles = concatenate_intensities(profiles,(np.array(profile) - mn).tolist())
         norm_vecs = norms_2_coords(normals=mni_norms)
-
+        means = means + [volum]
         # calc result mat
         res = concatenate_intensities(norm_vecs,profiles)
-        save_intensities_csv(pdm=res,filename=subject+os.sep+labels[i]+"_profiles.csv")
+        save_intensities_csv(pdm=res + [means],filename=subject+os.sep+labels[i]+"_profiles.csv")
 
 
