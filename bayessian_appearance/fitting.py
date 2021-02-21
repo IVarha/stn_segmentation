@@ -82,9 +82,11 @@ class FunctionHandler:
     _num_of_points = None
     _mni_world = None
 
+
     intens_pca = None
     shape_pca = None
-
+    mean_intens_distr = None
+    volume_distr = None
     _constraints = None
     _kdes = None
 
@@ -122,25 +124,28 @@ class FunctionHandler:
         self._cmesh.modify_points(coords1)
         normals = self._cmesh.generate_normals(gl_set.settings.norm_length, gl_set.settings.discretisation)
 
-        # mesh_pts = ExtPy.apply_transform_2_pts(self._cmesh.generate_mesh_points(10), self._from_mni_to_vox.tolist())
+        mesh_pts = ExtPy.apply_transform_2_pts(self._cmesh.generate_mesh_points(10), self._from_mni_to_vox.tolist())
 
         normals = ExtPy.apply_transform_2_norms(normals, self._from_mni_to_vox.tolist())
 
         # intens
-        # ips = np.array(self._image.interpolate_list(mesh_pts)).mean()
+        ips = np.nanmean(np.array(self._image.interpolate_list(mesh_pts)))
 
         norm_intens = np.array(self._image.interpolate_normals(normals))
 
         # normalise intensity
-        # norm_intens  = norm_intens - ips
-
+        norm_intens  = norm_intens - ips
+        mes_vol = self._cmesh.calculate_volume()
         norm_intens = norm_intens.reshape((1, norm_intens.shape[0] * norm_intens.shape[1]))
 
         norm_intens = self.intens_pca.transform(norm_intens)[0]
         # coords[:] = 0 # debug
         # norm_intens[:] = 0 #for debug
         # distr_coords = np.concatenate((coords,norm_intens))
-        return - self._kdes[1](coords, norm_intens)
+        return (- self._kdes[1](coords, norm_intens)
+                + self.mean_intens_distr.mahalanobis(ips.reshape(1,1))[0]
+                #+ self.volume_distr.mahalanobis(np.array([mes_vol]).reshape(1,1))[0]
+                )
 
     def set_cimage(self, filename):
         vt = ExtPy.cImage(filename)
@@ -339,6 +344,7 @@ class Fitter:
             for lab in range(len(self._best_meshes_mni)):
                 print("LABEL")
                 print(self._pdm._label_kde[lab])
+                ind_of_el =utils.comp_posit_in_data(self._pdm._label_kde[lab]) #across all labels
                 fc = FunctionHandler()
                 # todo fix set
                 fc.set_image(self._test_subj[i_test_sub] + os.sep + "t2_acpc_normalised.nii.gz/t2_resampled_fcm.nii.gz")
@@ -346,6 +352,8 @@ class Fitter:
                 fc.set_subject(self._test_subj[i_test_sub])
                 fc._mesh = self._best_meshes_mni[lab]
                 fc._cmesh = self._best_meshes_c[lab]
+                fc.volume_distr = self._pdm.pdfs_vol[ind_of_el]
+                fc.mean_intens_distr = self._pdm.pdfs_int[ind_of_el]
                 # copute pca
                 fc.shape_pca = self._pdm.get_shape_pca(self._pdm._label_kde[lab])
                 fc.intens_pca = self._pdm.get_intens_pca(self._pdm._label_kde[lab])
@@ -390,6 +398,7 @@ class Fitter:
                     values.append(self._fit_single(comp, fc, bounds=bounds, ind_of_iter=it
                                                    , subj=self._test_subj[i_test_sub], label=self._pdm._label_kde[lab]))
                     it += 1
+                values = [v for v in values if v]
                 a = min(values, key=lambda k: k.fun)
                 ind = 0
                 for ind1 in range(len(values)):

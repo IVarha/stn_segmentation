@@ -278,7 +278,7 @@ def calculate_intensites_subject(modalities,labels,subject, discretisation, norm
             ######intensity blok(-mean)
             mn = np.array(images[j][1].interpolate_list(mp2)).mean()
             means.append(mn)
-            mn = 0 # for clean mean
+            #mn = 0 # for clean mean
             profiles = concatenate_intensities(profiles,(np.array(profile) - mn).tolist())
         norm_vecs = norms_2_coords(normals=mni_norms)
         means = means + [volum]

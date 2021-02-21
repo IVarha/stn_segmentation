@@ -317,7 +317,7 @@ class PointDistribution:
 
             pdfVols = rob_cov.EllipticEnvelope()
             Vols = np.array([x[1] for x in int_vls[j]])
-            pdfI.fit(Is.reshape((Vols.shape[0],1)))
+            pdfVols.fit(Vols.reshape((Vols.shape[0],1)))
             self.pdfs_vol[j] = pdfVols
 
         self.int_vls =int_vls
@@ -335,13 +335,13 @@ class PointDistribution:
 
     def save_pdm(self, workdir, file_name, save_orig=False):
         try:
-            os.remove(file_name)
+            os.remove(workdir + os.sep + file_name)
         except:
             pass
         if ~ save_orig:
             self._original_data = None
         self._plot_2_components(workdir + os.sep + "pic")
-        f = open(file_name, 'wb')
+        f = open(workdir + os.sep + file_name, 'wb')
         pickle.dump(self, f)
 
     def get_kdes(self):

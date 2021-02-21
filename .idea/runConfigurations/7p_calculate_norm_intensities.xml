@@ -15,7 +15,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/7p_calculate_norm_intensities.py" />
-    <option name="PARAMETERS" value="/data/home/varga/processing_data/train_subjects.txt /data/home/varga/processing_data/label_desk.txt /data/home/varga/processing_data/config_ini.txt /data/home/varga/processing_data/workdir /data/home/varga/processing_data/modalities.ini" />
+    <option name="PARAMETERS" value="/data/home/varga/processing_data/subjects.txt /data/home/varga/processing_data/label_desk.txt /data/home/varga/processing_data/config_ini.txt /data/home/varga/processing_data/workdir /data/home/varga/processing_data/modalities.ini" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
