@@ -90,7 +90,7 @@ class PointDistribution:
                 np_intensties = np.concatenate((np_intensties, np.array(intensity_profs[j])), axis=1)
 
             # compute PCA
-            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
+            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
             pca.fit(np_intensties)
             pcas.append(pca)
             # compute
@@ -110,7 +110,7 @@ class PointDistribution:
 
             data = datasets[lab_i]
             # compute pca
-            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
+            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
             pca.fit(data)
             pca_shapes.append(pca)
             # recompute shapes
@@ -310,12 +310,12 @@ class PointDistribution:
         self.pdfs_vol = [None for i in range(len(labels))]
         self.pdfs_int = [None for i in range(len(labels))]
         for j in range(len(labels)):
-            pdfI = rob_cov.EllipticEnvelope(random_state=1)
+            pdfI = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
             Is = np.array([x[0] for x in int_vls[j]])
             pdfI.fit(Is.reshape((Is.shape[0],1)))
             self.pdfs_int[j] = pdfI
 
-            pdfVols = rob_cov.EllipticEnvelope(random_state=1)
+            pdfVols = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
             Vols = np.array([x[1] for x in int_vls[j]])
             pdfVols.fit(Vols.reshape((Vols.shape[0],1)))
             self.pdfs_vol[j] = pdfVols
@@ -674,7 +674,7 @@ class PointDistribution:
             print(self._labels[i])
             print("----------------------------")
 
-            e = rob_cov.EllipticEnvelope(random_state=1)
+            e = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
             e.fit(shape)
             sc = e.predict(shape)
             for ind in np.where(sc == -1)[0]:

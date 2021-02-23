@@ -13,6 +13,7 @@ class Settings:
 
 
     pca_precision = 0.995
+    random_state = 1
 
     def __init__(self):
         pass
