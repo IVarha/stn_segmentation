@@ -628,7 +628,7 @@ class PointDistribution:
             res.append(t_Res)
         return res
 
-    def compute_joined_structures_model(self, num_of_pts):
+    def compute_joined_structures_model(self):
         res = []
 
         if not settings.settings.joint_labels:
@@ -639,7 +639,7 @@ class PointDistribution:
             intens_d = None
             for label in labels:
                 ind = utils.comp_posit_in_data(label)
-                if not shape_d:
+                if shape_d is None:
                     shape_d = self.shape_data[ind]
                     intens_d = self.intens_data[ind]
                 else:

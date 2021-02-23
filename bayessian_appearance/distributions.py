@@ -88,6 +88,7 @@ class ProductJoined_ShInt_Distribution:
     _norm1 = None
     _norm2 = None
     _pca_main = None
+    _data_main = None
     def __init__(self, data_main, data_condition, tol=-1):
         if tol == -1:
             tol = 0
@@ -98,7 +99,7 @@ class ProductJoined_ShInt_Distribution:
 
         norm1 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
         norm1.fit(data_main)
-
+        self._data_main = data_main
         norm2 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
         norm2.fit(data_condition)
 
@@ -140,8 +141,39 @@ class ProductJoined_ShInt_Distribution:
             res.append([-n * m, n * m])
         return res
 
+    def get_mean_conditional(self):
+        return self._norm1.location_
     pass
 
+    def _check_dcoeff(self,data,bound):
+        res = True
+
+        data = self._pca_main.transform(data.reshape((1,data.shape[0])))[0]
+        for i in range(data.shape[0]):
+            t = data[i] > bound[i][0] and data[i] < bound[i][1]
+            res = res and t
+        return res
+
+    def compute_median(self,d_coeff):
+        ds = self._data_main
+        bds = self.generate_bounds(d_coeff)
+        ds_new = []
+        for i in range(ds.shape[0]):
+
+            d1 = self._check_dcoeff(ds[i,:],bds)
+            if d1:
+                ds_new.append(ds[i,:].tolist())
+        ds_new = np.array(ds_new)
+        dists = self._norm1.mahalanobis(ds_new)
+
+        ind = np.where(dists == dists.min())[0][0]
+        return ds_new[ind,:]
+
+
+
+
+
+        pass
 def _eigvalsh_to_eps(spectrum, cond=None, rcond=None):
     """
     Determine which eigenvalues are "small" given the spectrum.
