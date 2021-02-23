@@ -32,7 +32,7 @@ class PointDistribution:
     shape_pca = None
     intens_pca = None
 
-    int_vls = None# volumes + mean intenstity
+    int_vls = None  # volumes + mean intenstity
     pdfs_vol = None
     pdfs_int = None
 
@@ -90,7 +90,8 @@ class PointDistribution:
                 np_intensties = np.concatenate((np_intensties, np.array(intensity_profs[j])), axis=1)
 
             # compute PCA
-            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
+            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                             random_state=settings.settings.random_state)
             pca.fit(np_intensties)
             pcas.append(pca)
             # compute
@@ -110,7 +111,8 @@ class PointDistribution:
 
             data = datasets[lab_i]
             # compute pca
-            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
+            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                             random_state=settings.settings.random_state)
             pca.fit(data)
             pca_shapes.append(pca)
             # recompute shapes
@@ -274,7 +276,6 @@ class PointDistribution:
                     mean_vol_int = [float(x) for x in row]
                     break
 
-
                 point_coords = point_coords1[ind, :].tolist()
 
                 ind += 1
@@ -301,7 +302,7 @@ class PointDistribution:
 
         for i in range(len(train_subjects)):
             for j in range(len(labels)):
-                [pts,t] = self._parse_label(train_subjects[i], labels[j])
+                [pts, t] = self._parse_label(train_subjects[i], labels[j])
                 int_vls[j].append(t)
                 res[j].append(pts)  # sort for labels.
                 # 1 coords of norm 2 touched finish 3 end
@@ -312,15 +313,15 @@ class PointDistribution:
         for j in range(len(labels)):
             pdfI = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
             Is = np.array([x[0] for x in int_vls[j]])
-            pdfI.fit(Is.reshape((Is.shape[0],1)))
+            pdfI.fit(Is.reshape((Is.shape[0], 1)))
             self.pdfs_int[j] = pdfI
 
             pdfVols = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
             Vols = np.array([x[1] for x in int_vls[j]])
-            pdfVols.fit(Vols.reshape((Vols.shape[0],1)))
+            pdfVols.fit(Vols.reshape((Vols.shape[0], 1)))
             self.pdfs_vol[j] = pdfVols
 
-        self.int_vls =int_vls
+        self.int_vls = int_vls
         return res
 
     def __init__(self, train_subjects, labels, segmentation_conf):
@@ -627,7 +628,6 @@ class PointDistribution:
             res.append(t_Res)
         return res
 
-
     def compute_joined_structures_model(self, num_of_pts):
         res = []
 
@@ -644,10 +644,10 @@ class PointDistribution:
                     intens_d = self.intens_data[ind]
                 else:
 
-                    intens_d = np.concatenate((intens_d,self.intens_data[ind]),axis=-1)
+                    intens_d = np.concatenate((intens_d, self.intens_data[ind]), axis=-1)
                     shape_d = np.concatenate((shape_d, self.shape_data[ind]), axis=-1)
 
-            t_Res = distros.ProductJoined_ShInt_Distribution(data_main=shape_d,data_condition=intens_d)
+            t_Res = distros.ProductJoined_ShInt_Distribution(data_main=shape_d, data_condition=intens_d)
 
             res.append(t_Res)
         return res
