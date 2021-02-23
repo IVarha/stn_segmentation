@@ -4,6 +4,7 @@ class Settings:
     use_constraint = None
     labels_to_segment = None
     dependent_constraint = None
+    joint_labels=None
     norm_length = None
     discretisation = None
     all_labels = None

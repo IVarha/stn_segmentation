@@ -137,6 +137,28 @@ class Mesh:
 
         pass
 
+    def is_inside(self, pts):
+
+        points = vtk.vtkPoints()
+        for i in range(len(pts)):
+            points.InsertNextPoint(tuple(pts[i]))
+        pd = vtk.vtkPolyData()
+        pd.SetPoints(points)
+
+        encl_points = vtk.vtkSelectEnclosedPoints()
+        encl_points.SetInputData(pd)
+        encl_points.SetSurfaceData(self._mesh_instance)
+        encl_points.Update()
+
+        result = []
+        cnt = 0
+        for i in range(len(pts)):
+            val = encl_points.IsInside(i)
+            result.append(val)
+
+        return result
+
+        pass
     def generate_normals(self, mm_len, npts):
         dt = (2 * mm_len) / (npts - 1)
         nm_del = [-mm_len + dt * x for x in range(npts)]
@@ -174,8 +196,10 @@ class Mesh:
     def get_all_points(self):
 
         res = []
+        ptss = self._mesh_instance.GetPoints()
         for i in range(self.gen_num_of_points()):
-            res.append(list(self._points.GetPoint(i)))
+
+            res.append(list(ptss.GetPoint(i)))
         return res
 
     def get_unpacked_coords(self):

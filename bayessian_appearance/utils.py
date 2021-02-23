@@ -88,6 +88,14 @@ def read_segmentation_config(file_name):
         settings.settings.dependent_constraint = json.loads(res['dependent_constraint'])
     else:
         settings.settings.dependent_constraint = []
+
+    if 'joint_labels' in res.keys():
+        joint_labels_T =  res['joint_labels'].split(',')
+        for i in range(len(joint_labels_T)):
+            joint_labels_T[i]=joint_labels_T[i].split('.')
+        settings.settings.joint_labels = joint_labels_T
+    else:
+        settings.settings.joint_labels = None
     return res
 
 def apply_transf_2_pts(pts,transf):
@@ -285,5 +293,25 @@ def calculate_intensites_subject(modalities,labels,subject, discretisation, norm
         # calc result mat
         res = concatenate_intensities(norm_vecs,profiles)
         save_intensities_csv(pdm=res + [means],filename=subject+os.sep+labels[i]+"_profiles.csv")
+
+
+
+def points_2_fcsv(pts,filename):
+    try:
+        os.remove(path=filename)
+    except:
+        pass
+
+    with open(filename, 'wt') as the_file:
+        the_file.write("# Markups fiducial file version = 4.10\n")
+        the_file.write("# CoordinateSystem = 0\n")
+        the_file.write("# columns = id,x,y,z,ow,ox,oy,oz,vis,sel,lock,label,desc,associatedNodeID\n")
+
+        for i in range(len(pts)):
+            st = str(i) + ","
+            st += str(pts[i][0]) + "," + str(pts[i][1]) + "," + str(pts[i][2])
+
+            st += ",0.000,0.000,0.000,1.000,1,1,0," + ",,vtkMRMLScalarVolumeNode1\n"
+            the_file.write(st)
 
 

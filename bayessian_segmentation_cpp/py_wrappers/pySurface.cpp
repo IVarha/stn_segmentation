@@ -159,9 +159,6 @@ bool pySurface::triangles_intersected(std::vector<std::vector<double>> points) {
     return res;
 }
 
-
-
-
 std::vector<std::set<int>> pySurface::compute_neighbours() {
     auto res =  std::vector<std::set<int>>();
     for (int i = 0; i < this->triangles.size();i++){
@@ -284,11 +281,6 @@ std::vector<double> pySurface::getUnpackedCords() {
 
     }
     return res;
-
-
-
-
-
 }
 
 void pySurface::saveObj(std::string filename) {
@@ -297,6 +289,77 @@ void pySurface::saveObj(std::string filename) {
 
 double pySurface::computeVolume() {
     return this->mesh->calculate_volume();
+}
+
+std::vector<std::vector<double>> pySurface::getInsideBoundaryPoints(int discretisation) {
+
+    //generate range
+    double max_x = -100000;
+    double max_y = -100000;
+    double max_z = -100000;
+    double min_x = 100000;
+    double min_y = 100000;
+    double min_z = 100000;
+    for (int i = 0; i < this->points->GetNumberOfPoints();i++){
+
+        auto pt = this->points->GetPoint(i);
+
+        if (max_x < pt[0]) max_x = pt[0];
+        if (min_x > pt[0]) min_x = pt[0];
+
+        if (max_y < pt[1]) max_y = pt[1];
+        if (min_y > pt[1]) min_y = pt[1];
+
+        if (max_z < pt[2]) max_z = pt[2];
+        if (min_z > pt[2]) min_z = pt[2];
+        //std::cout << pt[1] <<std::endl;
+
+    }
+
+
+    double dx = (max_x - min_x) / (discretisation -1);
+    double dy = (max_y - min_y) / (discretisation -1);
+    double dz = (max_z - min_z) / (discretisation -1);
+    int i,j,k;
+    auto res = std::vector<std::vector<double>>();
+    for ( i =0; i< discretisation;i++){
+        for ( j =0; j< discretisation;j++){
+            for ( k =0; k< discretisation;k++){
+                auto tmp = std::vector<double>();
+                tmp.push_back(min_x + i*dx);
+                tmp.push_back(min_y + j*dy);
+                tmp.push_back(min_z+k*dz);
+                res.push_back(tmp);
+            }
+        }
+    }
+    return res;
+}
+
+std::vector<bool> pySurface::isPointsInside(std::vector<std::vector<double>> points) {
+    auto pts = vtkSmartPointer<vtkPoints>::New();
+    for (auto it : points){
+        pts->InsertNextPoint(it[0],it[1],it[2]);
+    }
+
+
+    auto poly_data = vtkSmartPointer<vtkPolyData>::New();
+    poly_data->SetPoints(pts);
+    auto encl_points = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+    encl_points->SetInputData(poly_data);
+    encl_points->SetSurfaceData(this->mesh->getMesh());
+    encl_points->Update();
+
+    auto res = std::vector<bool>();
+    for (int i = 0;i < pts->GetNumberOfPoints();i++){
+        if (encl_points->IsInside(i)){
+            res.push_back(true);
+        } else{
+            res.push_back(false);
+        }
+
+    }
+    return res;
 }
 
 

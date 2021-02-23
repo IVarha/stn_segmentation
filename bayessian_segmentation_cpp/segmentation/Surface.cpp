@@ -282,8 +282,9 @@ double Surface::calculate_volume() {
 void Surface::apply_points(std::vector<double>& set_of_points) {
 
     for (int i = 0;i< this->points->GetNumberOfPoints();i++){
-        this->points->InsertPoint(i,set_of_points[3*i],set_of_points[3*i +1],set_of_points[3*i +2]);
+        this->points->SetPoint(i,set_of_points[3*i],set_of_points[3*i +1],set_of_points[3*i +2]);
     }
+    this->points->Modified();
     this->mesh->Initialize();
     this->mesh->SetPoints(this->points);
     this->mesh->SetPolys(this->triangles);

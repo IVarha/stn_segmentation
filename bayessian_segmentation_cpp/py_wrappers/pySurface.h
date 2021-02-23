@@ -42,6 +42,9 @@ public:
 
     std::vector<std::vector<double>> getInsideMeshPoints( int discretisation);
 
+    std::vector<std::vector<double>> getInsideBoundaryPoints( int discretisation);
+
+    std::vector<bool> isPointsInside( std::vector<std::vector<double>> points);
     void saveObj(std::string filename);
 
     double computeVolume();

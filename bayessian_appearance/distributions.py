@@ -26,7 +26,7 @@ class NormalDistribution:
     def __init__(self, data):
         data = np.array(data)
 
-        rob = rob_cov.EllipticEnvelope(random_state=0)
+        rob = rob_cov.EllipticEnvelope(random_state=1)
 
         rob.fit(X=data)
 
@@ -34,7 +34,7 @@ class NormalDistribution:
 
         cov = rob.covariance_
 
-        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
 
         pca.fit(X=data)
 
@@ -92,14 +92,14 @@ class ProductJoined_ShInt_Distribution:
         if tol == -1:
             tol = 0
 
-        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
         pcaS.fit(data_main)
 
 
-        norm1 = rob_cov.EllipticEnvelope()
+        norm1 = rob_cov.EllipticEnvelope(random_state=1)
         norm1.fit(data_main)
 
-        norm2 = rob_cov.EllipticEnvelope()
+        norm2 = rob_cov.EllipticEnvelope(random_state=1)
         norm2.fit(data_condition)
 
         self._norm1 = norm1
@@ -219,11 +219,11 @@ class NormalConditional:
         if tol == -1:
             tol = 0
 
-        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
         pca.fit(np.concatenate((data_main, data_condition), axis=-1))
 
         cov_all = pca.get_covariance()
-        pca2 = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full') #used only for recalculate
+        pca2 = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1) #used only for recalculate
         pca2.fit(data_main)
         self._pca = pca2
         mean1 = pca.mean_[:data_main.shape[1]]
@@ -313,7 +313,7 @@ class NormalConditionalBayes():
 
     def __init__(self, data_main, data_condition):
 
-        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
 
         pca.fit(np.concatenate((data_main, data_condition), axis=-1))
         self._mean1 = pca.mean_[:data_main.shape[1]]
@@ -355,11 +355,11 @@ class JointDependentDistribution:
         self._mean_s2 = None
 
         #########
-        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
         pcaS.fit(data_s1)
 
 
-        norm1 = rob_cov.EllipticEnvelope()
+        norm1 = rob_cov.EllipticEnvelope(random_state=1)
         norm1.fit(np.concatenate((data_s1,data_s2),axis=-1))
 
 
@@ -370,7 +370,7 @@ class JointDependentDistribution:
         ###########
         self.dist_s1s2 = NormalConditional(data_main=data_s1, data_condition=data_s2)
         #self.dist_I_s1 = NormalConditional(data_main=data_I1,data_condition=data_s1)
-        a = rob_cov.EllipticEnvelope()
+        a = rob_cov.EllipticEnvelope(random_state=1)
         a.fit(data_I1)
         self.dist_I_s1 = a
         pass

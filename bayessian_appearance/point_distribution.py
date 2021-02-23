@@ -90,7 +90,7 @@ class PointDistribution:
                 np_intensties = np.concatenate((np_intensties, np.array(intensity_profs[j])), axis=1)
 
             # compute PCA
-            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
             pca.fit(np_intensties)
             pcas.append(pca)
             # compute
@@ -110,7 +110,7 @@ class PointDistribution:
 
             data = datasets[lab_i]
             # compute pca
-            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full')
+            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=1)
             pca.fit(data)
             pca_shapes.append(pca)
             # recompute shapes
@@ -310,12 +310,12 @@ class PointDistribution:
         self.pdfs_vol = [None for i in range(len(labels))]
         self.pdfs_int = [None for i in range(len(labels))]
         for j in range(len(labels)):
-            pdfI = rob_cov.EllipticEnvelope()
+            pdfI = rob_cov.EllipticEnvelope(random_state=1)
             Is = np.array([x[0] for x in int_vls[j]])
             pdfI.fit(Is.reshape((Is.shape[0],1)))
             self.pdfs_int[j] = pdfI
 
-            pdfVols = rob_cov.EllipticEnvelope()
+            pdfVols = rob_cov.EllipticEnvelope(random_state=1)
             Vols = np.array([x[1] for x in int_vls[j]])
             pdfVols.fit(Vols.reshape((Vols.shape[0],1)))
             self.pdfs_vol[j] = pdfVols
@@ -627,6 +627,31 @@ class PointDistribution:
             res.append(t_Res)
         return res
 
+
+    def compute_joined_structures_model(self, num_of_pts):
+        res = []
+
+        if not settings.settings.joint_labels:
+            return
+        for i in range(len(settings.settings.joint_labels)):
+            labels = settings.settings.joint_labels[i]
+            shape_d = None
+            intens_d = None
+            for label in labels:
+                ind = utils.comp_posit_in_data(label)
+                if not shape_d:
+                    shape_d = self.shape_data[ind]
+                    intens_d = self.intens_data[ind]
+                else:
+
+                    intens_d = np.concatenate((intens_d,self.intens_data[ind]),axis=-1)
+                    shape_d = np.concatenate((shape_d, self.shape_data[ind]), axis=-1)
+
+            t_Res = distros.ProductJoined_ShInt_Distribution(data_main=shape_d,data_condition=intens_d)
+
+            res.append(t_Res)
+        return res
+
     def get_shape_pca(self, label):
         ind = utils.comp_posit_in_data(label)
         return self._pca_shapes[ind]
@@ -649,7 +674,7 @@ class PointDistribution:
             print(self._labels[i])
             print("----------------------------")
 
-            e = rob_cov.EllipticEnvelope()
+            e = rob_cov.EllipticEnvelope(random_state=1)
             e.fit(shape)
             sc = e.predict(shape)
             for ind in np.where(sc == -1)[0]:
