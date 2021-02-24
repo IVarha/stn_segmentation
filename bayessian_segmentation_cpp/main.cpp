@@ -35,7 +35,9 @@ unordered_map<int,string> parse_label_descriptor(string fileName){
             int pos = line.find(',');
 
             auto label = line.substr(0,pos);
-            auto mesh = line.substr(pos+1,line.size()-3);
+            int pos2 = line.find(',',pos+1);
+            auto mesh = line.substr(pos+1,pos2);
+            std::cout << mesh <<std::endl;
             result.insert({stoi(label),mesh});
         }
         file.close();

@@ -308,8 +308,8 @@ class PointDistribution:
                 # 1 coords of norm 2 touched finish 3 end
                 pass
 
-        self.pdfs_vol = [None for i in range(len(labels))]
-        self.pdfs_int = [None for i in range(len(labels))]
+        self.pdfs_vol = [None for _ in range(len(labels))]
+        self.pdfs_int = [None for _ in range(len(labels))]
         for j in range(len(labels)):
             pdfI = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
             Is = np.array([x[0] for x in int_vls[j]])
