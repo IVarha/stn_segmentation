@@ -127,18 +127,18 @@ class FunctionHandler:
         # intens
         ips = np.nanmean(np.array(self._image.interpolate_list(mesh_pts)))
 
-        norm_intens = np.array(self._image.interpolate_normals(normals))
+        norm_intensities = np.array(self._image.interpolate_normals(normals))
 
         # normalise intensity
-        norm_intens = norm_intens - ips
+        norm_intensities = norm_intensities - ips
         mes_vol = self._cmesh.calculate_volume()
-        norm_intens = norm_intens.reshape((1, norm_intens.shape[0] * norm_intens.shape[1]))
+        norm_intensities = norm_intensities.reshape((1, norm_intensities.shape[0] * norm_intensities.shape[1]))
 
-        norm_intens = self.intens_pca.transform(norm_intens)[0]
+        norm_intensities = self.intens_pca.transform(norm_intensities)[0]
         # coords[:] = 0 # debug
         # norm_intens[:] = 0 #for debug
         # distr_coords = np.concatenate((coords,norm_intens))
-        return (- self._kdes[1](coords, norm_intens)
+        return (- self._kdes[1](coords, norm_intensities)
                 + self.mean_intens_distr.mahalanobis(ips.reshape(1, 1))[0]
                 # + self.volume_distr.mahalanobis(np.array([mes_vol]).reshape(1,1))[0]
                 )
