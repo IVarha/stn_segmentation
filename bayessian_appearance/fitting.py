@@ -15,7 +15,6 @@ import threading
 
 import sys
 
-sys.path.insert(0, "/tmp/bayessian_segmentation_cpp/cmake-build-debug-remote-host")
 import ExtPy
 
 import bayessian_appearance.settings as gl_set
@@ -165,6 +164,8 @@ class FunctionHandlerMulti:
     shape_pcas = None
     shape_lens = None
 
+    mean_intens_distr = None
+
     _constraints = None
     _kdes = None
 
@@ -200,6 +201,7 @@ class FunctionHandlerMulti:
         coords = self._kdes.vector_2_points(coords)
 
         nits = None
+        mah = 0
         for i in range(self._constraints):
 
             st = sum(self.shape_lens[:i])
@@ -215,6 +217,7 @@ class FunctionHandlerMulti:
 
             ###here are mean intensity normalisation( removed )
             ips = np.nanmean(np.array(self._image.interpolate_list(mesh_pts)))
+            mah += self.mean_intens_distr[i].mahalanobis(ips.reshape(1, 1))[0]
 
             norm_intens = np.array(self._image.interpolate_normals(normals))
 
@@ -230,7 +233,7 @@ class FunctionHandlerMulti:
                 nits = np.concatenate((nits, norm_intens))
         # distr_coords = np.concatenate((coords,norm_intens))
 
-        return - self._kdes(coords, nits)
+        return (- self._kdes(coords, nits)) + mah
 
 
 class FunctionHandlerJoint:
@@ -552,6 +555,8 @@ class Fitter:
                 shape_lens = []  # len of shapes
                 shape_pcas = []
                 intens_pcas = []
+                fc.volume_distr = []
+                fc.mean_intens_distr = []
                 for i in range(len(keys2)):
                     ind_of_label = utils.comp_posit_in_data(keys2[i])
                     coords1 = self._pdm.get_shape_coords(ind_of_label)
@@ -560,6 +565,9 @@ class Fitter:
                     st = shape_lens[:i]
                     st = sum(st)
                     Xr = res_points[st:st + len1]
+                    # o
+                    fc.volume_distr.append(self._pdm.pdfs_vol[ind_of_label])
+                    fc.mean_intens_distr.append(self._pdm.pdfs_int[ind_of_label])
 
                     pca1 = self._pdm.get_shape_pca(keys2[i])
                     shape_pcas.append(pca1)  # shape pcas
