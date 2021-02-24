@@ -3,7 +3,7 @@ import csv
 import json
 import os
 
-import ExtPy
+
 import fsl.data.image as f_im
 import fsl.data.image as fim
 import fsl.transform.flirt as fl
@@ -12,14 +12,24 @@ import numpy as np
 import bayessian_appearance.nifti_mask as nm
 import bayessian_appearance.settings as settings
 import bayessian_appearance.vt_image as vtim
-
+import ExtPy
 
 def read_label_desc(file_name):
     fm = open(file=file_name, mode='rt')
     res = []
+
+    prec = []
     for sub in fm:
         a = sub.split(',')
         res.append(a[0])
+        if len(a)>2:
+            if a[2] != '':
+                prec.append(a[2])
+            else:
+                prec.append("default")
+        else:
+            prec.append("default")
+    settings.settings.pca_precision_labels = prec
     settings.settings.all_labels = res
     fm.close()
     return res

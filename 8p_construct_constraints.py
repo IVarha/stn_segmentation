@@ -14,7 +14,8 @@ import os
 
 import datetime
 
-def main_proc(train, label_names, config_name,modalities, workdir):
+
+def main_proc(train, label_names, config_name, modalities, workdir):
     tr_subjects = util.read_subjects(train)
     labels = util.read_label_desc(label_names)
 
@@ -25,19 +26,15 @@ def main_proc(train, label_names, config_name,modalities, workdir):
     print("processing started at")
     print(datetime.datetime.now())
     meshes = []
-    pdm = pd.PointDistribution(train_subjects=tr_subjects,labels=labels,segmentation_conf=seg_cnf)
+    pdm = pd.PointDistribution(train_subjects=tr_subjects, labels=labels, segmentation_conf=seg_cnf)
 
     print("processing finished at")
     print(datetime.datetime.now())
     pdm.save_pdm(workdir, file_name="pdm.pysave")
-        # read im
+    # read im
 
-
-
-
-    #meshes = np.array(meshes)
+    # meshes = np.array(meshes)
     m_mx = []
-
 
 
 # Press the green button in the gutter to run the script.
@@ -48,7 +45,7 @@ if __name__ == '__main__':
     outp = sys.argv[4]
     modalities_name = sys.argv[5]
     a = util.read_segmentation_config(modalities_name)
-    main_proc(train_subjects_file, labels_desc_file, conf_file,modalities=modalities_name, workdir=outp)
+    main_proc(train_subjects_file, labels_desc_file, conf_file, modalities=modalities_name, workdir=outp)
 
     # Print some basic information about the layout
 

@@ -10,6 +10,7 @@ class Settings:
     all_labels = None
     atlas_dir = None
     modalities = None
+    pca_precision_labels = None # pca precisions for different labels. stored in label desk 3-rd argument
 
 
     pca_precision = 0.995

@@ -111,8 +111,13 @@ class PointDistribution:
 
             data = datasets[lab_i]
             # compute pca
-            pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
-                             random_state=settings.settings.random_state)
+            pca = None
+            if settings.settings.pca_precision_labels[lab_i] == "default":
+                pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                                 random_state=settings.settings.random_state)
+            else:
+                pca = decomp.PCA(n_components=float(settings.settings.pca_precision_labels[lab_i]), svd_solver='full',
+                                 random_state=settings.settings.random_state)
             pca.fit(data)
             pca_shapes.append(pca)
             # recompute shapes
