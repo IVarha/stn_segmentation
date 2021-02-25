@@ -34,7 +34,8 @@ class NormalDistribution:
 
         cov = rob.covariance_
 
-        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                         random_state=settings.settings.random_state)
 
         pca.fit(X=data)
 
@@ -69,7 +70,6 @@ class NormalDistribution:
 
             ind = np.where(arr_vals == arr2[ind_1])
 
-
             np_med.append(arr[ind, :])
 
         # for arr in data:
@@ -84,18 +84,18 @@ class NormalDistribution:
 
 
 class ProductJoined_ShInt_Distribution:
-
     _norm1 = None
     _norm2 = None
     _pca_main = None
     _data_main = None
+
     def __init__(self, data_main, data_condition, tol=-1):
         if tol == -1:
             tol = 0
 
-        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
+        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                          random_state=settings.settings.random_state)
         pcaS.fit(data_main)
-
 
         norm1 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
         norm1.fit(data_main)
@@ -111,21 +111,17 @@ class ProductJoined_ShInt_Distribution:
         x0 = args[0]
         x1 = args[1]
 
-
-
-        return -(self._norm1.mahalanobis(x0.reshape((1,x0.shape[0])))[0]
-                + self._norm2.mahalanobis(x1.reshape((1,x1.shape[0])))[0])
+        return -(self._norm1.mahalanobis(x0.reshape((1, x0.shape[0])))[0]
+                 + self._norm2.mahalanobis(x1.reshape((1, x1.shape[0])))[0])
 
     def decompose_coords_to_eigcords(self, X):
         X1 = X.reshape((1, X.shape[0]))
         return self._pca_main.transform(X1)[0]
 
     def inliers_return(self, dataset):
-        lab= self._norm1.predict(dataset)
+        lab = self._norm1.predict(dataset)
 
-        return dataset[lab==1,:]
-
-
+        return dataset[lab == 1, :]
 
     def vector_2_points(self, X):
 
@@ -143,37 +139,36 @@ class ProductJoined_ShInt_Distribution:
 
     def get_mean_conditional(self):
         return self._norm1.location_
+
     pass
 
-    def _check_dcoeff(self,data,bound):
+    def _check_dcoeff(self, data, bound):
         res = True
 
-        data = self._pca_main.transform(data.reshape((1,data.shape[0])))[0]
+        data = self._pca_main.transform(data.reshape((1, data.shape[0])))[0]
         for i in range(data.shape[0]):
             t = data[i] > bound[i][0] and data[i] < bound[i][1]
             res = res and t
         return res
 
-    def compute_median(self,d_coeff):
+    def compute_median(self, d_coeff):
         ds = self._data_main
         bds = self.generate_bounds(d_coeff)
         ds_new = []
         for i in range(ds.shape[0]):
 
-            d1 = self._check_dcoeff(ds[i,:],bds)
+            d1 = self._check_dcoeff(ds[i, :], bds)
             if d1:
-                ds_new.append(ds[i,:].tolist())
+                ds_new.append(ds[i, :].tolist())
         ds_new = np.array(ds_new)
         dists = self._norm1.mahalanobis(ds_new)
 
         ind = np.where(dists == dists.min())[0][0]
-        return ds_new[ind,:]
-
-
-
-
+        return ds_new[ind, :]
 
         pass
+
+
 def _eigvalsh_to_eps(spectrum, cond=None, rcond=None):
     """
     Determine which eigenvalues are "small" given the spectrum.
@@ -246,16 +241,17 @@ class NormalConditional:
 
     _pca = None
 
-
     def __init__(self, data_main, data_condition, tol=-1):
         if tol == -1:
             tol = 0
 
-        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                         random_state=settings.settings.random_state)
         pca.fit(np.concatenate((data_main, data_condition), axis=-1))
 
         cov_all = pca.get_covariance()
-        pca2 = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state) #used only for recalculate
+        pca2 = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                          random_state=settings.settings.random_state)  # used only for recalculate
         pca2.fit(data_main)
         self._pca = pca2
         mean1 = pca.mean_[:data_main.shape[1]]
@@ -292,20 +288,21 @@ class NormalConditional:
         self._prec_12 = pca.get_precision()[:num_of_pts, num_of_pts:]
         self._l_cov = np.dot(cov11, self._prec_12)
         self._dist = stat.multivariate_normal(mean=mean1, cov=cov11, allow_singular=True)
-        #self._gaus_kernel = neib.KernelDensity()
-        #self._gaus_kernel.fit(X=np.concatenate((data_main, data_condition), axis=1))
+        # self._gaus_kernel = neib.KernelDensity()
+        # self._gaus_kernel.fit(X=np.concatenate((data_main, data_condition), axis=1))
 
     def __call__(self, *args, **kwargs):
         x0 = args[0]
         x1 = args[1]
 
-        a = np.concatenate((x0,x1),axis=-1)
-        #return self._gaus_kernel.score(a.reshape((1,a.shape[0])))
+        a = np.concatenate((x0, x1), axis=-1)
+        # return self._gaus_kernel.score(a.reshape((1,a.shape[0])))
         self._dist.mean = self._mean1 - np.dot(self._l_cov, x1 - self._mean2)
         return self._dist.logpdf(x0)
 
-    def get_mean_conditional(self,shape2):
+    def get_mean_conditional(self, shape2):
         return self._mean1 - np.dot(self._l_cov, shape2 - self._mean2)
+
     def decompose_coords_to_eigcords(self, X):
         X1 = X.reshape((1, X.shape[0]))
         return self._pca.transform(X1)[0]
@@ -344,8 +341,8 @@ class NormalConditionalBayes():
     _pdf_prior = None
 
     def __init__(self, data_main, data_condition):
-
-        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
+        pca = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                         random_state=settings.settings.random_state)
 
         pca.fit(np.concatenate((data_main, data_condition), axis=-1))
         self._mean1 = pca.mean_[:data_main.shape[1]]
@@ -356,11 +353,9 @@ class NormalConditionalBayes():
 
         self._pdf_prior = stat.multivariate_normal(mean=self._mean1, cov=self._cov_11, allow_singular=True)
 
-
         prec_all = pca.get_precision()
 
-
-        #self._main_vecs = self._eig_vec[:, self._eig_val > 0]
+        # self._main_vecs = self._eig_vec[:, self._eig_val > 0]
         self._l_cov = np.dot(cov_all[num_of_pts:, num_of_pts:], prec_all[num_of_pts:, :num_of_pts])
 
         self._dist = stat.multivariate_normal(mean=self._mean2, cov=prec_all[num_of_pts:, num_of_pts:],
@@ -383,25 +378,24 @@ class JointDependentDistribution:
     _mean_s2 = None
     _pca_main = None
 
-    def __init__(self,data_s1,data_s2,data_I1):
+    def __init__(self, data_s1, data_s2, data_I1):
         self._mean_s2 = None
 
         #########
-        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',random_state=settings.settings.random_state)
+        pcaS = decomp.PCA(n_components=settings.settings.pca_precision, svd_solver='full',
+                          random_state=settings.settings.random_state)
         pcaS.fit(data_s1)
 
-
         norm1 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
-        norm1.fit(np.concatenate((data_s1,data_s2),axis=-1))
+        norm1.fit(np.concatenate((data_s1, data_s2), axis=-1))
 
-
-        #self.dist_s1s2 = norm1
+        # self.dist_s1s2 = norm1
 
         self._pca_main = pcaS
 
         ###########
         self.dist_s1s2 = NormalConditional(data_main=data_s1, data_condition=data_s2)
-        #self.dist_I_s1 = NormalConditional(data_main=data_I1,data_condition=data_s1)
+        # self.dist_I_s1 = NormalConditional(data_main=data_I1,data_condition=data_s1)
         a = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
         a.fit(data_I1)
         self.dist_I_s1 = a
@@ -415,15 +409,14 @@ class JointDependentDistribution:
 
         intenstities = args[1]
 
-        shape = np.concatenate((shape,self._mean_s2),axis=-1)
-        shape = shape.reshape((1,shape.shape[0]))
+        shape = np.concatenate((shape, self._mean_s2), axis=-1)
+        shape = shape.reshape((1, shape.shape[0]))
 
-        return -(self.dist_I_s1.mahalanobis(intenstities.reshape((1,intenstities.shape[0])))[0]
-               + self.dist_s1s2(args[0],self._mean_s2))
+        return -(self.dist_I_s1.mahalanobis(intenstities.reshape((1, intenstities.shape[0])))[0]
+                 + self.dist_s1s2(args[0], self._mean_s2))
 
-    def get_mean_conditional(self ):
+    def get_mean_conditional(self):
         return self.dist_s1s2.get_mean_conditional(self._mean_s2)
-
 
     # def vector_2_points(self, X):
     #     return self.dist_s1s2.vector_2_points(X)
@@ -438,7 +431,6 @@ class JointDependentDistribution:
         return self._pca_main.transform(X1)[0]
 
     def vector_2_points(self, X):
-
         X1 = X.reshape((1, X.shape[0]))
         return self._pca_main.inverse_transform(X1)[0]
 
@@ -450,5 +442,6 @@ class JointDependentDistribution:
             m = np.sqrt(expl_var[i])
             res.append([-n * m, n * m])
         return res
+
     def get_num_eigenvecs(self):
         return self._pca_main.components_.shape[0]
