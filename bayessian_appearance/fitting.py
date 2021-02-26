@@ -509,6 +509,89 @@ class Fitter:
             pass
         pass
 
+
+    def _fit_multi(self,X0, fc, bounds, ind_of_iter, subj, labels ):
+
+        try:
+            X0 = fc._kdes.decompose_coords_to_eigcords(X0)
+            res_points = fc._kdes.vector_2_points(X0)
+            # cmp =
+
+            shape_lens = []  # len of shapes
+            shape_pcas = []
+            intens_pcas = []
+            fc.volume_distr = []
+            fc.mean_intens_distr = []
+            for i in range(len(labels)):
+                ind_of_label = utils.comp_posit_in_data(labels[i])
+                coords1 = self._pdm.get_shape_coords(ind_of_label)
+                len1 = coords1[1] - coords1[0]
+                shape_lens.append(len1)
+                st = shape_lens[:i]
+                st = sum(st)
+                Xr = res_points[st:st + len1]
+                # o
+                fc.volume_distr.append(self._pdm.pdfs_vol[ind_of_label])
+                fc.mean_intens_distr.append(self._pdm.pdfs_int[ind_of_label])
+
+                pca1 = self._pdm.get_shape_pca(labels[i])
+                shape_pcas.append(pca1)  # shape pcas
+                intens_pcas.append(self._pdm.get_intens_pca(labels[i]))
+                Xr = pca1.inverse_transform(Xr.reshape((1, Xr.shape[0])))[0]
+                l = len(Xr.tolist())
+                fc._mesh.modify_points(Xr.reshape((int(l / 3), 3)))
+                fc._mesh.apply_transform(utils.read_fsl_mni2native_w(subj))
+                fc._mesh.save_obj(subj + os.sep + labels[i] + str(ind_of_iter)+"_initialise.obj")
+
+            fc.shape_lens = shape_lens
+            fc.intens_pcas = intens_pcas
+            fc.shape_pcas = shape_pcas
+
+            ##########################################################
+            print(datetime.now())
+            # print(fc._cmesh.selfIntersectionTest(list(cds[lab][0].vector_2_points(X0))))
+            print(datetime.now())
+            # print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
+            print(datetime.now())
+
+
+
+            print("Start optimising ")
+            mimiser = opt.minimize(fc, X0, method='Powell', bounds=bounds,
+                                   options={"disp": True
+                                            #                                        ,'ftol':0.5
+                                            })
+
+            r_x = mimiser.fun
+            mimiser_t = mimiser
+            while True:
+                # mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True,
+                #                                                                             # 'ftol': 0.5
+                #                                                                             })
+                mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
+                                       options={"disp": True
+                                                #                                        ,'ftol':0.5
+                                                })
+
+                if ((r_x - mimiser.fun) < 0.1) and ((r_x - mimiser.fun) > 0):
+                    break
+                elif (r_x - mimiser.fun) < 0:
+                    mimiser = mimiser_t
+                    break
+                mimiser_t = mimiser
+                r_x = mimiser.fun
+            # mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
+            # mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
+
+            # mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
+            print(datetime.now())
+            return mimiser
+        except Exception as e:
+            print(e)
+            return None
+
+
+
     def fit_multiple(self):
         if not settings.settings.joint_labels:
             return
@@ -542,86 +625,43 @@ class Fitter:
                 # constraint for interception
 
                 fc._constraints = len(keys2)
-
+                bounds = fc._kdes.generate_bounds(2.5)
+                shape_pcas = []
+                shape_lens = []
+                for p_lab in range(len(keys2)):
+                    ind_of_label = utils.comp_posit_in_data(keys2[p_lab])
+                    coords1 = self._pdm.get_shape_coords(ind_of_label)
+                    len1 = coords1[1] - coords1[0]
+                    shape_lens.append(len1)
+                    pca1 = self._pdm.get_shape_pca(keys2[p_lab])
+                    shape_pcas.append(pca1)  # shape pcas
                 # X0 = np.zeros((fc._kdes.get_num_eigenvecs()))
 
                 #####SAVE initi
 
-                X0 = fc._kdes.compute_median(3)
-                X0 = fc._kdes.decompose_coords_to_eigcords(X0)
-                res_points = fc._kdes.vector_2_points(X0)
-                # cmp =
-
-                shape_lens = []  # len of shapes
-                shape_pcas = []
-                intens_pcas = []
-                fc.volume_distr = []
-                fc.mean_intens_distr = []
-                for i in range(len(keys2)):
-                    ind_of_label = utils.comp_posit_in_data(keys2[i])
-                    coords1 = self._pdm.get_shape_coords(ind_of_label)
-                    len1 = coords1[1] - coords1[0]
-                    shape_lens.append(len1)
-                    st = shape_lens[:i]
-                    st = sum(st)
-                    Xr = res_points[st:st + len1]
-                    # o
-                    fc.volume_distr.append(self._pdm.pdfs_vol[ind_of_label])
-                    fc.mean_intens_distr.append(self._pdm.pdfs_int[ind_of_label])
-
-                    pca1 = self._pdm.get_shape_pca(keys2[i])
-                    shape_pcas.append(pca1)  # shape pcas
-                    intens_pcas.append(self._pdm.get_intens_pca(keys2[i]))
-                    Xr = pca1.inverse_transform(Xr.reshape((1, Xr.shape[0])))[0]
-                    l = len(Xr.tolist())
-                    fc._mesh.modify_points(Xr.reshape((int(l / 3), 3)))
-                    fc._mesh.apply_transform(utils.read_fsl_mni2native_w(self._test_subj[i_test_sub]))
-                    fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + keys2[i] + "_initialise.obj")
-
-                fc.shape_lens = shape_lens
-                fc.intens_pcas = intens_pcas
-                fc.shape_pcas = shape_pcas
-
-                ##########################################################
-                print(datetime.now())
-                # print(fc._cmesh.selfIntersectionTest(list(cds[lab][0].vector_2_points(X0))))
-                print(datetime.now())
-                # print(fc._mesh.calculate_interception_from_newPTS(np.array(X0)))
-                print(datetime.now())
-
-                bounds = fc._kdes.generate_bounds(2.5)
-
-                print("Start optimising ")
-                mimiser = opt.minimize(fc, X0, method='Powell', bounds=bounds,
-                                       options={"disp": True
-                                                #                                        ,'ftol':0.5
-                                                })
-
-                r_x = mimiser.fun
-                mimiser_t = mimiser
-                while True:
-                    # mimiser = opt.minimize(fc, mimiser.x, method='TNC', bounds=bounds, options={"disp": True,
-                    #                                                                             # 'ftol': 0.5
-                    #                                                                             })
-                    mimiser = opt.minimize(fc, mimiser.x, method='Powell', bounds=bounds,
-                                           options={"disp": True
-                                                    #                                        ,'ftol':0.5
-                                                    })
-
-                    if ((r_x - mimiser.fun) < 0.1) and ((r_x - mimiser.fun) > 0):
+                Xs = fc._kdes.compute_median(3,4)
+                x_i = 0
+                res_mimisers = []
+                it = 0
+                for comp in Xs:
+                    res_mimisers.append(self._fit_multi(comp, fc=fc, bounds=bounds, ind_of_iter=it
+                                                   , subj=self._test_subj[i_test_sub], labels=keys2))
+                    it += 1
+                values = [v for v in res_mimisers if v]
+                a = min(values, key=lambda k: k.fun)
+                ind = 0
+                for ind1 in range(len(values)):
+                    if values[ind1] is None:
+                        continue
+                    if values[ind1].fun == a.fun:
+                        ind = ind1
                         break
-                    elif (r_x - mimiser.fun) < 0:
-                        mimiser = mimiser_t
-                        break
-                    mimiser_t = mimiser
-                    r_x = mimiser.fun
-                # mimiser = opt.minimize(fc, X0, method='L-BFGS-B', bounds=bounds, options={"disp": True})
-                # mimiser = opt.minimize(fc, X0, method="cg", options={"disp": True})
 
-                # mimiser = opt.minimize(fc, X0,method='COBYLA',tol=1,constraints=con,options={"maxiter":5000})
-                print(datetime.now())
+                r_x = values[ind].fun
+                mimiser = values[ind]
+
+
                 res_points = fc._kdes.vector_2_points(mimiser.x)
-
                 for i in range(len(keys2)):
                     st = shape_lens[:i]
                     st = sum(st)
@@ -634,7 +674,6 @@ class Fitter:
 
                     fc._mesh.save_obj(self._test_subj[i_test_sub] + os.sep + keys2[i] + "_fitted.obj")
 
-                a = fc(X0)
             print("###################END SUB#######################")
             print("Subject")
             print(self._test_subj[i_test_sub])

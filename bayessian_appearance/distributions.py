@@ -3,7 +3,7 @@ import scipy.stats as stat
 import scipy as scp
 import scipy.optimize as opt
 import sklearn.neighbors as neib
-
+import math
 import sklearn.covariance as rob_cov
 import sklearn.decomposition as decomp
 import bayessian_appearance.settings as settings
@@ -151,20 +151,65 @@ class ProductJoined_ShInt_Distribution:
             res = res and t
         return res
 
-    def compute_median(self, d_coeff):
+    def _gen_points(self, data_clear, num_of_els):
+        bds = self.generate_bounds(1)
+        bd = []
+
+        data_nel = data_clear[:, :num_of_els]
+
+        for i in range(int(pow(2, num_of_els))):
+
+            bin_str = bin(i)[2:]
+            for nels in range(len(bin_str), num_of_els):
+                bin_str = '0' + bin_str
+            let = 0
+
+            str_2_bds_1_sub = []
+            for let in range(num_of_els):
+                if bin_str[let] == '0':
+                    str_2_bds_1_sub.append(bds[let][0])
+                else:
+                    str_2_bds_1_sub.append(bds[let][1])
+
+            mn = 100000000
+            mn_i = 0
+
+            for subj in range(data_nel.shape[0]):
+
+                sub_norm = np.linalg.norm(data_nel[subj, :] - np.array(str_2_bds_1_sub))
+                if sub_norm < mn:
+                    mn_i = subj
+                    mn = sub_norm
+
+            bd.append(data_clear[mn_i, :])
+        return bd
+
+    def compute_median(self, d_coeff, num_of_gens):
         ds = self._data_main
         bds = self.generate_bounds(d_coeff)
         ds_new = []
+
+        els = math.floor(math.log2(num_of_gens))
+
         for i in range(ds.shape[0]):
 
             d1 = self._check_dcoeff(ds[i, :], bds)
             if d1:
                 ds_new.append(ds[i, :].tolist())
+
         ds_new = np.array(ds_new)
+        resarr = None
+        if els > 0:
+            resarr = self._gen_points(data_clear=ds_new, num_of_els=els)
+            pass
+        else:
+            resarr = []
+            pass
+
         dists = self._norm1.mahalanobis(ds_new)
 
         ind = np.where(dists == dists.min())[0][0]
-        return ds_new[ind, :]
+        return  resarr + [ds_new[ind, :]]
 
         pass
 
