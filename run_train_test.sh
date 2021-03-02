@@ -18,5 +18,5 @@ echo $PYTHONPATH
 echo "$train_subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj"
 #python 7p_calculate_norm_intensities.py $train_subjects $label_desc $opts_cnf $working $modalities_cnf
 python 8p_construct_constraints.py $train_subjects $label_desc $opts_cnf $working $modalities_cnf
-python 9p_fit.py $train_subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj
+nice python 9p_fit.py $train_subjects $label_desc $opts_cnf $working $modalities_cnf $test_subj
 python 10p_analyse_result_overlap_loso.py $train_subjects $label_desc  $modalities_cnf $test_subj

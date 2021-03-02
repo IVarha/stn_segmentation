@@ -316,12 +316,12 @@ class PointDistribution:
         self.pdfs_vol = [None for _ in range(len(labels))]
         self.pdfs_int = [None for _ in range(len(labels))]
         for j in range(len(labels)):
-            pdfI = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
+            pdfI = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
             Is = np.array([x[0] for x in int_vls[j]])
             pdfI.fit(Is.reshape((Is.shape[0], 1)))
             self.pdfs_int[j] = pdfI
 
-            pdfVols = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
+            pdfVols = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
             Vols = np.array([x[1] for x in int_vls[j]])
             pdfVols.fit(Vols.reshape((Vols.shape[0], 1)))
             self.pdfs_vol[j] = pdfVols
@@ -679,7 +679,7 @@ class PointDistribution:
             print(self._labels[i])
             print("----------------------------")
 
-            e = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
+            e = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
             e.fit(shape)
             sc = e.predict(shape)
             for ind in np.where(sc == -1)[0]:

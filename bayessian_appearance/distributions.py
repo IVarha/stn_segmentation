@@ -26,7 +26,7 @@ class NormalDistribution:
     def __init__(self, data):
         data = np.array(data)
 
-        rob = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
+        rob = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
 
         rob.fit(X=data)
 
@@ -97,10 +97,10 @@ class ProductJoined_ShInt_Distribution:
                           random_state=settings.settings.random_state)
         pcaS.fit(data_main)
 
-        norm1 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
+        norm1 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
         norm1.fit(data_main)
         self._data_main = data_main
-        norm2 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
+        norm2 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
         norm2.fit(data_condition)
 
         self._norm1 = norm1
@@ -431,7 +431,7 @@ class JointDependentDistribution:
                           random_state=settings.settings.random_state)
         pcaS.fit(data_s1)
 
-        norm1 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
+        norm1 = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
         norm1.fit(np.concatenate((data_s1, data_s2), axis=-1))
 
         # self.dist_s1s2 = norm1
@@ -441,7 +441,7 @@ class JointDependentDistribution:
         ###########
         self.dist_s1s2 = NormalConditional(data_main=data_s1, data_condition=data_s2)
         # self.dist_I_s1 = NormalConditional(data_main=data_I1,data_condition=data_s1)
-        a = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state)
+        a = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
         a.fit(data_I1)
         self.dist_I_s1 = a
         pass

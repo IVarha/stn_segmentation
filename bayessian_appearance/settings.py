@@ -12,7 +12,7 @@ class Settings:
     modalities = None
     pca_precision_labels = None # pca precisions for different labels. stored in label desk 3-rd argument
 
-
+    outlier_fraction = 0.3
     pca_precision = 0.995
     random_state = 1
 
