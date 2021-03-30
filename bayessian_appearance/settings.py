@@ -12,9 +12,12 @@ class Settings:
     modalities = None
     pca_precision_labels = None # pca precisions for different labels. stored in label desk 3-rd argument
 
-    outlier_fraction = 0.3
-    pca_precision = 0.995
+    outlier_fraction = 0.35
+    pca_precision = 0.9975
     random_state = 1
+
+
+    colors = [	'#FF0000',	'#00FF00','#0000FF',	'#FF00FF',	'#FFFF00'	,'#00FFFF']
 
     def __init__(self):
         pass

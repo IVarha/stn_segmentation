@@ -6,7 +6,7 @@ first step to use install VTK-9.0.1
 download
 1 untar
 2 cd vtk lib
-3 cmake ..
+3 cmake -DVTK_GROUP_ENABLE_Rendering=YES -DVTK_GROUP_ENABLE_Imaging=YES -DVTK_GROUP_ENABLE_Views=YES -DVTK_MODULE_ENABLE_VTK_RenderingContextOpenGL2=YES -DVTK_MODULE_ENABLE_VTK_RenderingFreeTypeFontConfig=YES ..
 4 make -j<num of cores>
 
 Make spdlog from external folder and install it :

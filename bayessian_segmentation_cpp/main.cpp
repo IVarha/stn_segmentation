@@ -36,7 +36,7 @@ unordered_map<int,string> parse_label_descriptor(string fileName){
 
             auto label = line.substr(0,pos);
             int pos2 = line.find(',',pos+1);
-            auto mesh = line.substr(pos+1,pos2);
+            auto mesh = line.substr(pos+1,pos2-2);
             std::cout << mesh <<std::endl;
             result.insert({stoi(label),mesh});
         }
@@ -73,8 +73,10 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
     //tuple<double,double,double> ride = {centr_of_label.getPt()[0],centr_of_label.getPt()[1],centr_of_label.getPt()[2]};
     auto sphr = Surface::generate_sphere(50,ride);
 
+    //sphr.saveImage(workdir + "/"+ std::to_string(label.first) + "_cent_sphere.png" );
+
     sphr.apply_transformation(from_mni_to_label);
-    //sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
+    sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
     auto W_V_trans= image.get_world_to_voxel();
     sphr.apply_transformation(W_V_trans);
     //sphr.expand_volume(30);
@@ -98,6 +100,8 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
     sphr.smoothMesh(5);
     auto trans = image.get_voxel_to_world();
     sphr.apply_transformation(trans);
+
+    //sphr.saveImage(workdir + "/"+ std::to_string(label.first) + "_modified_sphere.png" );
     std::cout << "Calculated volume of " << label.first << "  is " << sphr.calculate_volume() << std::endl;
     sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_1.obj");
 

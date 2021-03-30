@@ -90,6 +90,7 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             .def("selfIntersectionTest", &pySurface::self_intersection_test)
             .def("apply_transform", &pySurface::apply_transformation)
             .def("generate_normals", &pySurface::generateNormals)
+            .def("get_faces",&pySurface::getFaces)
             .def("save_obj",&pySurface::saveObj)
             .def("generate_mesh_points", &pySurface::getInsideMeshPoints)
             .def("get_unpacked_coords",&pySurface::getUnpackedCords)

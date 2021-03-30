@@ -56,13 +56,30 @@ def train_test_file_create(subjects, ind_of_subject,out_train_file, out_test_fil
 
 
 
-def main_proc( subjects, train_file_name, test_file_name, script_name):
+def main_proc( subjects, train_file_name, test_file_name, script_name, start_sub_name = None):
     subjs = util.read_subjects(subjects)
 
+    mark = False
     for sub_i in range(len(subjs)):
-        train_test_file_create(subjs,sub_i,train_file_name,test_file_name)
+        if start_sub_name is None:
 
-        run_script( script_name)
+            train_test_file_create(subjs,sub_i,train_file_name,test_file_name)
+
+            run_script( script_name)
+        else:
+            if subjs[sub_i] == start_sub_name:
+                mark = True
+                train_test_file_create(subjs, sub_i, train_file_name, test_file_name)
+                run_script(script_name)
+                continue
+
+            if mark:
+                train_test_file_create(subjs, sub_i, train_file_name, test_file_name)
+                run_script(script_name)
+
+
+
+
     #meshes = np.array(meshes)
     m_mx = []
 
@@ -74,7 +91,10 @@ if __name__ == '__main__':
     train_file = sys.argv[2]
     test_file = sys.argv[3]
     script_nm = sys.argv[4]
-    main_proc(subjects=subjects,train_file_name=train_file,test_file_name=test_file,script_name=script_nm)
+    start_sub = None
+    if len(sys.argv)>5:
+        start_sub = sys.argv[5]
+    main_proc(subjects=subjects,train_file_name=train_file,test_file_name=test_file,script_name=script_nm,start_sub_name=start_sub)
 
     # Print some basic information about the layout
 

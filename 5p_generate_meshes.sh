@@ -15,6 +15,7 @@ labels_file="labels_clean.nii.gz"
 # segment alex data
 for d in $work_dir//$prefix_subdirs*; do
     echo "$d"
+    echo "-run mesh_shrinkage -i $d/$labels_file -labeldesk $labels_desc -workdir $d"
     $cp_program -run mesh_shrinkage -i $d/$labels_file -labeldesk $labels_desc -workdir $d &
     # WM_mask
     #create mask

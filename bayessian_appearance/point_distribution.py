@@ -329,7 +329,7 @@ class PointDistribution:
         self.int_vls = int_vls
         return res
 
-    def __init__(self, train_subjects, labels, segmentation_conf):
+    def __init__(self, train_subjects, labels, segmentation_conf, construct=True):
 
         self._labels = labels
 
@@ -337,7 +337,8 @@ class PointDistribution:
 
         self._original_data = self._read_labels(labels=labels, train_subjects=train_subjects)
 
-        self._construct_pdm()
+        if construct:
+            self._construct_pdm()
 
     def save_pdm(self, workdir, file_name, save_orig=False):
         try:
@@ -556,6 +557,37 @@ class PointDistribution:
         #         mean_si1 = np.concatenate((mean_si1, mean_all[sc1:sc2]))
         #
         # return [[mean_sc1, mean_sc2, shape_shape_cov_mat], [mean_si1, mean_si2, shape_int_mat]]
+
+
+    def get_mean_meshes(self):
+        meshes = []
+        for st_i in range(len(self._original_data)):
+            proc_int = self._original_data[st_i]
+
+            res_ints = [None] * len(proc_int[0])
+            # calculate vertices
+            for i in range(len(proc_int)):
+                for j in range(len(proc_int[i])):
+                    if res_ints[j] == None:
+                        res_ints[j] = []
+                    res_ints[j].append(proc_int[i][j][0])
+
+            # calculate mean
+            mn_vec = []
+            for i in range(len(res_ints)):
+                res_ints[i] = np.array(res_ints[i])
+                mn_vec += np.array(res_ints[i].mean(axis=0)).tolist()
+
+            ms_f = self._tr_subjects[0] + os.sep + self._labels[0] + "_1.obj"
+            mes = ExtPy.cMesh(ms_f)
+            mes.modify_points(mn_vec)
+            meshes.append(mes)
+        return meshes
+
+
+
+    def get_original_data(self):
+        return self._original_data
 
     def compute_4_median_components(self, label, distr):
 

@@ -20,8 +20,14 @@ add_compile_options("-fPIC")
          vtkIOPLY
          vtkIOXML
          vtkIOImage
+
+         #vtkRenderingContextOpenGL2
          vtkRenderingCore
          vtkRenderingFreeType
+         vtkRenderingFreeType
+         vtkRenderingGL2PSOpenGL2
+         vtkRenderingOpenGL2
+         vtkRenderingVolumeOpenGL2
 
          QUIET)
  find_package(ZLIB REQUIRED)
@@ -31,10 +37,10 @@ add_compile_options("-fPIC")
  add_subdirectory(external/pybind11-2.6)
 include_directories(pybind11_INCLUDE_DIRS)
 
-# if (NOT VTK_FOUND)
-# message("Skipping ReadTextFile: ${VTK_NOT_FOUND_MESSAGE}")
-# return ()
-# endif()
+ if (NOT VTK_FOUND)
+ message("Skipping ReadTextFile: ${VTK_NOT_FOUND_MESSAGE}")
+ return ()
+ endif()
  include_directories(utils)
  include_directories(segmentation)
  include_directories(py_wrappers)
