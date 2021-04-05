@@ -18,8 +18,8 @@ for i=1:length(st1)
     scatter3(pts(:,1),pts(:,2),pts(:,3),'filled','MarkerFaceColor',colors(i));
   
 end
-axis square;
-%figure;
+axis equal;
+figure;
 clust_f2 = "Z:\processing_data\workdir\3clusters.txt";
 cf2 = load(clust_f2);
 st2 = unique(cf2); 

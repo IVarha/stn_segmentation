@@ -19,8 +19,7 @@ import sklearn.cluster as clst
 from mpl_toolkits.mplot3d import Axes3D,art3d
 
 import matplotlib.pyplot as plt
-
-
+import sklearn.covariance as cov
 
 
 def process_STN(data,workdir,stn=[2,3],num_clusters =3):
@@ -92,11 +91,23 @@ def process_STN(data,workdir,stn=[2,3],num_clusters =3):
                     res_ints[j] = []
                 res_ints[j].append(proc_int[i][j][2])
 
+        res_joint_array = None
+        for i in range(len(res_ints)):
+            if res_joint_array is None:
+                res_joint_array = np.array(res_ints[i])
+            else:
+                res_joint_array = np.concatenate((res_joint_array,np.array(res_ints[i])),axis=-1)
+
+        r_stat = cov.EllipticEnvelope(support_fraction=0.3).fit(res_joint_array)
+        mn_vec = r_stat.location_
+        mn_vec = mn_vec.reshape((len(proc_int[0]),int(mn_vec.shape[0]/len(proc_int[0]))))
         # calculate mean
-        mn_vec = [None] *len(proc_int[0])
-        for i in  range(len(res_ints)):
-            res_ints[i] = np.array(res_ints[i])
-            mn_vec[i] = np.array(res_ints[i].mean(axis=0))
+
+
+        # mn_vec = [None] *len(proc_int[0])
+        # for i in  range(len(res_ints)):
+        #     res_ints[i] = np.array(res_ints[i])
+        #     mn_vec[i] = np.array(res_ints[i].mean(axis=0))
 
         mn_vec = np.array(mn_vec)
 
@@ -190,7 +201,7 @@ def plot_clusters(meshes, clusters):
 
 
 
-def main_proc(train, label_names, config_name, modalities, workdir):
+def main_proc(train, label_names, config_name, workdir):
     tr_subjects = util.read_subjects(train)
     labels = util.read_label_desc(label_names)
 
@@ -210,7 +221,7 @@ def main_proc(train, label_names, config_name, modalities, workdir):
 
     meshes[2].save_obj(workdir + os.sep + "3_mean.obj")
     meshes[3].save_obj(workdir + os.sep + "4_mean.obj")
-    clsters = process_STN(od,workdir,num_clusters=4)
+    clsters = process_STN(od,workdir,num_clusters=2)
 
 
     plot_clusters(meshes=[meshes[2],meshes[3]],clusters=clsters)
@@ -236,7 +247,7 @@ if __name__ == '__main__':
     outp = sys.argv[4]
     modalities_name = sys.argv[5]
     a = util.read_segmentation_config(modalities_name)
-    main_proc(train_subjects_file, labels_desc_file, conf_file, modalities=modalities_name, workdir=outp)
+    main_proc(train_subjects_file, labels_desc_file, conf_file, workdir=outp)
 
     # Print some basic information about the layout
 

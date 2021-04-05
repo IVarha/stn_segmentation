@@ -33,6 +33,8 @@ public:
     bool self_intersection_test(const std::vector<double>& new_points);
     void apply_transformation(const std::vector<std::vector<double>>& arr);
 
+    std::vector<std::vector<int>> getFaces();
+
     static bool triangles_intersected( std::vector<std::vector<double>> points);
     std::vector<std::set<int>> compute_neighbours();
 

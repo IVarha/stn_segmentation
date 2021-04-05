@@ -362,4 +362,8 @@ std::vector<bool> pySurface::isPointsInside(std::vector<std::vector<double>> poi
     return res;
 }
 
+std::vector<std::vector<int>> pySurface::getFaces() {
+    return triangles;
+}
+
 
