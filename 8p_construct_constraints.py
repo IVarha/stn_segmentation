@@ -4,15 +4,11 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
+import datetime
 import sys
 
-import bayessian_appearance.utils as util
-import vtk
-
 import bayessian_appearance.point_distribution as pd
-import os
-
-import datetime
+import bayessian_appearance.utils as util
 
 
 def main_proc(train, label_names, config_name, modalities, workdir):

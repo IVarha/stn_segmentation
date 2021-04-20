@@ -7,11 +7,8 @@
 import sys
 
 import bayessian_appearance.utils as util
-from datetime import datetime
 
-import bayessian_appearance.point_distribution as pd
 import os
-import bayessian_appearance.fitting as fitt
 
 import bayessian_appearance.mesh as mesh
 
