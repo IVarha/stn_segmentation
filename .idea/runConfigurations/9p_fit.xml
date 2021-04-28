@@ -13,7 +13,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/9p_fit.py" />
+    <option name="SCRIPT_NAME" value="C:\Users\ivarh\PycharmProjects\py_stn_segmentation\scripts\9p_fit.py" />
     <option name="PARAMETERS" value="/data/home/varga/processing_data/train_subjects.txt /data/home/varga/processing_data/label_desk.txt /data/home/varga/processing_data/config_ini.txt /data/home/varga/processing_data/workdir /data/home/varga/processing_data/modalities.ini /data/home/varga/processing_data/test_subjects.txt" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />

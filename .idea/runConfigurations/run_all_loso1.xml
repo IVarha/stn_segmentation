@@ -13,7 +13,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run_all_loso.py" />
+    <option name="SCRIPT_NAME" value="C:\Users\ivarh\PycharmProjects\py_stn_segmentation\scripts\run_all_loso.py" />
     <option name="PARAMETERS" value="/data/home/varga/processing_data/subjects.txt /data/home/varga/processing_data/train_subjects.txt /data/home/varga/processing_data/test_subjects.txt /home/varga/tmp/pycharm_project_200/run_train_test.sh" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
