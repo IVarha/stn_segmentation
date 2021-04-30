@@ -74,7 +74,7 @@ class Image:
         self._interpolation.SetInputData(self._image_instance)
         self._interpolation.Update()
 
-
+    """This method interpolation uses point in voxel space as input"""
     def interpolate(self, vect):
         vect1 = np.array(list(vect)+ [1])
 

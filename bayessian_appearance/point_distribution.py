@@ -703,6 +703,75 @@ class PointDistribution:
     def get_intens_coords(self, ind):
         return self._intens_coords[ind]
 
+    """GET MIN MAX COORDINATE OF LABEL MESGES OVERALL"""
+    def get_min_max(self):
+
+        min_max= None
+
+        for struct in range(len(self._original_data)):
+            min_max_struct = None
+
+
+            for vox_ind in range(len(self._original_data[0][0])):
+
+                mn_v = np.zeros(3)
+                mx_v = np.zeros(3)
+
+                voxel_data = []
+                for subj in range(len(self._original_data[0])):
+                    voxel_data.append(self._original_data[struct][subj][vox_ind][0])
+                voxel_data = np.array(voxel_data)
+                a = rob_cov.EllipticEnvelope(contamination=0.2).fit(voxel_data)
+                voxel_data = voxel_data[a.support_]
+
+                mn_v[0] = min(voxel_data[:,0])
+                mn_v[1] = min(voxel_data[:, 1])
+                mn_v[2] = min(voxel_data[:, 2])
+
+                mx_v[0] = max(voxel_data[:,0])
+                mx_v[1] = max(voxel_data[:, 1])
+                mx_v[2] = max(voxel_data[:, 2])
+                if min_max_struct == None:
+                    min_max_struct = [mn_v,mx_v]
+                else:
+                    if mn_v[0] < min_max_struct[0][0]:
+                        min_max_struct[0][0] = mn_v[0]
+                    if mn_v[1] < min_max_struct[0][1]:
+                        min_max_struct[0][1] = mn_v[1]
+                    if mn_v[2] < min_max_struct[0][2]:
+                        min_max_struct[0][2] = mn_v[2]
+                    if mx_v[0] > min_max_struct[1][0]:
+                        min_max_struct[1][0] = mx_v[0]
+                    if mx_v[1] > min_max_struct[1][1]:
+                        min_max_struct[1][1] = mx_v[1]
+                    if mx_v[2] > min_max_struct[1][2]:
+                        min_max_struct[1][2] = mx_v[2]
+
+                    pass
+
+            if min_max == None:
+                min_max = [min_max_struct[0],min_max_struct[1]]
+                pass
+            else:
+                if min_max_struct[0][0] < min_max[0][0]:
+                    min_max[0][0] = min_max_struct[0][0]
+                if min_max_struct[0][1] < min_max[0][1]:
+                    min_max[0][1] = min_max_struct[0][1]
+                if min_max_struct[0][2] < min_max[0][2]:
+                    min_max[0][2] = min_max_struct[0][2]
+                if min_max_struct[1][0] > min_max[1][0]:
+                    min_max[1][0] = min_max_struct[1][0]
+                if min_max_struct[1][1] > min_max[1][1]:
+                    min_max[1][1] = min_max_struct[1][1]
+                if min_max_struct[1][2]> min_max[1][2]:
+                    min_max[1][2] = min_max_struct[1][2]
+
+        return min_max
+
+
+
+        pass
+
     def _plot_2_components(self, filename):
         i = 0
         for shape in self.shape_data:
@@ -723,3 +792,5 @@ class PointDistribution:
             plt.scatter(0, 0, color="blue")
             plt.savefig(filename + self._labels[i] + ".png")
             i += 1
+
+

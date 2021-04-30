@@ -21,7 +21,7 @@ def main_proc(train, label_names, config_name, modalities, workdir):
     cnf = util.read_config_ini(config_name)
     print("processing started at")
     print(datetime.datetime.now())
-    meshes = []
+
     pdm = pd.PointDistribution(train_subjects=tr_subjects, labels=labels, segmentation_conf=seg_cnf)
 
     print("processing finished at")
