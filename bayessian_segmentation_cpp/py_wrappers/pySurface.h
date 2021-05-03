@@ -49,6 +49,10 @@ public:
     std::vector<bool> isPointsInside( std::vector<std::vector<double>> points);
     void saveObj(std::string filename);
 
+
+    std::vector<std::vector<double>> rayTriangleIntersection(std::vector<std::vector<double>> start_end);
+
+
     double computeVolume();
 
 

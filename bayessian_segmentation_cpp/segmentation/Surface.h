@@ -64,8 +64,12 @@ public:
     double calculate_volume();
     static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre, int num_of_divisions);
 
+    std::vector<std::vector<double>> rayMeshIntersection(std::vector<std::vector<double>> start_end);
 
     double* getPoint(int pos);
+    /*get Point by id same as previous method
+     * */
+    Point getPPoint(int id);
 
 
 private:
@@ -80,6 +84,8 @@ private:
     std::vector<std::vector<int>> point_tri;
     void compute_tri_neigbours();
     void compute_points_neigbours();
+
+    std::vector<Point> get_triangle(int id);
 
     void update_mesh();
     public:

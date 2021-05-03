@@ -342,7 +342,6 @@ std::vector<bool> pySurface::isPointsInside(std::vector<std::vector<double>> poi
         pts->InsertNextPoint(it[0],it[1],it[2]);
     }
 
-
     auto poly_data = vtkSmartPointer<vtkPolyData>::New();
     poly_data->SetPoints(pts);
     auto encl_points = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
@@ -364,6 +363,11 @@ std::vector<bool> pySurface::isPointsInside(std::vector<std::vector<double>> poi
 
 std::vector<std::vector<int>> pySurface::getFaces() {
     return triangles;
+}
+
+std::vector<std::vector<double>> pySurface::rayTriangleIntersection(std::vector<std::vector<double>> start_end) {
+
+    return this->mesh->rayMeshIntersection(start_end);
 }
 
 

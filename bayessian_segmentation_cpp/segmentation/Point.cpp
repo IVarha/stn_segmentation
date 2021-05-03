@@ -137,6 +137,12 @@ double* Point::cross_product(double *p1, double *p2) {
     return res;
 }
 
+Point Point::cross_product(Point& p1, Point& p2) {
+    return Point(p1.y*p2.z - p1.z*p2.y,
+    p1.z*p2.x - p1.x*p2.z,
+    p1.x*p2.y - p1.y*p2.x);
+}
+
 double *Point::substract(const double *V1,const double *V2) {
     double* res = new double (3);
     res[0] = V1[0] - V2[0];
@@ -229,4 +235,32 @@ Point Point::move_in_value_dir(VolumeDouble &image, Point &direction, double ste
                       curr_pt[2] );
 
     }
+}
+
+Point::Point() {
+    this->x = 0;
+    this->y = 0;
+    this->z = 0;
+}
+
+double Point::scalar(const Point& V1, const Point& V2) {
+    return V1.x*V2.x + V1.y*V2.y + V1.z*V2.z;
+}
+
+Point::Point(std::vector<double> pt) {
+    this->x = pt[0];
+    this->y = pt[1];
+    this->z = pt[2];
+}
+
+std::vector<double> Point::toVector() {
+    auto res = std::vector<double>();
+    res.emplace_back(this->x);
+    res.emplace_back(this->y);
+    res.emplace_back(this->z);
+    return res;
+}
+
+double Point::norm() {
+    return (this->x * this->x + this->y * this->y + this->z * this->z);
 }

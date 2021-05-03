@@ -851,10 +851,6 @@ void Surface::triangle_normalisation(int iterations,double fraction) {
 
 
 
-
-
-
-
     }
 
     this->update_mesh();
@@ -1040,5 +1036,104 @@ void Surface::saveImage(const std::string filename) {
     writer->SetFileName(filename.c_str());
     writer->SetInputConnection(windowToImageFilter->GetOutputPort());
     writer->Write();
+
+}
+
+bool RayIntersectsTriangle(Point rayOrigin,
+                           Point rayVector,
+                           std::vector<Point>& inTriangle,
+                           Point& outIntersectionPoint)
+{
+    //const float EPSdILON = 0.0000001;
+    Point vertex0 = inTriangle[0];
+    Point vertex1 = inTriangle[1];
+    Point vertex2 = inTriangle[2];
+    Point edge1, edge2, h, s, q;
+    double a,f,u,v;
+    edge1 = vertex1 - vertex0;
+    edge2 = vertex2 - vertex0;
+    h = Point::cross_product(rayVector,edge2);
+    a = Point::scalar(edge1,h);
+    if (a > -EPSILON && a < EPSILON)
+        return false;    // This ray is parallel to this triangle.
+    f = 1.0/a;
+    s = rayOrigin - vertex0;
+    u = f * Point::scalar(s,h);
+    if (u < 0.0 || u > 1.0)
+        return false;
+    q = Point::cross_product(s,edge1);
+    v = f * Point::scalar(rayVector,q);
+    if (v < 0.0 || u + v > 1.0)
+        return false;
+    // At this stage we can compute t to find out where the intersection point is on the line.
+    float t = f * Point::scalar(edge2,q);
+    if (t > EPSILON) // ray intersection
+    {
+        outIntersectionPoint = rayOrigin + rayVector * t;
+        return true;
+    }
+    else // This means that there is a line intersection but not a ray intersection.
+        return false;
+}
+
+std::vector<std::vector<double>> Surface::rayMeshIntersection(std::vector<std::vector<double>> start_end) {
+
+
+    Point start = Point(start_end[0]);
+    Point end = Point(start_end[1]);
+    Point ss1,ss2;
+    int cnt = 0;
+    for (int i = 0; i < this->triangles->GetNumberOfCells();i++){
+
+        auto triangle = this->get_triangle(i);
+        Point t_res;
+        if (RayIntersectsTriangle(start,
+                                  end,
+                                  triangle,
+                                  t_res)){
+                if (ss1.getX() == 0) ss1 = t_res;
+                else ss2 = t_res;
+                cnt++;
+        }
+    }
+    std::cout<< "isects "<< cnt << std::endl;
+
+
+
+    auto res = std::vector<std::vector<double>>();
+
+    if ( (start - ss1).norm() < (start - ss2).norm() ){
+        res.push_back(ss1.toVector());
+        res.push_back(ss2.toVector());
+    } else
+    {
+        res.push_back(ss2.toVector());
+        res.push_back(ss1.toVector());
+    }
+    return res;
+
+}
+
+std::vector<Point> Surface::get_triangle(int id) {
+
+    auto res = std::vector<Point>();
+
+    //auto res = std::vector<std::vector<int>>(this->triangles->GetNumberOfCells());
+    auto ellist = vtkSmartPointer<vtkIdList>::New();
+
+    auto tvec = std::vector<int>(3);
+
+    ellist->Initialize();
+    this->triangles->GetCellAtId(id,ellist);
+
+    tvec[0]=(ellist->GetId(0));
+
+    res.emplace_back(this->getPoint(tvec[0]));
+    tvec[1]=(ellist->GetId(1));
+    res.emplace_back(Point(this->getPoint(tvec[1])));
+    tvec[2]=(ellist->GetId(2));
+    res.emplace_back( Point(this->getPoint(tvec[2])));
+    return res;
+
 
 }
