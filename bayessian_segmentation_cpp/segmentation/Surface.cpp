@@ -16,6 +16,14 @@
 #include <vtkPolyDataNormals.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
+
+#include <vtkWindowToImageFilter.h>
+#include <vtkPNGWriter.h>
+#include <vtkActor.h>
+#include <vtkRenderWindow.h>
+#include <vtkOpenGLRenderWindow.h>
+
+
 #include <vtkPolyDataWriter.h>
 #include <iostream>
 #include <vtkSTLWriter.h>
@@ -135,7 +143,7 @@ void Surface::write_stl(const std::string file_name) {
     writer->Write();
 }
 
-Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, double> center) {
+Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, double> center,int subdivisions) {
 
     vtkSmartPointer<vtkSphereSource> sphereSource =
             vtkSmartPointer<vtkSphereSource>::New();
@@ -151,7 +159,7 @@ Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, do
     auto subdivisionFilter = vtkSmartPointer<vtkLinearSubdivisionFilter>::New();
     subdivisionFilter->SetInputData(originalMesh);
     //subdivisionFilter->SetNumberOfSubdivisions(2);
-    subdivisionFilter->SetNumberOfSubdivisions(1);
+    subdivisionFilter->SetNumberOfSubdivisions(subdivisions);
     subdivisionFilter->Update();
     auto mesh = subdivisionFilter->GetOutput();
     Surface result = Surface();
@@ -987,5 +995,50 @@ std::vector<std::vector<std::vector<double>>> Surface::calculate_normals(double 
     }
 
     return res;
+
+}
+
+void Surface::saveImage(const std::string filename) {
+
+    // Visualize
+    vtkSmartPointer<vtkPolyDataMapper> mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputData(this->mesh);
+
+    vtkSmartPointer<vtkActor> actor =
+            vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+
+    vtkSmartPointer<vtkRenderer> renderer =
+            vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer<vtkRenderWindow> renderWindow =
+            vtkSmartPointer<vtkRenderWindow>::New();
+    renderWindow->AddRenderer(renderer);
+    renderWindow->OffScreenRenderingOn();
+    renderWindow->SetAlphaBitPlanes(1); //enable usage of alpha channel
+
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+            vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    renderWindowInteractor->SetRenderWindow(renderWindow);
+
+    renderer->AddActor(actor);
+    renderer->SetBackground(1,1,1); // Background color white
+    //renderer->Render();
+    renderWindow->Render();
+
+    // Screenshot
+    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
+            vtkSmartPointer<vtkWindowToImageFilter>::New();
+    windowToImageFilter->SetInput(renderWindow);
+    windowToImageFilter->SetScale(3); //set the resolution of the output image (3 times the current resolution of vtk render window)
+    windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+    windowToImageFilter->ReadFrontBufferOff(); // read from the back buffer
+    windowToImageFilter->Update();
+
+    vtkSmartPointer<vtkPNGWriter> writer =
+            vtkSmartPointer<vtkPNGWriter>::New();
+    writer->SetFileName(filename.c_str());
+    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+    writer->Write();
 
 }

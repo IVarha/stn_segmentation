@@ -47,6 +47,8 @@ public:
 
     void smoothMesh(int iter);
 
+    void saveImage(const std::string filename);
+
     std::vector<std::vector<std::vector<double>>> calculate_normals(double mm, int npts);
 
     void expand_volume(double mm);
@@ -60,7 +62,7 @@ public:
     void apply_transformation(TransformMatrix& pre_transformation);
     void apply_transformation(arma::mat pre_transformation);
     double calculate_volume();
-    static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre);
+    static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre, int num_of_divisions);
 
 
     double* getPoint(int pos);

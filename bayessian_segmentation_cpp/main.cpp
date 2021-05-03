@@ -71,7 +71,7 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
 
     tuple<double,double,double> ride = {lab_centre_mni[0],lab_centre_mni[1],lab_centre_mni[2]};
     //tuple<double,double,double> ride = {centr_of_label.getPt()[0],centr_of_label.getPt()[1],centr_of_label.getPt()[2]};
-    auto sphr = Surface::generate_sphere(50,ride);
+    auto sphr = Surface::generate_sphere(50,ride,1);
 
     //sphr.saveImage(workdir + "/"+ std::to_string(label.first) + "_cent_sphere.png" );
 
@@ -93,8 +93,8 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
     sphr.shrink_sphere(mask,centr_of_label.to_tuple(), 0.3);
 //    sphr.smoothMesh();
     for (int i = 0;i < 10;i++) {
-        sphr.triangle_normalisation(1, 0.1);
-        sphr.smoothMesh(2);
+        //sphr.triangle_normalisation(1, 0.1);
+        sphr.smoothMesh(5);
         sphr.lab_move_points(mask, 0.3);
     }
     sphr.smoothMesh(5);
