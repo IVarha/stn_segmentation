@@ -1102,7 +1102,7 @@ std::vector<std::vector<double>> Surface::rayMeshIntersection(std::vector<std::v
 
     auto res = std::vector<std::vector<double>>();
 
-    if ( (start - ss1).norm() < (start - ss2).norm() ){
+    if ((start - ss1).normSquare() < (start - ss2).normSquare() ){
         res.push_back(ss1.toVector());
         res.push_back(ss2.toVector());
     } else

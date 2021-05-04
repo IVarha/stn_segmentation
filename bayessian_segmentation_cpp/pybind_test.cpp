@@ -97,7 +97,7 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             .def("calculate_volume",&pySurface::computeVolume)
             .def("get_mesh_boundary_roi", &pySurface::getInsideBoundaryPoints)
             .def("is_points_inside",&pySurface::isPointsInside)
-            .def("ray_triangle_intersection", &pySurface::rayTriangleIntersection);
+            .def("ray_mesh_intersection", &pySurface::rayTriangleIntersection);
 
 
 //    py::class_<pyNiftiImage>(m,"cImage")

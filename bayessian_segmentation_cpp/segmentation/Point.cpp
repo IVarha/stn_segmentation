@@ -261,6 +261,6 @@ std::vector<double> Point::toVector() {
     return res;
 }
 
-double Point::norm() {
+double Point::normSquare() {
     return (this->x * this->x + this->y * this->y + this->z * this->z);
 }

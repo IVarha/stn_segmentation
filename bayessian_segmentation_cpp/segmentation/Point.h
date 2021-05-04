@@ -42,7 +42,7 @@ private:
     Point move_in_value_dir(VolumeDouble &image, Point &direction, double step, double  thresh);
     std::tuple<double,double,double> to_tuple();
     std::vector<double> toVector();
-    double norm();
+    double normSquare();
 
     Point operator-(const Point& b);
     Point operator+(const Point& b);
