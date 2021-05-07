@@ -137,11 +137,13 @@ double* Point::cross_product(double *p1, double *p2) {
     return res;
 }
 
-Point Point::cross_product(Point& p1, Point& p2) {
+Point Point::cross_product(const Point& p1,const Point& p2) {
     return Point(p1.y*p2.z - p1.z*p2.y,
     p1.z*p2.x - p1.x*p2.z,
     p1.x*p2.y - p1.y*p2.x);
 }
+
+
 
 double *Point::substract(const double *V1,const double *V2) {
     double* res = new double (3);
@@ -264,3 +266,9 @@ std::vector<double> Point::toVector() {
 double Point::normSquare() {
     return (this->x * this->x + this->y * this->y + this->z * this->z);
 }
+
+//Point Point::cross_product(Point p1, Point p2) {
+//    return Point(p1.y*p2.z - p1.z*p2.y,
+//                 p1.z*p2.x - p1.x*p2.z,
+//                 p1.x*p2.y - p1.y*p2.x);
+//}

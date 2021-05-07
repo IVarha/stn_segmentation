@@ -235,6 +235,10 @@ def calculate_mask_touches(mask, norms):
         res.append(tmp)
     return res
 
+def apply_transform_to_point(transform, point):
+    b = np.array(point)
+    a = np.array(b.tolist() + [1])
+    return np.dot(transform, a)[:3]
 
 def save_intensities_csv(pdm, filename):
     try:

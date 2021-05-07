@@ -52,6 +52,7 @@ public:
 
     std::vector<std::vector<double>> rayTriangleIntersection(std::vector<std::vector<double>> start_end);
 
+    std::vector<std::vector<double>> centresOfTriangles();
 
     double computeVolume();
 

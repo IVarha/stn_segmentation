@@ -370,4 +370,8 @@ std::vector<std::vector<double>> pySurface::rayTriangleIntersection(std::vector<
     return this->mesh->rayMeshIntersection(start_end);
 }
 
+std::vector<std::vector<double>> pySurface::centresOfTriangles() {
+    return mesh->getTriangleCenters();
+}
+
 

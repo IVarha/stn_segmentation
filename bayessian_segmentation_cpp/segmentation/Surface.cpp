@@ -37,6 +37,7 @@
 #include <vtkSelectEnclosedPoints.h>
 #include <vtkOBJReader.h>
 #include <vtkSphereSource.h>
+#include <vtkCellCenters.h>
 #include "math.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h" // support for loading levels from the environment variable
@@ -1048,37 +1049,87 @@ bool RayIntersectsTriangle(Point rayOrigin,
     Point vertex0 = inTriangle[0];
     Point vertex1 = inTriangle[1];
     Point vertex2 = inTriangle[2];
+    //std::cout << "v2 " << vertex0.getX() << std::endl;
     Point edge1, edge2, h, s, q;
     double a,f,u,v;
     edge1 = vertex1 - vertex0;
     edge2 = vertex2 - vertex0;
     h = Point::cross_product(rayVector,edge2);
     a = Point::scalar(edge1,h);
-    if (a > -EPSILON && a < EPSILON)
+    if (a > -EPSILON && a < EPSILON){
+        //std::cout << "TRUE 1" << std::endl;
+        //std::cout << "v2 " << vertex0.getX() << std::endl;
         return false;    // This ray is parallel to this triangle.
+    }
+
     f = 1.0/a;
     s = rayOrigin - vertex0;
     u = f * Point::scalar(s,h);
-    if (u < 0.0 || u > 1.0)
-        return false;
+    if (u < 0.0 || u > 1.0) {
+        //std::cout << "TRUE 2" << std::endl;
+        //std::cout << "v2 " << vertex0.getX() << std::endl;
+        return false; }
     q = Point::cross_product(s,edge1);
     v = f * Point::scalar(rayVector,q);
     if (v < 0.0 || u + v > 1.0)
         return false;
     // At this stage we can compute t to find out where the intersection point is on the line.
-    float t = f * Point::scalar(edge2,q);
+    double t = f * Point::scalar(edge2,q);
     if (t > EPSILON) // ray intersection
     {
         outIntersectionPoint = rayOrigin + rayVector * t;
         return true;
     }
     else // This means that there is a line intersection but not a ray intersection.
-        return false;
+    {
+        //std::cout << "TRUE 3" << std::endl;
+        return false; }
 }
 
-std::vector<std::vector<double>> Surface::rayMeshIntersection(std::vector<std::vector<double>> start_end) {
+double SignedVolume(Point a, Point b,Point c,Point d)
+{
+    Point diff = Point::cross_product(b-a,c-a);
+    return (1/6.0) * Point::scalar(diff ,d-a);
+}
+bool isIntersectsTriangle(Point rayOrigin,
+                           Point rayVector,
+                           std::vector<Point>& inTriangle){
+    Point p1 = inTriangle[0];
+    Point p2 = inTriangle[1];
+    Point p3 = inTriangle[2];
+
+    if (
+            ((SignedVolume(rayOrigin,p1,p2,p3) < 0) & (SignedVolume(rayVector,p1,p2,p3) > 0)) |
+                    ((SignedVolume(rayOrigin,p1,p2,p3) > 0) & (SignedVolume(rayVector,p1,p2,p3) < 0))
+            )
+    {
+        if ( ((SignedVolume(rayOrigin,rayVector,p1,p2) > 0) & (SignedVolume(rayOrigin,rayVector,p2,p3) > 0) & (SignedVolume(rayOrigin,rayVector,p3,p1)>0))
+            | (SignedVolume(rayOrigin,rayVector,p1,p2) < 0) & (SignedVolume(rayOrigin,rayVector,p2,p3) < 0) & (SignedVolume(rayOrigin,rayVector,p3,p1)<0)
+        ) {
+            return true;
+        } else return false;
+
+    } else
+    {
+        return false;
+    }
+}
 
 
+Point intersectionLineTriangle(Point q1,
+                               Point q2,
+                               std::vector<Point>& inTriangle){
+    Point p1 = inTriangle[0];
+    Point p2 = inTriangle[1];
+    Point p3 = inTriangle[2];
+
+    Point N = Point::cross_product(p2-p1, p3-p1);
+    double t = - (Point::dot(q1-p1,N))/Point::dot(q2-q1,N);
+
+    return q1 + (q2-q1)*t;
+}
+std::vector<std::vector<double>> Surface::rayMeshIntersection(std::vector<std::vector<double>> start_end)
+{
     Point start = Point(start_end[0]);
     Point end = Point(start_end[1]);
     Point ss1,ss2;
@@ -1087,16 +1138,28 @@ std::vector<std::vector<double>> Surface::rayMeshIntersection(std::vector<std::v
 
         auto triangle = this->get_triangle(i);
         Point t_res;
-        if (RayIntersectsTriangle(start,
-                                  end,
-                                  triangle,
-                                  t_res)){
-                if (ss1.getX() == 0) ss1 = t_res;
-                else ss2 = t_res;
-                cnt++;
+        if (isIntersectsTriangle(start,end,triangle)){
+
+            //std::cout << "true" << std::endl;
+            if (ss1.getX() == 0) ss1 = intersectionLineTriangle(start,end,triangle);
+            else ss2 = intersectionLineTriangle(start,end,triangle);
+            cnt++;
+
         }
+        //else std::cout << "False" << std::endl;
+
+
+
+//        if (RayIntersectsTriangle(start,
+//                                  end,
+//                                  triangle,
+//                                  t_res)){
+//                if (ss1.getX() == 0) ss1 = t_res;
+//                else ss2 = t_res;
+//                cnt++;
+//        }
     }
-    std::cout<< "isects "<< cnt << std::endl;
+    //std::cout<< "isects "<< cnt << std::endl;
 
 
 
@@ -1113,6 +1176,9 @@ std::vector<std::vector<double>> Surface::rayMeshIntersection(std::vector<std::v
     return res;
 
 }
+
+
+
 
 std::vector<Point> Surface::get_triangle(int id) {
 
@@ -1135,5 +1201,25 @@ std::vector<Point> Surface::get_triangle(int id) {
     res.emplace_back( Point(this->getPoint(tvec[2])));
     return res;
 
+
+}
+
+std::vector<std::vector<double>> Surface::getTriangleCenters() {
+    auto filter = vtkSmartPointer<vtkCellCenters>::New();
+    filter->SetInputData( this->mesh);
+    filter->VertexCellsOn();
+    filter->Update();
+    auto ret = std::vector<std::vector<double>>();
+    // Access the cell centers
+    for (vtkIdType i = 0; i < filter->GetOutput()->GetNumberOfPoints();
+         i++)
+    {
+        std::vector<double> vec1;
+        double p[3];
+        filter->GetOutput()->GetPoint(i, p);
+        vec1.push_back(p[0]);vec1.push_back(p[1]);vec1.push_back(p[2]);
+        ret.push_back(vec1);
+    }
+    return ret;
 
 }

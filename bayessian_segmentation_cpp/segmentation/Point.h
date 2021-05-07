@@ -16,7 +16,8 @@ class Point {
 public:
     const double *getPt() const;
     static double* cross_product(double* p1, double* p2);
-    static Point cross_product(Point& p1, Point& p2);
+    static Point cross_product(const Point& p1, const Point& p2);
+    //static Point cross_product(Point p1, Point p2);
     static double* substract(const double* V1,const double* V2);
     static double scalar(const double* V1,const double* V2);
     static double scalar(const Point& V1, const Point& V2);

@@ -82,7 +82,7 @@ ext_modules = [
 
 setup(
     name='py_stn_segmentation',
-    version='1.1',
+    version='1.1.01',
     packages=['bayessian_appearance','cppcode'],
     url='',
     license='',

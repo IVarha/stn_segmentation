@@ -70,7 +70,7 @@ public:
     /*get Point by id same as previous method
      * */
     Point getPPoint(int id);
-
+    std::vector<std::vector<double>> getTriangleCenters();
 
 private:
     vtkSmartPointer<vtkCellArray> triangles;
