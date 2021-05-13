@@ -102,19 +102,19 @@ if __name__ == '__main__':
     r_pos_isected = []
     for i in range(len(subjs)):
         r_mesh = ExtPy.cMesh(folder + os.sep + "sub-P"
-                             +subjs[i] + os.sep + mesh_name_1)
+                             +subjs[i] + os.sep + mesh_name_2)
         l_mesh = ExtPy.cMesh(folder + os.sep + "sub-P"
-                             + subjs[i] + os.sep + mesh_name_2)
-        l_et= [LEnt[i,:].tolist(),LTrg[i,:].tolist()]
+                             + subjs[i] + os.sep + mesh_name_1)
+        r_et= [LEnt[i,:].tolist(),LTrg[i,:].tolist()]
 
 
 
-        a = l_mesh.ray_mesh_intersection(l_et) #left
+        a = r_mesh.ray_mesh_intersection(r_et) #right
 
 
-        r_et = [REnt[i, :].tolist(), RTrg[i, :].tolist()]
+        l_et = [REnt[i, :].tolist(), RTrg[i, :].tolist()]
 
-        b = r_mesh.ray_mesh_intersection(r_et) # right
+        b = l_mesh.ray_mesh_intersection(l_et) # left
 
         tr_F = open(folder + os.sep + "sub-P"
                              +subjs[i] + os.sep + "transformACPC","rb")
@@ -147,16 +147,16 @@ if __name__ == '__main__':
         b1 = util.apply_transform_to_point(native_2_mni,b1)
         b2 = util.apply_transform_to_point(native_2_mni, b2)
 
-        if not ((min(b[0]) == 0) and (max(b[0]) == 0)):
-            r_mesh_ino.append([b1,b2])
+        if not ((min(a[0]) == 0) and (max(a[0]) == 0)):
+            r_mesh_ino.append([a1,a2])
             r_mesh_centers.append(r_centers)
-            r_pts_t1.append(b)
+            r_pts_t1.append(a)
             r_pos_isected.append(subjs[i])
 
-        if not ((min(a[0]) == 0) and (max(a[0]) == 0)):
-            l_mesh_ino.append([a1,a2])
+        if not ((min(b[0]) == 0) and (max(b[0]) == 0)):
+            l_mesh_ino.append([b1,b2])
             l_mesh_centers.append(l_centers)
-            l_pts_t1.append(a)
+            l_pts_t1.append(b)
             l_pos_isected.append(subjs[i])
 
 
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     lc_comb = cov.EllipticEnvelope()
     lc_comb.fit(np.concatenate((l_mesh_ino[:, 0, :], l_mesh_ino[:, 1, :]), axis=-1))
-    index_median_lft = np.where(lc_comb.dist_ == min(lc_comb.dist_))[0][0]
+    index_median_lft = np.where(lc_1.dist_ == min(lc_1.dist_))[0][0]
 
 
 
@@ -202,8 +202,8 @@ if __name__ == '__main__':
         v1.append(np.median(entrL))
         v2.append(np.median(extL))
 
-        entrR = lc_1.mahalanobis(r_mesh_centers[:,i,:])
-        extR = lc_2.mahalanobis(r_mesh_centers[:,i,:])
+        entrR = rc_1.mahalanobis(r_mesh_centers[:,i,:])
+        extR = rc_2.mahalanobis(r_mesh_centers[:,i,:])
         v4.append(np.median(entrR))
         v3.append(np.median(extR))
 
@@ -235,11 +235,32 @@ if __name__ == '__main__':
         right.append(min([v3[i],v4[i]]))
         left.append(min([v1[i],v2[i]]))
 
+
+    ### calc left in t1 space
+    mni_2_nat = util.read_fsl_mni2native_w(folder + os.sep + "sub-P"
+                                              + left_median_subj_name)
+    left_native_in_out = []
+    for i in range(l_mesh_ino.shape[0]):
+        input_mni = l_mesh_ino[i,0,:]
+        inp_nat= util.apply_transform_to_point(mni_2_nat,input_mni)
+
+        output_mni = l_mesh_ino[i,1,:]
+        out_nat= util.apply_transform_to_point(mni_2_nat,output_mni)
+
+        left_native_in_out.append([inp_nat,out_nat])
+
+
+
     dc = { "left" : np.array(left),"right" : np.array(right) ,
            "right_name":right_median_subj_name, "left_name": left_median_subj_name,
-           "right_position": right_vecs_t1, "left_position": left_vecs_t1 }
+           "right_position": right_vecs_t1, "left_position": left_vecs_t1,
+           "left_ent": v1, "left_ext":v2, "left_pts_in_out":np.array(left_native_in_out)}
 
     out_file = sys.argv[3]
+    try:
+        os.remove(out_file)
+    except:
+        pass
     io.savemat(out_file,dc)
 
 
