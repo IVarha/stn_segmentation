@@ -1,15 +1,16 @@
 clear;
 close all;
 load("Z:\processing_data\mah_dist_electrodes.mat")
-mesh_f1 = "Z:\processing_data\new_data_sorted\sub-P"+ left_name+"\3_1T1.obj";
-mesh_f2 = "Z:\processing_data\new_data_sorted\sub-P"+ right_name +"\4_1T1.obj" ;
+
+mesh_f1 = "Z:\processing_data\workdir\3_mean.obj";
+mesh_f1 = "Z:\processing_data\workdir\4_mean.obj";
 
 
 [f1,v1] = read_obj(mesh_f1);
-c = transpose(10./left);
+c = transpose(10./left_ent);
 %c = transpose(left);
 triang = triangulation(f1,v1);
-trisurf(triang,'FaceVertexCData',c,'FaceAlpha',1,'LineWidth',0.2)
+trisurf(triang,'FaceVertexCData',c,'FaceAlpha',0.1,'LineWidth',0.2)
 colormap('jet')
 %axis equal;
 title("Left")
@@ -29,8 +30,8 @@ Z_r = p_r(3) + n_line_left(3)*(-1.5:0.1:1);
 %r_line.LineWidth = 10;
 %r_line.Color = "magenta";
 axis equal;
-%scatter3(left_pts_in_out(:,1,1),left_pts_in_out(:,1,2),left_pts_in_out(:,1,3),50,'yellow','filled');
-%scatter3(left_pts_in_out(:,2,1),left_pts_in_out(:,2,2),left_pts_in_out(:,2,3),50,'c','filled');
+scatter3(left_pts_in_out(:,1,1),left_pts_in_out(:,1,2),left_pts_in_out(:,1,3),50,'yellow','filled');
+scatter3(left_pts_in_out(:,2,1),left_pts_in_out(:,2,2),left_pts_in_out(:,2,3),50,'c','filled');
 
 
 
@@ -48,12 +49,12 @@ title("Right")
 colorbar;
 hold on;
 %scatter3(left_position(:,1),left_position(:,2),left_position(:,3),500,'magenta','filled');
-%n_line_right = right_position(1,:) - right_position(2,:);
+n_line_right = right_position(1,:) - right_position(2,:);
 
 p_l = right_position(1,:);
-%X_l = p_l(1) + n_line_right(1)*(-1.5:0.1:1);
-%Y_l = p_l(2) + n_line_right(2)*(-1.5:0.1:1);
-%Z_l = p_l(3) + n_line_right(3)*(-1.5:0.1:1);
-%l_line = plot3(X_l,Y_l,Z_l);
-%l_line.LineWidth = 10;
-%l_line.Color = "magenta";
+X_l = p_l(1) + n_line_right(1)*(-1.5:0.1:1);
+Y_l = p_l(2) + n_line_right(2)*(-1.5:0.1:1);
+Z_l = p_l(3) + n_line_right(3)*(-1.5:0.1:1);
+l_line = plot3(X_l,Y_l,Z_l);
+l_line.LineWidth = 10;
+l_line.Color = "magenta";

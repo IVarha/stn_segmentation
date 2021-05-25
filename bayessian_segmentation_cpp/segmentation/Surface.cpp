@@ -1146,20 +1146,11 @@ std::vector<std::vector<double>> Surface::rayMeshIntersection(std::vector<std::v
             cnt++;
 
         }
-        //else std::cout << "False" << std::endl;
 
 
 
-//        if (RayIntersectsTriangle(start,
-//                                  end,
-//                                  triangle,
-//                                  t_res)){
-//                if (ss1.getX() == 0) ss1 = t_res;
-//                else ss2 = t_res;
-//                cnt++;
-//        }
+
     }
-    //std::cout<< "isects "<< cnt << std::endl;
 
 
 
@@ -1221,5 +1212,53 @@ std::vector<std::vector<double>> Surface::getTriangleCenters() {
         ret.push_back(vec1);
     }
     return ret;
+
+}
+
+std::vector<int> Surface::rayMeshInterInd(std::vector<std::vector<double>> start_end) {
+    Point start = Point(start_end[0]);
+    Point end = Point(start_end[1]);
+    Point ss1,ss2;
+    int res1 = -1;
+    int res2 = -1;
+    int cnt = 0;
+    for (int i = 0; i < this->triangles->GetNumberOfCells();i++){
+
+        auto triangle = this->get_triangle(i);
+        Point t_res;
+        if (isIntersectsTriangle(start,end,triangle)){
+
+            //std::cout << "true" << std::endl;
+
+
+            if (ss1.getX() == 0) {
+                res1 = i;
+                ss1 = intersectionLineTriangle(start, end, triangle); }
+            else { ss2 = intersectionLineTriangle(start, end, triangle);
+                res2 = i;
+            }
+            cnt++;
+
+        }
+
+
+
+
+    }
+
+
+
+    auto res = std::vector<int>();
+
+    if ((start - ss1).normSquare() < (start - ss2).normSquare() ){
+        res.push_back(res1);
+        res.push_back(res2);
+    } else
+    {
+        res.push_back(res2);
+        res.push_back(res1);
+    }
+    return res;
+
 
 }

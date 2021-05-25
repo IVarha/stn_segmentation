@@ -66,6 +66,8 @@ public:
 
     std::vector<std::vector<double>> rayMeshIntersection(std::vector<std::vector<double>> start_end);
 
+    std::vector<int> rayMeshInterInd(std::vector<std::vector<double>> start_end);
+
     double* getPoint(int pos);
     /*get Point by id same as previous method
      * */
