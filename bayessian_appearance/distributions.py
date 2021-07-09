@@ -12,6 +12,7 @@ import sklearn.svm as svm
 
 
 class NormalDistribution:
+    """Normal Distribution for probability density estimation"""
     #
     # matr = None
     #
@@ -24,6 +25,7 @@ class NormalDistribution:
     # rows = samples
     # cols = variables
     def __init__(self, data):
+        """:argument data as input here we get 2D array of observations where row is sample col is feature"""
         data = np.array(data)
 
         rob = rob_cov.EllipticEnvelope(random_state=settings.settings.random_state,contamination=settings.settings.outlier_fraction)
@@ -56,7 +58,6 @@ class NormalDistribution:
         for arr in data:
 
             a = NormalDistribution(arr)
-
             arr_vals = []
             for i in range(arr.shape[0]):
                 arr_vals.append(a.distr.logpdf(arr[i, :]))

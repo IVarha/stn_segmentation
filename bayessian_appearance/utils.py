@@ -117,6 +117,66 @@ def apply_transf_2_pts(pts, transf):
     return res
 
 
+def translate_p(p):
+    """Creates translation matrix to p"""
+    m = np.eye(4)
+    m[0, 3] = p[0]
+    m[1, 3] = p[1]
+    m[2, 3] = p[2]
+    return m
+
+def plane_intersect(a, b):
+    """
+    a, b   4-tuples/lists
+           Ax + By +Cz + D = 0
+           A,B,C,D in order
+
+    output: 2 points on line of intersection, np.arrays, shape (3,)
+    """
+    a_vec, b_vec = np.array(a[:3]), np.array(b[:3])
+
+    aXb_vec = np.cross(a_vec, b_vec)
+
+    A = np.array([a_vec, b_vec, aXb_vec])
+    d = np.array([-a[3], -b[3], 0.]).reshape(3, 1)
+
+    # could add np.linalg.det(A) == 0 test to prevent linalg.solve throwing error
+
+    p_inter = np.linalg.solve(A, d).T
+
+    return p_inter[0], (p_inter + aXb_vec)[0]
+
+def kron(a, b):
+    a_s = []
+    b_s = []
+    if (a.shape == (3,)) & (b.shape == (3,)):
+        a_s = [1, 3]
+        b_s = [3, 1]
+
+    A = np.reshape(a, (1, a_s[0], 1, a_s[1]))
+    B = np.reshape(b, (b_s[0], 1, b_s[1], 1))
+    K = np.reshape(A * B, [a_s[0] * a_s[1], b_s[0] * b_s[1]])
+    return K
+
+
+def rotate_axis(axis, degree):
+    u = axis / np.linalg.norm(axis)
+    m = np.eye(4)
+    cosA = np.cos(degree)
+    sinA = np.sin(degree)
+
+    tmp = np.eye(4)
+    kr = kron(u, u.transpose())
+    tmp[0:3, 0:3] = cosA * np.eye(3) + (1 - cosA) * kr + sinA * np.array(
+        [[0, -u[2], u[1]], [u[2], 0, -u[0]], [-u[1], u[0], 0]]
+    )
+    m = np.dot(m, tmp)
+    return m
+
+
+
+
+
 def apply_transf_2_norms(norms, transf):
     a = np.array(norms)
 
