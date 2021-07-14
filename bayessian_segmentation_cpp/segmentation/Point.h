@@ -15,7 +15,7 @@ class Point {
 
 public:
     const double *getPt() const;
-    static double* cross_product(double* p1, double* p2);
+    static double* cross_product(const double* p1, const double* p2);
     static Point cross_product(const Point& p1, const Point& p2);
     //static Point cross_product(Point p1, Point p2);
     static double* substract(const double* V1,const double* V2);
@@ -56,6 +56,8 @@ private:
     }
     static double dot(Point a, Point b);
     static bool isEqual(const double* V1,const double* V2);
+
+    static double* apply_transformation(std::vector<std::vector<double>> transf, double arr[]);
 };
 
 

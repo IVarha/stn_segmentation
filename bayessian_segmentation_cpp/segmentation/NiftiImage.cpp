@@ -532,6 +532,31 @@ TransformMatrix TransformMatrix::get_inverse() {
     return res_mat;
 }
 
+void TransformMatrix::setMatrix(const vector<vector<double>> &matrix) {
+    this->matrix = Mat<double>(4,4,fill::eye);
+    this->matrix(0,0) = matrix[0][0];
+    this->matrix(0,1) = matrix[0][1];
+    this->matrix(0,2) = matrix[0][2];
+    this->matrix(0,3) = matrix[0][3];
+
+    this->matrix(1,0) = matrix[1][0];
+    this->matrix(1,0) = matrix[1][1];
+    this->matrix(1,0) = matrix[1][2];
+    this->matrix(1,0) = matrix[1][3];
+
+    this->matrix(2,0) = matrix[2][0];
+    this->matrix(2,1) = matrix[2][1];
+    this->matrix(2,2) = matrix[2][2];
+    this->matrix(2,3) = matrix[2][3];
+
+    this->matrix(3,0) = matrix[3][0];
+    this->matrix(3,1) = matrix[3][1];
+    this->matrix(3,2) = matrix[3][2];
+    this->matrix(3,3) = matrix[3][3];
+
+    this->inverse_mat = inv(this->matrix);
+}
+
 
 double VolumeDouble::interpolate_value_vox(double x, double y, double z, const string& method) {
     if (method == "linear"){//linear

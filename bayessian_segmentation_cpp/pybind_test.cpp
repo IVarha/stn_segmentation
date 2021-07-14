@@ -99,7 +99,8 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             .def("is_points_inside",&pySurface::isPointsInside)
             .def("ray_mesh_intersection", &pySurface::rayTriangleIntersection)
             .def( "centes_of_triangles", &pySurface::centresOfTriangles)
-            .def( "index_of_intersectedtriangle", &pySurface::rayTriangleIntersectionIndexes);
+            .def( "index_of_intersectedtriangle", &pySurface::rayTriangleIntersectionIndexes)
+            .def("distance_to_point", &pySurface::distanceToPoint);
 
 
 //    py::class_<pyNiftiImage>(m,"cImage")

@@ -1,6 +1,7 @@
 import configparser
 import csv
 import json
+import math
 import os
 
 
@@ -124,6 +125,26 @@ def translate_p(p):
     m[1, 3] = p[1]
     m[2, 3] = p[2]
     return m
+
+def mirror_point(center, axis):
+    p1 = translate_p(-center)
+    p2 = translate_p(center)
+
+    t = np.eye(4)
+    t[axis,axis] = -1
+    return np.linalg.multi_dot([p2,t,p1])
+
+def rotation_axis_2vecs(center, st_ax,rot_ax,N):
+    center = np.array(center)
+    p1 = translate_p(-center)
+    p2 = translate_p(center)
+
+    alpha = math.acos(np.dot(st_ax,rot_ax)/(np.linalg.norm(st_ax)*np.linalg.norm(rot_ax)))
+    # if alpha > np.pi/2:
+    #     alpha = 0 - (np.pi - alpha)
+    t = rotate_axis(N,-alpha)
+    return np.linalg.multi_dot([p2,t,p1])
+
 
 def plane_intersect(a, b):
     """

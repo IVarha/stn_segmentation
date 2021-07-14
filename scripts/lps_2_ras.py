@@ -72,7 +72,7 @@ def lps_to_coord_file(filename,out_file,tfm):
         # 4 lines only
         t2 = ['','','','']
         t3 = []
-        for i in range(4):
+        for i in range(8):
 
             ln = lines[i]
 
@@ -89,19 +89,19 @@ def lps_to_coord_file(filename,out_file,tfm):
             sng[2] = str(coord2[1])
             sng[3] = str(coord2[2])
 
-            res_str = ','.join(sng[1:4])
+            res_str = ','.join(sng)
             t3.append(res_str)
             #print(res_str)
             lines[i] = res_str
-        t2[0] = t3[1]
-        t2[1] = t3[0]
-        t2[2] = t3[3]
-        t2[3] = t3[2]
-        print(','.join(t2))
+        # t2[0] = t3[1]
+        # t2[1] = t3[0]
+        # t2[2] = t3[3]
+        # t2[3] = t3[2]
+        # print(','.join(t2))
         lines = [h1,h2,h3] + lines
-    #with open(out_file,'wt') as f2:
-
-    #    f2.writelines(lines)
+    with open(out_file,'wt') as f2:
+        for i in lines:
+            f2.write(i)
 
 
 

@@ -22,6 +22,16 @@ class Surface {
     private:
 
     vtkSmartPointer<vtkPoints> points;
+    vtkSmartPointer<vtkCellArray> triangles;
+    vtkSmartPointer<vtkPolyData> mesh;
+    static std::shared_ptr<spdlog::logger> _logger;
+    //vector of triangles
+    std::vector<std::vector<int>> vec_tri;
+    //neighbours of triangles;
+    std::vector<std::set<int>> tri_neighb;
+    // triangles neighboured for each vertice(triangles to which point belong);
+    std::vector<std::vector<int>> point_tri;
+
 public:
     const vtkSmartPointer<vtkPoints> &getPoints() const;
 
@@ -44,6 +54,10 @@ public:
     void triangle_normalisation(int iterations,double fraction);
 
     Surface();
+
+    Surface(const Surface& surface);
+
+    double distanceToPoint(double x, double y, double z);
 
     void smoothMesh(int iter);
 
@@ -75,15 +89,7 @@ public:
     std::vector<std::vector<double>> getTriangleCenters();
 
 private:
-    vtkSmartPointer<vtkCellArray> triangles;
-    vtkSmartPointer<vtkPolyData> mesh;
-    static std::shared_ptr<spdlog::logger> _logger;
-    //vector of triangles
-    std::vector<std::vector<int>> vec_tri;
-    //neighbours of triangles;
-    std::vector<std::set<int>> tri_neighb;
-    // triangles neighboured for each vertice(triangles to which point belong);
-    std::vector<std::vector<int>> point_tri;
+
     void compute_tri_neigbours();
     void compute_points_neigbours();
 

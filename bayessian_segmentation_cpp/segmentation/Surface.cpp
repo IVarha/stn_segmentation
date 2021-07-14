@@ -38,10 +38,12 @@
 #include <vtkOBJReader.h>
 #include <vtkSphereSource.h>
 #include <vtkCellCenters.h>
+#include <vtkImplicitPolyDataDistance.h>
 #include "math.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h" // support for loading levels from the environment variable
 #include "spdlog/sinks/rotating_file_sink.h"
+#include <algorithm>
 
 void Surface::read_volume(const std::string& file_name ) {
     auto reader = vtkSmartPointer<vtkPolyDataReader>::New();
@@ -1260,5 +1262,30 @@ std::vector<int> Surface::rayMeshInterInd(std::vector<std::vector<double>> start
     }
     return res;
 
+
+}
+
+Surface::Surface(const Surface &surface) {
+    this->mesh = vtkSmartPointer<vtkPolyData>::New();
+    this->mesh->AllocateCopy(surface.mesh);
+    this->mesh->DeepCopy(surface.mesh);
+
+    this->points = vtkSmartPointer<vtkPoints>::New();
+    this->points->DeepCopy(surface.points);
+
+    this->triangles = vtkSmartPointer<vtkCellArray>::New();
+    this->triangles->DeepCopy(surface.triangles);
+
+    std::copy(surface.tri_neighb.begin(),surface.tri_neighb.end(), std::back_inserter(this->tri_neighb));
+    std::copy(surface.point_tri.begin(),surface.point_tri.end(), std::back_inserter(this->point_tri));
+    std::copy(surface.vec_tri.begin(),surface.vec_tri.end(), std::back_inserter(this->vec_tri));
+
+
+}
+
+double Surface::distanceToPoint(double x, double y, double z) {
+    vtkSmartPointer<vtkImplicitPolyDataDistance> ipd = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+    ipd->SetInput(this->mesh);
+    return ipd->EvaluateFunction(x,y,z);
 
 }

@@ -14,7 +14,6 @@
 #include <vtkNIFTIImageHeader.h>
 #include <vtkImageBSplineInterpolator.h>
 #include <vtkImageBSplineCoefficients.h>
-#include <vtkBMPReader.h>
 #include <vtkImageSincInterpolator.h>
 
 

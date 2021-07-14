@@ -53,6 +53,8 @@ public:
 
     void setMatrix(const arma::Mat<double> &matrix);
 
+    void setMatrix(const vector<vector<double>> &matrix);
+
     const arma::Mat<double> &getInverseMat() const;
 
     static TransformMatrix read_matrix(string fileName);

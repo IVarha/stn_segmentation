@@ -129,7 +129,7 @@ std::tuple<double, double, double> Point::to_tuple() {
     return std::tuple<double, double, double>(this->getX(), this->getY(), this->getZ());
 }
 
-double* Point::cross_product(double *p1, double *p2) {
+double* Point::cross_product(const double *p1, const double *p2) {
     auto* res = new double(3);
     res[0] = p1[1]*p2[2] - p1[2]*p2[1];
     res[1] = p1[2]*p2[0] - p1[0]*p2[2];
@@ -265,6 +265,16 @@ std::vector<double> Point::toVector() {
 
 double Point::normSquare() {
     return (this->x * this->x + this->y * this->y + this->z * this->z);
+}
+
+double* Point::apply_transformation(std::vector<std::vector<double>> transf, double *arr) {
+
+    double* res = new double(3);
+
+    res[0] = transf[0][0] * arr[0] + transf[0][1] * arr[1] + transf[0][2]*arr[2] + transf[0][3]*1;
+    res[1] = transf[1][0] * arr[0] + transf[1][1] * arr[1] + transf[1][2]*arr[2] + transf[1][3]*1;
+    res[2] = transf[2][0] * arr[0] + transf[2][1] * arr[1] + transf[2][2]*arr[2] + transf[2][3]*1;
+    return res;
 }
 
 //Point Point::cross_product(Point p1, Point p2) {
