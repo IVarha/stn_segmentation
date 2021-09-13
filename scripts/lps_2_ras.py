@@ -7,6 +7,7 @@ import sys
 
 import numpy as np
 
+import h5py
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -15,9 +16,9 @@ def print_hi(name):
 def lps_2_ras_coord(lps_coord):
     return  [lps_coord[0]*(-1),lps_coord[1]*(-1),lps_coord[2]]
 
-"""Returns transform LPS"""
-def read_tfm_LPS(file_name):
 
+def read_tfm_LPS(file_name):
+    """Returns transform LPS"""
     matr = np.zeros((4,4))
     with open(file_name,'rt') as f:
         f.readline()

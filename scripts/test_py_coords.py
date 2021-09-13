@@ -8,11 +8,14 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
-import lps_2_ras as l2r
+import scipy.optimize as sc_opt
+import scipy.stats as sc_stat
 import bayessian_appearance.utils as uti
-
-
-import h5py
+import ExtPy
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import art3d
+import scipy.optimize as opt
+import matplotlib.tri as mtri
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
@@ -272,36 +275,25 @@ def read_doctors_coords(ods_file,subject):
     Lx = "LActualFrameX"
     Ly = "LActualFrameY"
     Lz = "LActualFrameZ"
-    LRa = "LActualRingAng"
-    LAa = "LActualArcAng"
     sub = "subject"
     Rx = "RActualFrameX"
     Ry = "RActualFrameY"
     Rz = "RActualFrameZ"
-    RRa = "RActualRingAng"
-    RAa = "RActualArcAng"
+
     from pandas_ods_reader import read_ods
     df = read_ods(ods_file, "surgical")
 
     subs = df[sub].values.astype(int).tolist()
     ind = subs.index(subject)
 
-    return [
-        [
-            [df[Rx].values[ind],df[Ry].values[ind],df[Rz].values[ind]],
-            [df[Lx].values[ind],df[Ly].values[ind],df[Lz].values[ind]]
-        ],
-        [
-            [df[RRa].values[ind],df[RAa].values[ind]],[df[LRa].values[ind],df[LAa].values[ind]]
-        ]
-
-    ]
+    return [[df[Rx].values[ind],df[Ry].values[ind],df[Rz].values[ind]],
+            [df[Lx].values[ind],df[Ly].values[ind],df[Lz].values[ind]]]
 
 
 
 
 def write_fcsv(coords,filename):
-    #print(filename)
+    print(filename)
     lines = [ '# Markups fiducial file version = 4.11\n',
               '# CoordinateSystem = RAS\n',
               '# columns = id,x,y,z,ow,ox,oy,oz,vis,sel,lock,label,desc,associatedNodeID\n',
@@ -320,17 +312,8 @@ def write_fcsv(coords,filename):
             f2.write(i)
 
 
-def lps_2_ras_coord(lps_coord):
-    return  [lps_coord[0]*(-1),lps_coord[1]*(-1),lps_coord[2]]
 
-def transf_lps_2_ras(transform):
-    transform[0, 2] = -1 * transform[0, 2]
-    transform[0, 3] = -1 * transform[0, 3]
-    transform[1, 2] = -1 * transform[1, 2]
-    transform[1, 3] = -1 * transform[1, 3]
-    transform[2, 0] = -1 * transform[2, 0]
-    transform[2, 1] = -1 * transform[2, 1]
-    return transform
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -338,86 +321,17 @@ if __name__ == '__main__':
     file_name = sys.argv[1]
     ods_fn = sys.argv[2]
     out_fn = sys.argv[3]
-    surg_transform_folder = sys.argv[4]
-    to_t1_f = sys.argv[5]
-
-    sub_name = file_name.split("/")[-2]
-    surg_transform_f = surg_transform_folder + "/" + sub_name + "_desc-rigid_from-fiducials_to-localizer_xfm.h5"
-    to_t1_lps = l2r.read_tfm_LPS(to_t1_f)
-    ##lps_transf_2_ras
-    to_t1_lps = transf_lps_2_ras(to_t1_lps)
-
-    to_t1 = np.linalg.inv(to_t1_lps)
-
-    ##h5 parse
-    # surg_transf_1 = h5py.File(surg_transform_f)
-    # vals  = [ surg_transf_1[x] for x in surg_transf_1.keys()]
-    # vals = [vals[4]['0'][x] for x in vals[4]['0'].keys()]
-    #
-    # t1 = np.zeros((4,4))
-    # t1[0,0] = vals[1][0]
-    # t1[0, 1] = vals[1][1]
-    # t1[0, 2] = vals[1][2]
-    # t1[0, 3] = vals[1][9]
-    # t1[1, 0] = vals[1][3]
-    # t1[1, 1] = vals[1][4]
-    # t1[1, 2] = vals[1][5]
-    # t1[1, 3] = vals[1][10]
-    # t1[2, 0] = vals[1][6]
-    # t1[2, 1] = vals[1][7]
-    # t1[2, 2] = vals[1][8]
-    # t1[2, 3] = vals[1][11]
-    # t1[3, 0] = 0
-    # t1[3, 1] = 0
-    # t1[3, 2] = 0
-    # t1[3, 3] = 1
-    #
-    # t1 = transf_lps_2_ras(t1)
-
-
-    #t1 = np.linalg.inv(t1)
-
     fc,left,top = read_framecoords(file_name)
-    fc[0] = -fc[0]
-    fc[1] = -fc[1]
 
-    frameToRAS = np.array([
-        [-1, 0, 0, 100],
-        [0, 1, 0, -100],
-        [0, 0, -1, 100],
-        [0, 0, 0, 1]
-    ])
-    RASToFrame = np.array([
-        [1, 0, 0, fc[0]],
-        [0, 1, 0, fc[1]],
-        [0, 0, 1, fc[2]],
-        [0, 0, 0, 1]
-    ])
-
-    to_ras = np.eye(4)
-    transf_res = np.linalg.multi_dot([
-                                    #to_ras,
-                                    to_t1,
-                                    #t1,
-                                    RASToFrame,
-                                    frameToRAS
-    ])
-
-
-
-
-
+    # fc = np.array([-1.5528718082009654, 48.59929770528181, 6.085721070353887])
+    # left = np.array([-96.21642270509193, 57.873290233812185, 6.571655602652973])
+    # top = np.array([9.776208841309534, 163.0478945820811, 2.755798118783989])
+    res  = generate_transform_coords_to_t1(np.array(fc),np.array(left),np.array(top))
     coords = read_doctors_coords(ods_fn,int(file_name.split('/')[-2].split('-')[-1][1:]))
-    angles = coords[1]
-    coords = coords[0]
-    ####calculate angles
+    coords = uti.apply_transf_2_pts(coords,res)
 
-    coords = uti.apply_transf_2_pts(coords,transf_res)
-    #coords = [lps_2_ras_coord(x) for x in coords]
-
-    res_str = ','.join([str(x) for x in coords[0]] + [str(x) for x in coords[1]])
-    print(res_str)
     write_fcsv(coords,out_fn)
+
 
     plt.show()
 

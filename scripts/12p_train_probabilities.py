@@ -893,16 +893,58 @@ def fit_side(displaced_electrodes,subdata, mesh, sigmoid,pdf):
                 r_side_vals.append(compute_lognorm(distance, nrms, pdf, sigmoid))
         tfm = uti.translate_p(-transformation)
         mesh.apply_transform(tfm)
-        logn_value = np.mean(r_side_vals)
+        logn_value = np.sum(r_side_vals)
 
         return logn_value
 
     fc = lambda x: functional(displaced_electrodes,subdata,mesh,sigmoid,pdf,x)
 
     fm  = opt.minimize(fc, x0=np.array([0,0,0]),method="Powell")
+    fm = opt.minimize(fc, x0=fm.x)
+    fm = opt.minimize(fc, x0=fm.x,method="Powell")
     tfm = uti.translate_p(fm.x)
     mesh.apply_transform(tfm)
     return mesh
+
+def _calculate_metrics(mesh,mask,electrodes_dists):
+    labels= []
+    for i in range(len(mask)):
+        labels += mask[i].tolist()
+    labels = np.array(labels)
+    masks = []
+    electrodes_dists = [x.tolist() for x in electrodes_dists ]
+
+    for i in range(len(electrodes_dists)):
+        for j in range(len(electrodes_dists[i])):
+            d1 = mesh.distance_to_point(electrodes_dists[i][j][0],electrodes_dists[i][j][1],electrodes_dists[i][j][2])
+            if d1 <0:
+                masks.append(True)
+            else:
+                masks.append(False)
+            # tmask=mesh.is_points_inside(electrodes_dists[i])
+            # masks+= tmask
+    masks = np.array(masks)
+
+    TP = sum(masks&labels)
+    TN = sum ((~ masks)&(~ labels))
+
+    FP = sum( (~ labels)& ( masks))
+    FN = sum ((labels) & (~ masks) )
+
+    ####accuracy
+    acc = (TP + TN)/(TP + TN + FP + FN)
+
+    ####specificity
+
+    TPR = TP/(TP + FN)
+
+    ####sensitivity
+    TNR = TN/(TN+FP)
+
+    return [acc,TPR,TNR]
+
+
+
 
 
 
@@ -910,14 +952,14 @@ def fit_side(displaced_electrodes,subdata, mesh, sigmoid,pdf):
 def plot_electrode_as_pts(displace_along_els,subdata,mesh,mask):
     plt3d = plt.figure().gca(projection='3d')
 
-
+    metrics = _calculate_metrics(mesh=mesh, mask=mask, electrodes_dists=displace_along_els)
     fc = np.array(mesh.get_faces())
     v = mesh.get_unpacked_coords()
     v = np.array(v)
     v = v.reshape((int(v.shape[0] / 3), 3))
     # cluster to set
     plt3d.scatter3D(v[0][0],v[0][1],v[0][2])
-    plt3d.plot_trisurf(v[:,0], v[:,1], v[:,2], triangles=fc,alpha=0.3)
+    plt3d.plot_trisurf(v[:,0], v[:,1], v[:,2], triangles=fc,alpha=0.1, linewidth=0.2,edgecolors='blue')
     for i in range(subdata.shape[0]):
         sbd = subdata[i]
         r_msk = mask[i]
@@ -935,6 +977,9 @@ def plot_electrode_as_pts(displace_along_els,subdata,mesh,mask):
     #     for k2 in initialised[key].keys():
     #         pts = np.array(initialised[key][k2])
     #         plt3d.plot(pts[:,0],pts[:,1],pts[:,2])
+    # for ii in range(0,360,10):
+    #     plt3d.view_init(elev=10., azim=ii)
+    #     plt.savefig("/home/varga/Pictures/movie%d.png" % ii)
     plt.show()
 
 
