@@ -45,6 +45,60 @@
 #include <vtkImageBSplineInterpolator.h>
 #include <vtkImageBSplineCoefficients.h>
 using namespace arma;
+
+double fillQForm(double Qa,double Qb,double Qc){
+
+    double Qtresh = -3.5762e-07;
+
+    double w2 = 1.0 - (Qa*Qa + Qb*Qb + Qc*Qc);
+
+
+    return (sqrt(w2));
+
+
+
+}
+mat33 qMat(double Qa,double x,double y,double z){
+
+    double NQ = Qa*Qa + x*x + y*y + z*z;
+
+    auto s = 2.0/NQ;
+    auto w = Qa;
+    auto X = x * s;
+    auto Y = y * s;
+    auto Z = z * s;
+    double wX, wY, wZ,xX, xY, xZ,yY, yZ, zZ;
+    wX= w * X;
+    wY= w * Y;
+    wZ = w * Z;
+
+    xX = x * X;
+    xY=x * Y;
+    xZ =  x * Z;
+
+    yY=y * Y;
+    yZ = y * Z;
+    zZ = z * Z;
+
+    mat33 result;
+    result(0,0)=1.0 - (yY + zZ);
+    result(0,1)=xY - wZ;
+    result(0,2)=xZ + wY;
+
+    result(1,0)=xY + wZ;
+    result(1,1)=1.0 - (xX + zZ);
+    result(1,2)=yZ - wX;
+
+    result(2,0)=xZ - wY;
+    result(2,1)=yZ + wX;
+    result(2,2)=1.0 - (xX + yY);
+
+    return result;
+
+}
+
+
+
 void NiftiImage::read_nifti_image(string file) {
 
 
@@ -81,49 +135,69 @@ void NiftiImage::read_nifti_image(string file) {
 //    this->transform(3, 1) = tr_mat->GetElement(3,1);
 //    this->transform(3, 2) = tr_mat->GetElement(3,2);
 //    this->transform(3, 3) = tr_mat->GetElement(3,3);
+    this->xdim = reader->GetDataSpacing()[0];
+    this->ydim =reader->GetDataSpacing()[1];
+    this->zdim = reader->GetDataSpacing()[2];
 
     auto sf = reader->GetSFormMatrix();
     auto qf = reader->GetQFormMatrix();
     this->transform = Mat<double>(4,4,fill::eye);
-    if (qf!= nullptr){
-        if (qf->GetElement(0,3) != 0 ){
-            this->transform(0, 0) = qf->GetElement(0,0);
-            this->transform(0, 1) = qf->GetElement(0,1);
-            this->transform(0, 2) = qf->GetElement(0,2);
-            this->transform(0, 3) = qf->GetElement(0,3);
-            this->transform(1, 0) = qf->GetElement(1,0);
-            this->transform(1, 1) = qf->GetElement(1,1);
-            this->transform(1, 2) = qf->GetElement(1,2);
-            this->transform(1, 3) = qf->GetElement(1,3);
-            this->transform(2, 0) = qf->GetElement(2,0);
-            this->transform(2, 1) = qf->GetElement(2,1);
-            this->transform(2, 2) = qf->GetElement(2,2);
-            this->transform(2, 3) = qf->GetElement(2,3);
-            this->transform(3, 0) = qf->GetElement(3,0);
-            this->transform(3, 1) = qf->GetElement(3,1);
-            this->transform(3, 2) = qf->GetElement(3,2);
-            this->transform(3, 3) = qf->GetElement(3,3);
-        }
-    } else {
-        if (sf != nullptr){
-            if (sf->GetElement(0,3)!=0){
-                this->transform(0, 0) = reader->GetNIFTIHeader()->GetSRowX()[0];
-                this->transform(0, 1) = reader->GetNIFTIHeader()->GetSRowX()[1];
-                this->transform(0, 2) = reader->GetNIFTIHeader()->GetSRowX()[2];
-                this->transform(0, 3) = reader->GetNIFTIHeader()->GetSRowX()[3];
-                this->transform(1, 0) = reader->GetNIFTIHeader()->GetSRowY()[0];
-                this->transform(1, 1) = reader->GetNIFTIHeader()->GetSRowY()[1];
-                this->transform(1, 2) = reader->GetNIFTIHeader()->GetSRowY()[2];
-                this->transform(1, 3) = reader->GetNIFTIHeader()->GetSRowY()[3];
-                this->transform(2, 0) = reader->GetNIFTIHeader()->GetSRowZ()[0];
-                this->transform(2, 1) = reader->GetNIFTIHeader()->GetSRowZ()[1];
-                this->transform(2, 2) = reader->GetNIFTIHeader()->GetSRowZ()[2];
-                this->transform(2, 3) = reader->GetNIFTIHeader()->GetSRowZ()[3];
-                this->transform(3, 0) =0;
-                this->transform(3, 1) = 0;
-                this->transform(3, 2) = 0;
-                this->transform(3, 3) = 1;
-            }
+    if (reader->GetNIFTIHeader()->GetSFormCode()!=0){
+            this->transform(0, 0) = reader->GetNIFTIHeader()->GetSRowX()[0];
+            this->transform(0, 1) = reader->GetNIFTIHeader()->GetSRowX()[1];
+            this->transform(0, 2) = reader->GetNIFTIHeader()->GetSRowX()[2];
+            this->transform(0, 3) = reader->GetNIFTIHeader()->GetSRowX()[3];
+            this->transform(1, 0) = reader->GetNIFTIHeader()->GetSRowY()[0];
+            this->transform(1, 1) = reader->GetNIFTIHeader()->GetSRowY()[1];
+            this->transform(1, 2) = reader->GetNIFTIHeader()->GetSRowY()[2];
+            this->transform(1, 3) = reader->GetNIFTIHeader()->GetSRowY()[3];
+            this->transform(2, 0) = reader->GetNIFTIHeader()->GetSRowZ()[0];
+            this->transform(2, 1) = reader->GetNIFTIHeader()->GetSRowZ()[1];
+            this->transform(2, 2) = reader->GetNIFTIHeader()->GetSRowZ()[2];
+            this->transform(2, 3) = reader->GetNIFTIHeader()->GetSRowZ()[3];
+            this->transform(3, 0) =0;
+            this->transform(3, 1) = 0;
+            this->transform(3, 2) = 0;
+            this->transform(3, 3) = 1;
+        }else
+            {
+            if (qf != nullptr){
+                if (qf->GetElement(0,3)!=0)
+                {
+                    reader->GetNIFTIHeader()->Print(std::cout);
+                    auto qb = reader->GetNIFTIHeader()->GetQuaternB();
+                    auto qc = reader->GetNIFTIHeader()->GetQuaternC();
+                    auto qd = reader->GetNIFTIHeader()->GetQuaternD();
+
+                    auto qa= fillQForm(qb,qc,qd);
+
+                    auto R= qMat(qa,qb,qc,qd);
+
+                    auto qfac = reader->GetNIFTIHeader()->GetPixDim(0);
+
+                    vec vect(3);
+                    vect(0) = reader->GetNIFTIHeader()->GetPixDim(1);
+                    vect(1) = reader->GetNIFTIHeader()->GetPixDim(2);
+                    vect(2) = reader->GetNIFTIHeader()->GetPixDim(3);
+
+                    vect(2) = vect(2) * qfac;
+                    auto S = diagmat(vect);
+                    auto M = R * S;
+                    M.print("M mat");
+
+                    auto resmat = Mat<double>(4,4,arma::fill::eye);
+
+                    resmat(0,0, size(M))=M;
+
+
+                    Col<double> offset = {reader->GetNIFTIHeader()->GetQOffsetX()
+                            ,reader->GetNIFTIHeader()->GetQOffsetY(),
+                                       reader->GetNIFTIHeader()->GetQOffsetZ()};
+
+                    resmat(span(0,2),3)=offset;
+                    resmat.print("resmat mat");
+                    this->transform = resmat;
+                }
         }
     }
 
