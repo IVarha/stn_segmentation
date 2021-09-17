@@ -171,6 +171,9 @@ Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, do
               << " points." << std::endl;
     result.triangles = mesh->GetPolys();
     result.mesh = mesh;
+    result.mesh->Initialize();
+    result.mesh->SetPolys(result.triangles);
+    result.mesh->SetPoints(result.points);
     //renew sphere
     result.vec_tri = result.getTrianglesAsVec();
     result.compute_points_neigbours();
