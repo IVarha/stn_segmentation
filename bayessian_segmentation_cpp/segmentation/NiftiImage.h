@@ -69,6 +69,8 @@ public:
 
     TransformMatrix get_inverse();
 
+    static TransformMatrix get_mirror_mri();
+
 private:
     arma::Mat<double> matrix;
     arma::Mat<double> inverse_mat;

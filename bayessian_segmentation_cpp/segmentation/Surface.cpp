@@ -145,7 +145,13 @@ void Surface::write_stl(const std::string file_name) {
     writer->SetInputData(this->mesh);
     writer->Write();
 }
-
+/**
+ * Method generates sphere with radius on a @refitem centre
+ * @param radius_mm radius of a generated sphere in mm > 0
+ * @param centre centre of a sphere [x,y,z]
+ * @param num_of_divisions number of subdivisions number which depends on a number of a vertex (better to use <4)
+ * @return Sphere
+ */
 Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, double> center,int subdivisions) {
 
     vtkSmartPointer<vtkSphereSource> sphereSource =
@@ -776,9 +782,7 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
 
 }
 
-Surface::Surface() {
-
-}
+Surface::Surface() = default;
 
 void Surface::triangle_normalisation(int iterations,double fraction) {
 

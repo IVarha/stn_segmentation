@@ -61,21 +61,35 @@ public:
 
     void smoothMesh(int iter);
 
-    void saveImage(const std::string filename);
+    void saveImage(std::string filename);
 
     std::vector<std::vector<std::vector<double>>> calculate_normals(double mm, int npts);
 
     void expand_volume(double mm);
-    void write_volume(const std::string file_name);
-    void write_obj(const std::string file_name);
-    void write_stl(const std::string file_name);
+    void write_volume(std::string file_name);
+    void write_obj(std::string file_name);
+    void write_stl(std::string file_name);
     std::tuple<double, double, double>  centre_of_mesh();
+    /**
+     * Shrink sphere to label
+     * @param mask label of the structure as a mask
+     * @param center center of a sphere as [x,y,z]
+     * @param threshold value which should be reached for a label considered as a correct
+     */
     void shrink_sphere(VolumeDouble& mask, std::tuple<double,double,double> center,double threshold);
     void lab_move_points(VolumeDouble& mask,double threshold );
 
     void apply_transformation(TransformMatrix& pre_transformation);
     void apply_transformation(arma::mat pre_transformation);
     double calculate_volume();
+
+    /**
+     * Method generates sphere with radius on a @refitem centre
+     * @param radius_mm radius of a generated sphere in mm > 0
+     * @param centre centre of a sphere [x,y,z]
+     * @param num_of_divisions number of subdivisions number which depends on a number of a vertex (better to use <4)
+     * @return Sphere
+     */
     static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre, int num_of_divisions);
 
     std::vector<std::vector<double>> rayMeshIntersection(std::vector<std::vector<double>> start_end);

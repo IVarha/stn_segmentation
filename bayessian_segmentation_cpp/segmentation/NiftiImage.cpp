@@ -631,6 +631,15 @@ void TransformMatrix::setMatrix(const vector<vector<double>> &matrix) {
     this->inverse_mat = inv(this->matrix);
 }
 
+TransformMatrix TransformMatrix::get_mirror_mri() {
+    auto resMat = Mat<double>(4,4,fill::eye);
+
+    resMat(0,0) = -1;
+    auto res = TransformMatrix();
+    res.setMatrix(resMat);
+    return res;
+}
+
 
 double VolumeDouble::interpolate_value_vox(double x, double y, double z, const string& method) {
     if (method == "linear"){//linear

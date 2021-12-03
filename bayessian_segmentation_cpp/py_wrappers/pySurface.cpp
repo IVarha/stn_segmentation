@@ -374,4 +374,121 @@ std::vector<std::vector<double>> pySurface::centresOfTriangles() {
     return mesh->getTriangleCenters();
 }
 
+std::vector<int> pySurface::rayTriangleIntersectionIndexes(std::vector<std::vector<double>> start_end) {
+
+    return this->mesh->rayMeshInterInd(start_end);
+}
+
+pySurface::pySurface(const Surface& surface) {
+
+    this->mesh = new Surface(surface);
+    this->triangles = this->mesh->getTrianglesAsVec();
+    //std::cout << 2 << std::endl;
+    this->points = this->mesh->getPoints();
+    this->neighb_tri = compute_neighbours();
+
+}
+/**
+ * Generate a mesh from parameters
+ * @param mask MRI label image
+ * @param image MRI image
+ * @param transformation transformation which we apply to mni space for augmentation
+ * @param targ_label_value integer number of label(in image) which we processing e.g. STN = 3 so STN voxels in image w
+ * would be marked as 3
+ * @param num_subdivisions number of subdivisions number which depends on a number of a vertex (better to use <4) see @relatedalso Surface::generate_sphere
+ * @param fraction value which should be reached for a label considered as a correct @refitem Surface::shrink_sphere
+ * @param num_iterations number of iterations of smoothing + moving of vertices
+ * @param smooth_numb1 number of smoothing iterations see VTK in cycle
+ * @param smooth_numb2 final number of smooting iterations (see VTK)
+ * @param is_mirror is label mirrored
+ * @return mesh from parameters
+ */
+pySurface generate_mesh(VolumeInt* mask,NiftiImage& image,
+                        TransformMatrix& transformation,int targ_label_value,
+                        int num_subdivisions,double fraction,int num_iterations
+                        , unsigned int smooth_numb1, unsigned int smooth_numb2, bool is_mirror //todo add mirror
+                         ){
+
+    auto label_mask = mask->label_to_mask(targ_label_value);
+
+
+    auto inv_transform = transformation.get_inverse();//from augmented mni to world
+
+    Point centr_of_label = label_mask.center_of_mass();
+    //point of center in world coordinate
+    auto swap_centre = image.get_voxel_to_world().apply_transform(centr_of_label.getX()
+            ,centr_of_label.getY(),centr_of_label.getZ());
+
+    auto lab_centre_mni = transformation.apply_transform(swap_centre); //map labels centre to mni space
+
+    //GENERATE SPHERE IN MNI COORDS!!!
+
+    tuple<double,double,double> ride = {lab_centre_mni[0],lab_centre_mni[1],lab_centre_mni[2]};
+    auto sphr = Surface::generate_sphere(100,ride,num_subdivisions);
+
+    sphr.apply_transformation(inv_transform);
+
+    auto W_V_trans= image.get_world_to_voxel();
+    sphr.apply_transformation(W_V_trans);
+
+    auto mask1 = label_mask.int_to_double();
+
+
+
+
+    //sphr.write_obj(workdir + "/" + std::to_string(label.first) + "_cent_sphere.obj");
+    //SHRINK SPHERE
+    sphr.shrink_sphere(mask1,centr_of_label.to_tuple(), fraction);
+//    sphr.smoothMesh();
+
+    for (int i = 0;i < num_iterations;i++) {
+        //sphr.triangle_normalisation(1, 0.1);
+        sphr.smoothMesh(smooth_numb1);
+        sphr.lab_move_points(mask1, fraction);
+    }
+    sphr.smoothMesh(smooth_numb2);
+    auto trans = image.get_voxel_to_world();
+    sphr.apply_transformation(trans);
+
+    return pySurface(sphr);
+}
+
+
+
+std::vector<pySurface> pySurface::calculate_labels(std::string label_name, std::vector<std::vector<double>> transformation,//transformation to mni
+                                                   int num_iterations, int num_subdivisions,
+                            std::vector<std::vector<int>> mapped_label_indices, //same labels e.g 1,2 RN, 3,4 -STN
+                            double fraction,unsigned int smooth_numb1, unsigned int smooth_numb2) {
+
+    NiftiImage image = NiftiImage();
+    image.read_nifti_image(label_name);
+    //transformation matrix
+    TransformMatrix tm = TransformMatrix();
+    tm.setMatrix(transformation);
+
+    VolumeInt* lab1_vol = (VolumeInt*)image.returnImage();
+
+    std::vector<pySurface> res;
+    for (auto & mapped_label_indice : mapped_label_indices){
+        bool mark = false;
+        for (int ind : mapped_label_indice){
+                res.push_back(generate_mesh(lab1_vol,image,tm,ind
+                        ,num_subdivisions,fraction,num_iterations,smooth_numb1,smooth_numb2, mark )  );
+                mark = true;
+        }
+
+
+    }
+
+    return res;
+
+
+
+
+
+
+
+    return std::vector<pySurface>();
+}
+
 
