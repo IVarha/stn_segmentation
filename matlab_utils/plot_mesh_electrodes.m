@@ -7,6 +7,7 @@ mesh_f2 = "Z:\processing_data\new_data_sorted\sub-P"+ right_name +"\4_1T1.obj" ;
 
 [f1,v1] = read_obj(mesh_f1);
 c = transpose(10./left);
+%c(224) = 12;
 %c = transpose(left);
 triang = triangulation(f1,v1);
 trisurf(triang,'FaceVertexCData',c,'FaceAlpha',1,'LineWidth',0.2)
@@ -40,6 +41,7 @@ figure;
 
 triang = triangulation(f5,v5);
 c2 = transpose(10./right);
+%c2(144)=13;
 trisurf(triang,'FaceVertexCData',c2,'FaceAlpha',1,'LineWidth',0.2)
 colormap('jet')
 axis equal;
