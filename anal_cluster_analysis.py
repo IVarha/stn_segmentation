@@ -142,8 +142,9 @@ def process_STN(data,workdir,stn=[2,3],num_clusters =3):
 
         clusters = set(ms.labels_)
         #
-        x_S = [i for i in range(15)]
-
+        dt = 6/14
+        x_S = [-3+i*dt for i in range(15)]
+        #x_S =
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
 
@@ -151,7 +152,7 @@ def process_STN(data,workdir,stn=[2,3],num_clusters =3):
             ax.plot(x_S,ms.cluster_centers_[cl],label=str(cl),color=settings.settings.colors[cl])
             # ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
         plt.legend()
-        plt.savefig(workdir +os.sep+ str(st_i)+"_clusters.png")
+        plt.savefig(workdir +os.sep+ str(st_i)+"_clusters.svg")
 
         clusters_res.append([i for i in range(len(clusters))])
         with open(workdir+os.sep+ str(st_i) + "clusters.txt","wt") as f:

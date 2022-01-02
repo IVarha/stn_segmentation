@@ -119,7 +119,8 @@ def apply_transf_2_pts(pts, transf):
 
 
 def translate_p(p):
-    """Creates translation matrix to p"""
+    """Creates translation matrix to p
+    :return transormation matrix to py """
     m = np.eye(4)
     m[0, 3] = p[0]
     m[1, 3] = p[1]
@@ -133,6 +134,13 @@ def mirror_point(center, axis):
     t = np.eye(4)
     t[axis,axis] = -1
     return np.linalg.multi_dot([p2,t,p1])
+
+def rotation_along_axis_wc(center, axis,angle):
+    center = np.array(center)
+    p1 = translate_p(-center)
+    p2 = translate_p(center)
+    t = rotate_axis(axis, angle)
+    return np.linalg.multi_dot([p2, t, p1])
 
 def rotation_axis_2vecs(center, st_ax,rot_ax,N):
     center = np.array(center)
