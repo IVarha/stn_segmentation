@@ -27,7 +27,7 @@ def get_coord_voxel(coord_orig,orig_transf):
     return res
 
 def create_mask(t2_img,t2_transf,pve_img, pve_transf):
-    res_mask = np.zeros(t2_img.shape) #ma
+    res_mask = np.zeros(t2_img.shape) # T2 WM MASK
     res_mask_full = np.zeros(t2_img.shape) # mask of t2 image
     brain_mask = np.zeros(t2_img.shape)
     revers_pve = np.linalg.inv(pve_transf)
@@ -38,14 +38,14 @@ def create_mask(t2_img,t2_transf,pve_img, pve_transf):
                 if t2_img[i,j,k] > 0.01:
                     vox_ras = get_coord_voxel([i,j,k],t2_transf)
                     pos_xyz = np.dot(revers_pve,vox_ras)
-                    pos = np.round(pos_xyz).astype(np.int)
+                    pos = np.round(pos_xyz).astype(int)
                     t_res = 0
                     br_vox = 0
                     try:
                         if pve_img[pos[0],pos[1],pos[2]] == 3:
-                            t_res  = 1
+                            t_res  = 1 # White Matter
                         if pve_img[pos[0],pos[1],pos[2]]>0:
-                            br_vox = 1
+                            br_vox = 1 # Brain is non zero
                     except:
                         pass
                     res_mask_full[i,j,k] = 1
@@ -53,15 +53,17 @@ def create_mask(t2_img,t2_transf,pve_img, pve_transf):
                     brain_mask[i,j,k] = br_vox
     mn = t2_img[res_mask>0].mean()*0.1
     res_mask[t2_img<mn]=0
-    res_mask= moph.remove_small_holes(res_mask.astype(np.int),area_threshold=20)
+    res_mask= moph.remove_small_holes(res_mask.astype(int),area_threshold=20)
     res_mask = morph2.binary_fill_holes(res_mask)
     res_mask = morph2.binary_dilation(res_mask,iterations=1)
     res_mask = morph2.binary_erosion(res_mask, iterations=1)
-    return [res_mask.astype(np.int),res_mask_full.astype(np.int),res_mask_full.astype(np.int)]
+    return [res_mask.astype(int),res_mask_full.astype(int),brain_mask.astype(int)]
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
+    print(1222)
+
     t2_in = sys.argv[1]
     pve_seg = sys.argv[2]
     outp = sys.argv[3]
@@ -85,9 +87,14 @@ if __name__ == '__main__':
     nib.save(nif2,outp_fullmask)
     nif2 = nib.Nifti1Image(res[2], t2_transf)
     nib.save(nif2, outp_brain_mask)
+    print_hi('2222')
+    if os.path.exists(outp) and os.path.exists(outp_fullmask) and os.path.exists(outp_brain_mask):
+        pass
+    else:
+        sys.exit(244)
     # Initialize the layout
     print(1222)
-
+    print_hi('PyCharm')
     # Print some basic information about the layout
 
 
