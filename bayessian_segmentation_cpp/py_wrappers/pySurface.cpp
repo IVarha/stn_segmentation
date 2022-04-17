@@ -466,7 +466,7 @@ std::vector<pySurface> pySurface::calculate_labels(std::string label_name, std::
     TransformMatrix tm = TransformMatrix();
     tm.setMatrix(transformation);
 
-    VolumeInt* lab1_vol = (VolumeInt*)image.returnImage();
+    auto* lab1_vol = (VolumeInt*)image.returnImage();
 
     std::vector<pySurface> res;
     for (auto & mapped_label_indice : mapped_label_indices){
@@ -485,10 +485,51 @@ std::vector<pySurface> pySurface::calculate_labels(std::string label_name, std::
 
 
 
+}
 
 
 
-    return std::vector<pySurface>();
+
+
+pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
+                           const vector<vector<double>>& to_mni,
+                           int num_iterations, int num_subdivisions, double fraction,
+                           unsigned int smooth_numb1, unsigned int smooth_numb2){
+
+    Point center_of_label = VolumeInt::center_of_mass(mask);
+    auto transf = TransformMatrix();
+    transf.setMatrix(to_mni);
+
+    auto inv_transform = transf.get_inverse();//from augmented mni to world
+
+    //point of center in mni coordinates
+    auto swap_centre = transf.apply_transform(center_of_label.getX()
+            ,center_of_label.getY(),center_of_label.getZ());
+
+    //GENERATE SPHERE IN MNI COORDS!!!
+
+    tuple<double,double,double> ride = {swap_centre[0],swap_centre[1],swap_centre[2]};
+    auto sphr = Surface::generate_sphere(100,ride,num_subdivisions);
+
+    sphr.apply_transformation(inv_transform);
+
+
+    auto maskV = VolumeInt::mask_to_double(mask);
+    sphr.shrink_sphere(maskV,center_of_label.to_tuple(), fraction);
+//    sphr.smoothMesh();
+
+    for (int i = 0;i < num_iterations;i++) {
+        //sphr.triangle_normalisation(1, 0.1);
+        sphr.smoothMesh(smooth_numb1);
+        sphr.lab_move_points(maskV, fraction);
+    }
+    sphr.smoothMesh(smooth_numb2);
+    return pySurface(sphr);
+
+
+
+
+
 }
 
 

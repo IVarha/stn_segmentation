@@ -116,7 +116,25 @@ public:
     calculate_labels(string label_name, vector<vector<double>> transformation, int num_iterations, int num_subdivisions,
                      vector<vector<int>> mapped_label_indices,//same labels e.g 1,2 RN, 3,4 -STN
                      double fraction,unsigned int smooth_numb1, unsigned int smooth_numb2);
+
+
+        /**
+     *
+     * @param mask 3d mask
+     * @param to_mni from image voxels to mni
+     * @param num_iterations
+     * @param num_subdivisions
+     * @param fraction
+     * @param smooth_numb1
+     * @param smooth_numb2
+     * @return mesh in voxel space
+     */
+    pySurface calculate_label( vector<vector<vector<bool>>> mask,
+                               const vector<vector<double>>& to_mni,
+                               int num_iterations, int num_subdivisions, double fraction,
+                               unsigned int smooth_numb1, unsigned int smooth_numb2);
 };
+
 
 
 #endif //BAYESSIAN_SEGMENTATION_CPP_PYSURFACE_H
