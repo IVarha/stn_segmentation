@@ -77,6 +77,9 @@ public:
      * @param threshold value which should be reached for a label considered as a correct
      */
     void shrink_sphere(VolumeDouble& mask, std::tuple<double,double,double> center,double threshold);
+
+    void shrink_sphere(vector<vector<vector<bool>>>& mask, std::tuple<double,double,double> center,double threshold);
+
     void lab_move_points(VolumeDouble& mask,double threshold );
 
     void apply_transformation(TransformMatrix& pre_transformation);

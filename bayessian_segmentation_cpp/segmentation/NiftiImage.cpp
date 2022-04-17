@@ -782,3 +782,43 @@ Point VolumeInt::center_of_mass() {
 
     return Point(x_val,y_val,z_val);
 }
+
+Point VolumeInt::center_of_mass(vector<vector<vector<bool>>> &mask) {
+    auto x_l = mask.size();
+    auto y_l = mask[0].size();
+    auto z_l = mask[0][0].size();
+    double x_val = 0;double y_val = 0;double z_val = 0;double cnt = 0;
+
+    for (int i = 0; i <x_l;i++){
+        for (int j = 0; j < y_l;j++){
+            for (int k = 0; k < z_l;k++){
+                x_val +=  i*(int)mask[i][j][k];
+                y_val +=  j*(int)mask[i][j][k];
+                z_val +=  k*(int)mask[i][j][k];
+                if (mask[i][j][k]) cnt += 1;
+            }
+
+        }
+
+    }
+    x_val = x_val / cnt;
+    y_val = y_val / cnt;
+    z_val = z_val / cnt;
+
+    return Point(x_val,y_val,z_val);
+}
+
+VolumeDouble VolumeInt::mask_to_double(vector<vector<vector<bool>>>& mask) {
+    auto res =  VolumeDouble();
+    auto cube = Cube<double>(mask.size(),mask[0].size(),mask[0][0].size(),fill::zeros);
+    for (int i = 0; i< mask.size();i++){
+        for (int j = 0; j< mask[0].size();j++){
+            for (int k = 0; k< mask[0][0].size();k++){
+                cube(i,j,k)=(double)mask[i][j][k];
+
+            }
+        }
+    }
+    res.setVolume(cube);
+    return res;
+}

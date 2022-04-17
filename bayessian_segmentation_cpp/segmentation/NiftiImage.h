@@ -130,9 +130,11 @@ public:
 
     VolumeDouble int_to_double();
 
+    static VolumeDouble mask_to_double(vector<vector<vector<bool>>>& mask);
+
     Point center_of_mass();
 
-
+    static Point center_of_mass(vector<vector<vector<bool>>>& mask);
 
     virtual ~VolumeInt();
 

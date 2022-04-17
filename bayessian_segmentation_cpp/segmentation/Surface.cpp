@@ -1296,3 +1296,9 @@ double Surface::distanceToPoint(double x, double y, double z) {
     return ipd->EvaluateFunction(x,y,z);
 
 }
+
+void Surface::shrink_sphere(vector<vector<vector<bool>>> &mask, std::tuple<double, double, double> center,
+                            double threshold) {
+    auto vol = VolumeInt::mask_to_double(mask);
+    return this->shrink_sphere(vol,center,threshold);
+}
