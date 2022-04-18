@@ -129,7 +129,7 @@ public:
      * @param smooth_numb2
      * @return mesh in voxel space
      */
-    pySurface calculate_label( vector<vector<vector<bool>>> mask,
+    static pySurface calculate_label( vector<vector<vector<bool>>> mask,
                                const vector<vector<double>>& to_mni,
                                int num_iterations, int num_subdivisions, double fraction,
                                unsigned int smooth_numb1, unsigned int smooth_numb2);
