@@ -528,8 +528,6 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
 
 
 
-
-
 }
 
 
