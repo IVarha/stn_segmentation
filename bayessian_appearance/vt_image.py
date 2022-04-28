@@ -8,6 +8,7 @@ class Image:
     _to_phys_mat = None
     _interpolation = None
     _world_2_vox = None
+    _file_name = None
 
     def test_function(self):
         x_dim, y_dim, z_dim = self._image_instance.GetDimensions()
@@ -25,6 +26,7 @@ class Image:
                     val = self._image_instance.SetScalarComponentFromDouble(x, y, z, 0, im_data[x, y, z])
 
     def __init__(self, filename):
+        self._file_name = filename
         imr = vtk.vtkNIFTIImageReader()
         imr.SetFileName(filename)
         imr.Update()
@@ -96,3 +98,7 @@ class Image:
 
     def get_vox_to_world(self):
         return self._to_phys_mat.copy()
+
+    def get_image_data(self):
+        a = nib.load(filename=self._file_name)
+        return a.get_fdata()

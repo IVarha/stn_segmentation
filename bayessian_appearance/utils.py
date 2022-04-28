@@ -339,6 +339,12 @@ def save_intensities_csv(pdm, filename):
     wr.writerows(pdm)
     f.close()
 
+def get_flirt_transformation_matrix(mat_file,src_file,dest_file,from_,to):
+    im_src = fim.Image(src_file,loadData=False)
+    im_dest = fim.Image(dest_file,loadData=False)
+    forward_transf_fsl = fl.readFlirt(mat_file)
+    return fl.fromFlirt(forward_transf_fsl,im_src,im_dest,from_,to)
+
 
 def calculate_intensites_subject(modalities, labels, subject, discretisation, norm_len, mesh_name_end):
     images = []

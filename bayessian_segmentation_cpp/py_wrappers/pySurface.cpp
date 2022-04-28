@@ -492,7 +492,7 @@ std::vector<pySurface> pySurface::calculate_labels(std::string label_name, std::
 
 
 pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
-                           const vector<vector<double>>& to_mni,
+                           const vector<vector<double>>& to_mni, //from voxel to MNI
                            int num_iterations, int num_subdivisions, double fraction,
                            unsigned int smooth_numb1, unsigned int smooth_numb2){
 
