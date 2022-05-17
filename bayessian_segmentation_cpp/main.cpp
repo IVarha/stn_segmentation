@@ -2,7 +2,7 @@
 #include "Surface.h"
 #include "CLIParser.h"
 #include "NiftiImage.h"
-
+#include "pySurface.h"
 
 
 #include <vtkNIFTIImageReader.h>
@@ -94,7 +94,7 @@ void convert_voxel_to_mesh(string workdir, NiftiImage& image,pair<int,string> la
     for (int i = 0;i < 10;i++) {
         //sphr.triangle_normalisation(1, 0.1);
         sphr.smoothMesh(5);
-        sphr.lab_move_points(mask, 0.3);
+        sphr.lab_move_points(mask, 0.3,0.1);
     }
     sphr.smoothMesh(5);
     auto trans = image.get_voxel_to_world();
@@ -174,7 +174,66 @@ void test_interpolation(){
 //    auto res2 = interp->Interpolate(118,184,0,0);
 }
 
+//todo remove after
+void test_image( ){
+    std::string label_file= "kj";
+
+
+
+    auto ni = NiftiImage();
+    ni.read_nifti_image(label_file);
+
+    VolumeInt* image = (VolumeInt*) ni.returnImage();
+
+    auto stn = image->label_to_mask(3).get_mask_as_vector();
+
+    auto to_mni = std::vector<std::vector<double>>();
+    to_mni.emplace_back();
+    to_mni.emplace_back();
+    to_mni.emplace_back();
+    to_mni.emplace_back();
+    to_mni[0].push_back(0.98541);
+    to_mni[0].push_back(-0.01442);
+    to_mni[0].push_back(-0.08760);
+    to_mni[0].push_back(-118.90224);
+
+    to_mni[1].push_back(-0.03361);
+    to_mni[1].push_back(1.09207);
+    to_mni[1].push_back(-0.11030);
+    to_mni[1].push_back(-85.92115);
+
+    to_mni[2].push_back(0.08250
+    );
+    to_mni[2].push_back(-0.02879
+    );
+    to_mni[2].push_back(1.65038
+    );
+    to_mni[2].push_back(-69.56446
+    );
+
+    to_mni[3].push_back(0.00000
+    );
+    to_mni[3].push_back(0.00000
+    );
+    to_mni[3].push_back(0.00000
+    );
+    to_mni[3].push_back(1.00000
+    );
+
+
+    auto res = pySurface::calculate_label( stn,
+                                           to_mni,
+                                           10,1,
+                                           0.3,5
+                                           ,5);
+
+}
+
+
+
+
 int main(int argc, char *argv[]) {
+    test_image();
     std::cout << "Hello, World!" << std::endl;
 
     test_interpolation();

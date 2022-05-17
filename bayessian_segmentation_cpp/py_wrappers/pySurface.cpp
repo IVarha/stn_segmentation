@@ -7,12 +7,12 @@
 
 #include <vtkSelectEnclosedPoints.h>
 void pySurface::modify_points(std::vector<double> points) {
-    this->mesh->apply_points(points);
-    this->points = this->mesh->getPoints();
+    this->mesh.apply_points(points);
+    this->points = this->mesh.getPoints();
 }
 
 bool pySurface::self_intersection_test(const std::vector<double>& new_points) {
-    auto tri = this->mesh->getTriangles();
+    auto tri = this->mesh.getTriangles();
     int sj = 1;
 
     double V0[3];
@@ -114,37 +114,40 @@ void pySurface::apply_transformation(const std::vector<std::vector<double>>& arr
     a(3,2) = arr[3][2];
     a(3,3) = arr[3][3];
     //a.print(std::cout);
+    std::cout << " atarting apply transformation" << std::endl;
+    this->mesh.apply_transformation(a);
 
-    this->mesh->apply_transformation(a);
-    this->points = this->mesh->getPoints();
+
+    std::cout << " transformation finished" << std::endl;
+    this->points = this->mesh.getPoints();
 
 
 }
 
 bool pySurface::triangles_intersected(std::vector<std::vector<double>> points) {
 
-    double* v1 = new double(3);
+    auto* v1 = new double(3);
     v1[0] = points[0][0];
     v1[1] = points[0][1];
     v1[2] = points[0][2];
     cout << v1[0] << " " << v1[1] << " " << v1[2] <<endl;
 
-    double* v2 = new double(3);
+    auto* v2 = new double(3);
     v2[0] = points[1][0];
     v2[1] = points[1][1];
     v2[2] = points[1][2];
     cout << v2[0] << " " << v2[1] << " " << v2[2] <<endl;
-    double* v3 = new double(3);
+    auto* v3 = new double(3);
     v3[0] = points[2][0];
     v3[1] = points[2][1];
     v3[2] = points[2][2];
     cout << v3[0] << " " << v3[1] << " " << v3[2] <<endl;
-    double* u1 = new double(3);
+    auto* u1 = new double(3);
     u1[0] = points[3][0];
     u1[1] = points[3][1];
     u1[2] = points[3][2];
     cout << u1[0] << " " << u1[1] << " " << u1[2] <<endl;
-    double* u2 = new double(3);
+    auto* u2 = new double(3);
     u2[0] = points[4][0];
     u2[1] = points[4][1];
     u2[2] = points[4][2];
@@ -194,7 +197,7 @@ void pySurface::set_image(std::string file_name) {
 }
 
 std::vector<std::vector<std::vector<double>>> pySurface::generateNormals(double mm_len, int npts) {
-    return this->mesh->calculate_normals(mm_len,npts);
+    return this->mesh.calculate_normals(mm_len,npts);
 
 }
 
@@ -248,7 +251,7 @@ std::vector<std::vector<double>> pySurface::getInsideMeshPoints(int discretisati
     auto encl_points = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
 
     encl_points->SetInputData(poly_data);
-    encl_points->SetSurfaceData(this->mesh->getMesh());
+    encl_points->SetSurfaceData(this->mesh.getMesh());
     encl_points->Update();
 
 
@@ -284,11 +287,11 @@ std::vector<double> pySurface::getUnpackedCords() {
 }
 
 void pySurface::saveObj(std::string filename) {
-    this->mesh->write_obj(filename);
+    this->mesh.write_obj(filename);
 }
 
 double pySurface::computeVolume() {
-    return this->mesh->calculate_volume();
+    return this->mesh.calculate_volume();
 }
 
 std::vector<std::vector<double>> pySurface::getInsideBoundaryPoints(int discretisation) {
@@ -346,7 +349,7 @@ std::vector<bool> pySurface::isPointsInside(std::vector<std::vector<double>> poi
     poly_data->SetPoints(pts);
     auto encl_points = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
     encl_points->SetInputData(poly_data);
-    encl_points->SetSurfaceData(this->mesh->getMesh());
+    encl_points->SetSurfaceData(this->mesh.getMesh());
     encl_points->Update();
 
     auto res = std::vector<bool>();
@@ -367,24 +370,30 @@ std::vector<std::vector<int>> pySurface::getFaces() {
 
 std::vector<std::vector<double>> pySurface::rayTriangleIntersection(std::vector<std::vector<double>> start_end) {
 
-    return this->mesh->rayMeshIntersection(start_end);
+    return this->mesh.rayMeshIntersection(start_end);
 }
 
 std::vector<std::vector<double>> pySurface::centresOfTriangles() {
-    return mesh->getTriangleCenters();
+    return mesh.getTriangleCenters();
 }
 
 std::vector<int> pySurface::rayTriangleIntersectionIndexes(std::vector<std::vector<double>> start_end) {
 
-    return this->mesh->rayMeshInterInd(start_end);
+    return this->mesh.rayMeshInterInd(start_end);
 }
 
 pySurface::pySurface(const Surface& surface) {
 
-    this->mesh = new Surface(surface);
-    this->triangles = this->mesh->getTrianglesAsVec();
+    this->mesh = Surface(surface);
+
+    this->triangles = this->mesh.getTrianglesAsVec();
+
     //std::cout << 2 << std::endl;
-    this->points = this->mesh->getPoints();
+    this->points =  vtkSmartPointer<vtkPoints>::New();
+    this->points->DeepCopy(this->mesh.getPoints());
+//    std::cout << "DEEP COPIED" << std::endl;
+//    std::cout << this->mesh.getPoints()->GetNumberOfPoints() << std::endl;
+//    std::cout << this->points->GetNumberOfPoints() << std::endl;
     this->neighb_tri = compute_neighbours();
 
 }
@@ -444,7 +453,7 @@ pySurface generate_mesh(VolumeInt* mask,NiftiImage& image,
     for (int i = 0;i < num_iterations;i++) {
         //sphr.triangle_normalisation(1, 0.1);
         sphr.smoothMesh(smooth_numb1);
-        sphr.lab_move_points(mask1, fraction);
+        sphr.lab_move_points(mask1, fraction,0.1);
     }
     sphr.smoothMesh(smooth_numb2);
     auto trans = image.get_voxel_to_world();
@@ -476,23 +485,26 @@ std::vector<pySurface> pySurface::calculate_labels(std::string label_name, std::
                         ,num_subdivisions,fraction,num_iterations,smooth_numb1,smooth_numb2, mark )  );
                 mark = true;
         }
-
-
     }
 
     return res;
 
-
-
-
 }
 
 
-
-
-
+/**
+ *
+ * @param mask
+ * @param to_mni
+ * @param num_iterations
+ * @param num_subdivisions
+ * @param fraction
+ * @param smooth_numb1
+ * @param smooth_numb2
+ * @return
+ */
 pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
-                           const vector<vector<double>>& to_mni, //from voxel to MNI
+                                      vector<vector<double>>& to_mni, //from voxel to MNI
                            int num_iterations, int num_subdivisions, double fraction,
                            unsigned int smooth_numb1, unsigned int smooth_numb2){
 
@@ -521,10 +533,14 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
     for (int i = 0;i < num_iterations;i++) {
         //sphr.triangle_normalisation(1, 0.1);
         sphr.smoothMesh(smooth_numb1);
-        sphr.lab_move_points(maskV, fraction);
+        sphr.lab_move_points(maskV, fraction,0.3);
     }
     sphr.smoothMesh(smooth_numb2);
-    return pySurface(sphr);
+    auto a =  pySurface(sphr);
+
+    a.apply_transformation(to_mni);
+    std::cout << "transformed" << std::endl;
+    return a;
 
 
 

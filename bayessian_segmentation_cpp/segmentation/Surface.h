@@ -80,10 +80,10 @@ public:
 
     void shrink_sphere(vector<vector<vector<bool>>>& mask, std::tuple<double,double,double> center,double threshold);
 
-    void lab_move_points(VolumeDouble& mask,double threshold );
+    void lab_move_points(VolumeDouble& mask,double threshold,double step);
 
     void apply_transformation(TransformMatrix& pre_transformation);
-    void apply_transformation(arma::mat pre_transformation);
+    void apply_transformation(const arma::mat& pre_transformation);
     double calculate_volume();
 
     /**
@@ -126,6 +126,8 @@ private:
     static bool
     triangle_intersection(const double *V10, const double *V11, const double *V12, const double *V20, const double *V21,
                           const double *V22);
+
+    void lab_move_points_with_stop(VolumeDouble &mask, double threshold, Point center);
 };
 
 

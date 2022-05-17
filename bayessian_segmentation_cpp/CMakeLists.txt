@@ -2,7 +2,7 @@
 project(bayessian_segmentation_cpp)
  set(EXEC_NAME bayessian_segmentation_cpp)
  list(APPEND CMAKE_PREFIX_PATH "/home/varga/libs/bay_segm/spdlog/build2/lib/cmake/spdlog")
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 add_compile_options("-fPIC")
  set(VTK_DIR "/home/varga/VTK-9.0.1/build" CACHE PATH "VTK directory override" FORCE )
  find_package(spdlog REQUIRED)
@@ -49,13 +49,13 @@ include_directories(pybind11_INCLUDE_DIRS)
  add_library(Segmentation
          segmentation/Surface.cpp segmentation/Surface.h
          segmentation/NiftiImage.cpp segmentation/NiftiImage.h segmentation/Point.cpp segmentation/Point.h
-         segmentation/triangleintersects.h)
+         segmentation/triangleintersects.h py_wrappers/pySurface.h py_wrappers/pyNiftiImage.h)
 
 
  add_library( Utils
          utils/CLIParser.cpp utils/CLIParser.h)
  set(SOURCES utils/CLIParser.cpp segmentation/Surface.cpp
-         segmentation/NiftiImage.cpp segmentation/NiftiImage.h segmentation/Point.cpp )
+         segmentation/NiftiImage.cpp segmentation/NiftiImage.h segmentation/Point.cpp py_wrappers/pySurface.cpp py_wrappers/pyNiftiImage.cpp)
 
 add_executable(bayessian_segmentation_cpp main.cpp ${SOURCES})
  pybind11_add_module(ExtPy pybind_test.cpp py_wrappers/pySurface.cpp )

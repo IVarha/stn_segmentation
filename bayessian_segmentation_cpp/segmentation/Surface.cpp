@@ -39,7 +39,8 @@
 #include <vtkSphereSource.h>
 #include <vtkCellCenters.h>
 #include <vtkImplicitPolyDataDistance.h>
-#include "math.h"
+#include <vtkIndent.h>
+#include <cmath>
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h" // support for loading levels from the environment variable
 #include "spdlog/sinks/rotating_file_sink.h"
@@ -267,7 +268,6 @@ void Surface::apply_transformation(TransformMatrix& pre_transformation) {
         this->points->SetPoint(i,vox);
 
     }
-
     this->mesh->Initialize();
     this->mesh->SetPoints(this->points);
     this->mesh->SetPolys(this->triangles);
@@ -606,7 +606,8 @@ std::vector<std::vector<double>> Surface::getPointsAsVec() {
     return res;
 }
 
-void Surface::apply_transformation(arma::mat pre_transformation) {
+void Surface::apply_transformation(const arma::mat& pre_transformation) {
+    std::cout << this->mesh->GetPoints()->GetNumberOfPoints() << std::endl;
 
     TransformMatrix matrix = TransformMatrix();
     matrix.setMatrix(pre_transformation);
@@ -935,7 +936,7 @@ void Surface::update_mesh() {
     this->mesh->SetPolys(this->triangles);
 }
 
-void Surface::lab_move_points(VolumeDouble &mask, double threshold) {
+void Surface::lab_move_points(VolumeDouble &mask, double threshold,double step) {
     auto normalsGen =  vtkSmartPointer<vtkPolyDataNormals>::New();
     normalsGen->SetInputData(this->mesh);
     normalsGen->ComputeCellNormalsOff();
@@ -954,7 +955,7 @@ void Surface::lab_move_points(VolumeDouble &mask, double threshold) {
 
 
         auto norm2 = Point(normal);
-        Point res_vox= vox.move_in_value_dir(mask,norm2,0.1,threshold);
+        Point res_vox= vox.move_in_value_dir(mask,norm2,step,threshold);
 
         this->points->SetPoint(i,res_vox.getPt());
         //cout<<  "Process point :"<< i << endl;
@@ -964,6 +965,38 @@ void Surface::lab_move_points(VolumeDouble &mask, double threshold) {
     this->mesh->SetPoints(this->points);
     this->mesh->SetPolys(this->triangles);
 }
+
+void Surface::lab_move_points_with_stop(VolumeDouble &mask, double threshold,Point center) {
+    auto normalsGen =  vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalsGen->SetInputData(this->mesh);
+    normalsGen->ComputeCellNormalsOff();
+    normalsGen->ComputePointNormalsOn();
+    bool a1 = normalsGen->GetAutoOrientNormals();
+    normalsGen->SetAutoOrientNormals(true);
+    normalsGen->Update();
+    auto normals = normalsGen->GetOutput();
+    auto normals4= normals->GetPointData()->GetNormals();
+
+
+    double nm;
+    for(int i = 0; i < this->points->GetNumberOfPoints(); i++){
+        auto vox = Point(this->points->GetPoint(i));
+        double* normal = normals4->GetTuple(i);
+
+
+        auto norm2 = Point(normal);
+        Point res_vox= vox.move_point_with_stop(mask,norm2,center,threshold,0.3,0.01);
+
+        this->points->SetPoint(i,res_vox.getPt());
+        //cout<<  "Process point :"<< i << endl;
+    }
+
+    this->mesh->Initialize();
+    this->mesh->SetPoints(this->points);
+    this->mesh->SetPolys(this->triangles);
+}
+
+
 
 std::vector<std::vector<std::vector<double>>> Surface::calculate_normals(double mm, int npts) {
 
@@ -1274,9 +1307,10 @@ std::vector<int> Surface::rayMeshInterInd(std::vector<std::vector<double>> start
 
 Surface::Surface(const Surface &surface) {
     this->mesh = vtkSmartPointer<vtkPolyData>::New();
+    //this->mesh->PrintSelf(std::cout,vtkIndent(0));
     this->mesh->AllocateCopy(surface.mesh);
     this->mesh->DeepCopy(surface.mesh);
-
+//    this->mesh->PrintSelf(std::cout,vtkIndent(0));
     this->points = vtkSmartPointer<vtkPoints>::New();
     this->points->DeepCopy(surface.points);
 
@@ -1302,3 +1336,4 @@ void Surface::shrink_sphere(vector<vector<vector<bool>>> &mask, std::tuple<doubl
     auto vol = VolumeInt::mask_to_double(mask);
     return this->shrink_sphere(vol,center,threshold);
 }
+

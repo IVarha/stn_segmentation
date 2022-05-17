@@ -71,6 +71,8 @@ public:
 
     static TransformMatrix get_mirror_mri();
 
+    void print_matrix(){ this->matrix.print();};
+
 private:
     arma::Mat<double> matrix;
     arma::Mat<double> inverse_mat;
@@ -102,11 +104,11 @@ public:
 private:
     arma::Cube<double> v;
 public:
-    const arma::Cube<double> &getVolume() const;
+    [[nodiscard]] const arma::Cube<double> &getVolume() const;
 
     void setVolume(const arma::Cube<double> &v);
 
-    const TransformMatrix &getTransformation() const;
+    [[nodiscard]] const TransformMatrix &getTransformation() const;
 
     void setTransformation(const TransformMatrix &transformation);
 
@@ -116,11 +118,11 @@ private:
 
 class VolumeInt: Volume{
 public:
-    const arma::Cube<int> &getVolume() const;
+    [[nodiscard]] const arma::Cube<int> &getVolume() const;
 
     void setVolume(const arma::Cube<int> &v);
 
-    const TransformMatrix &getTransformation() const;
+    [[nodiscard]] const TransformMatrix &getTransformation() const;
 
     void setTransformation(const TransformMatrix &transformation);
 
@@ -135,6 +137,8 @@ public:
     Point center_of_mass();
 
     static Point center_of_mass(vector<vector<vector<bool>>>& mask);
+
+    std::vector<std::vector<std::vector<bool>>> get_mask_as_vector();
 
     virtual ~VolumeInt();
 
@@ -152,14 +156,14 @@ private:
     int type;
     arma::Mat<double> transform;
 public:
-    const arma::Mat<double> &getTransform() const;
+    [[nodiscard]] const arma::Mat<double> &getTransform() const;
 
 public:
-    double getXdim() const;
+    [[nodiscard]] double getXdim() const;
 
-    double getYdim() const;
+    [[nodiscard]] double getYdim() const;
 
-    double getZdim() const;
+    [[nodiscard]] double getZdim() const;
 
 private:
     double xdim;

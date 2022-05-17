@@ -614,9 +614,9 @@ void TransformMatrix::setMatrix(const vector<vector<double>> &matrix) {
     this->matrix(0,3) = matrix[0][3];
 
     this->matrix(1,0) = matrix[1][0];
-    this->matrix(1,0) = matrix[1][1];
-    this->matrix(1,0) = matrix[1][2];
-    this->matrix(1,0) = matrix[1][3];
+    this->matrix(1,1) = matrix[1][1];
+    this->matrix(1,2) = matrix[1][2];
+    this->matrix(1,3) = matrix[1][3];
 
     this->matrix(2,0) = matrix[2][0];
     this->matrix(2,1) = matrix[2][1];
@@ -821,4 +821,22 @@ VolumeDouble VolumeInt::mask_to_double(vector<vector<vector<bool>>>& mask) {
     }
     res.setVolume(cube);
     return res;
+}
+
+std::vector<std::vector<std::vector<bool>>> VolumeInt::get_mask_as_vector() {
+    auto a = std::vector<std::vector<std::vector<bool>>>();
+
+    for (int i=0; i< this->v.n_rows; i++){
+        auto b = std::vector<std::vector<bool>>();
+        for (int j=0; j< this->v.n_cols; j++){
+            auto c = std::vector<bool>();
+            for (int k=0; k< this->v.n_slices; k++){
+                c.push_back((bool) this->v(i,j,k));
+            }
+            b.push_back(c);
+        }
+        a.push_back(b);
+    }
+
+    return a;
 }

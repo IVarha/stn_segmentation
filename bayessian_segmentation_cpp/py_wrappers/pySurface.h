@@ -15,16 +15,16 @@ class pySurface {
     std::vector<std::set<int>> neighb_tri;
 
     vtkSmartPointer<vtkPoints> points;
-    Surface* mesh = nullptr;
+    Surface mesh;
     int p_size = 0;
 public:
     explicit pySurface(const std::string &name) : name(name) {
-        this->mesh = new Surface();
-        this->mesh->read_obj(name);
+        this->mesh = Surface();
+        this->mesh.read_obj(name);
         //std::cout << 1 << std::endl;
-        this->triangles = this->mesh->getTrianglesAsVec();
+        this->triangles = this->mesh.getTrianglesAsVec();
         //std::cout << 2 << std::endl;
-        this->points = this->mesh->getPoints();
+        this->points = this->mesh.getPoints();
         //std::cout << 3 << std::endl;
         this->neighb_tri = compute_neighbours();
     }
@@ -88,7 +88,7 @@ public:
     std::vector<int> rayTriangleIntersectionIndexes( std::vector<std::vector<double>> start_end );
 
     double distanceToPoint(double x, double y, double z){
-        return this->mesh->distanceToPoint(x,y,z);
+        return this->mesh.distanceToPoint(x,y,z);
     }
 
     double computeVolume();
@@ -97,7 +97,6 @@ public:
 
     std::vector<double> getUnpackedCords();
     virtual ~pySurface() {
-        if (mesh!= nullptr) delete mesh;
     }
 
     /**
@@ -130,7 +129,7 @@ public:
      * @return mesh in voxel space
      */
     static pySurface calculate_label( vector<vector<vector<bool>>> mask,
-                               const vector<vector<double>>& to_mni,
+                                      vector<vector<double>>& to_mni,
                                int num_iterations, int num_subdivisions, double fraction,
                                unsigned int smooth_numb1, unsigned int smooth_numb2);
 };
