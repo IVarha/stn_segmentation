@@ -60,7 +60,7 @@ class CMakeBuild(build_ext):
             build_args += ['--', '/m']
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j2']
+            build_args += ['--', '-j32']
 
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(
@@ -82,7 +82,7 @@ ext_modules = [
 
 setup(
     name='py_stn_segmentation',
-    version='1.1.01',
+    version='1.1.1',
     packages=['bayessian_appearance','cppcode'],
     url='',
     license='',

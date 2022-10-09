@@ -39,6 +39,17 @@ public:
     explicit pySurface(const Surface& surf);
 
 
+    /**
+     *
+     * @return pySurface copy of this object
+     */
+    pySurface getCopy();
+
+
+    /**
+     *
+     * @return
+     */
     const std::string &getName() const { return name; }
 
     /**
@@ -80,7 +91,11 @@ public:
     std::vector<bool> isPointsInside( std::vector<std::vector<double>> points);
     void saveObj(std::string filename);
 
-
+    /**
+     *
+     * @param start_end
+     * @return
+     */
     std::vector<std::vector<double>> rayTriangleIntersection(std::vector<std::vector<double>> start_end);
 
     std::vector<std::vector<double>> centresOfTriangles();

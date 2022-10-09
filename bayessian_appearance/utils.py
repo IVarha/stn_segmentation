@@ -4,7 +4,6 @@ import json
 import math
 import os
 
-
 import fsl.data.image as f_im
 import fsl.data.image as fim
 import fsl.transform.flirt as fl
@@ -15,6 +14,7 @@ import bayessian_appearance.settings as settings
 import bayessian_appearance.vt_image as vtim
 import ExtPy
 
+
 def read_label_desc(file_name):
     fm = open(file=file_name, mode='rt')
     res = []
@@ -23,7 +23,7 @@ def read_label_desc(file_name):
     for sub in fm:
         a = sub.split(',')
         res.append(a[0])
-        if len(a)>2:
+        if len(a) > 2:
             if a[2] != '':
                 prec.append(a[2])
             else:
@@ -109,13 +109,28 @@ def read_segmentation_config(file_name):
 
 
 def apply_transf_2_pts(pts, transf):
-    res = []
-    for i in range(len(pts)):
-        pt_norm = np.array(pts[i] + [1])
-        pt_tmp = list((np.dot(transf, pt_norm))[:3])
+    """
+    Applies transformation to points
+    """
 
-        res.append(pt_tmp)
-    return res
+    if isinstance(pts,list):#
+        res = []
+        for i in range(len(pts)):
+            pt_norm = np.array(pts[i] + [1])
+            pt_tmp = list((np.dot(transf, pt_norm))[:3])
+
+            res.append(pt_tmp)
+        return res
+    elif isinstance(pts,np.ndarray):
+        res = []
+        for i in range(len(pts)):
+            pt_norm = np.concatenate((pts[i],[1]))
+            pt_tmp = (np.dot(transf, pt_norm))[:3]
+
+            res.append(pt_tmp)
+        return np.array(res)
+    else:
+        raise Exception("wrong type")
 
 
 def translate_p(p):
@@ -127,31 +142,34 @@ def translate_p(p):
     m[2, 3] = p[2]
     return m
 
+
 def mirror_point(center, axis):
     p1 = translate_p(-center)
     p2 = translate_p(center)
 
     t = np.eye(4)
-    t[axis,axis] = -1
-    return np.linalg.multi_dot([p2,t,p1])
+    t[axis, axis] = -1
+    return np.linalg.multi_dot([p2, t, p1])
 
-def rotation_along_axis_wc(center, axis,angle):
+
+def rotation_along_axis_wc(center, axis, angle):
     center = np.array(center)
     p1 = translate_p(-center)
     p2 = translate_p(center)
     t = rotate_axis(axis, angle)
     return np.linalg.multi_dot([p2, t, p1])
 
-def rotation_axis_2vecs(center, st_ax,rot_ax,N):
+
+def rotation_axis_2vecs(center, st_ax, rot_ax, N):
     center = np.array(center)
     p1 = translate_p(-center)
     p2 = translate_p(center)
 
-    alpha = math.acos(np.dot(st_ax,rot_ax)/(np.linalg.norm(st_ax)*np.linalg.norm(rot_ax)))
+    alpha = math.acos(np.dot(st_ax, rot_ax) / (np.linalg.norm(st_ax) * np.linalg.norm(rot_ax)))
     # if alpha > np.pi/2:
     #     alpha = 0 - (np.pi - alpha)
-    t = rotate_axis(N,-alpha)
-    return np.linalg.multi_dot([p2,t,p1])
+    t = rotate_axis(N, -alpha)
+    return np.linalg.multi_dot([p2, t, p1])
 
 
 def plane_intersect(a, b):
@@ -174,6 +192,7 @@ def plane_intersect(a, b):
     p_inter = np.linalg.solve(A, d).T
 
     return p_inter[0], (p_inter + aXb_vec)[0]
+
 
 def kron(a, b):
     a_s = []
@@ -201,9 +220,6 @@ def rotate_axis(axis, degree):
     )
     m = np.dot(m, tmp)
     return m
-
-
-
 
 
 def apply_transf_2_norms(norms, transf):
@@ -324,10 +340,16 @@ def calculate_mask_touches(mask, norms):
         res.append(tmp)
     return res
 
-def apply_transform_to_point(transform, point):
+
+def apply_transform_to_point(transform: np.ndarray, point):
+    """
+        return: applies transformation to  point
+    """
+
     b = np.array(point)
     a = np.array(b.tolist() + [1])
     return np.dot(transform, a)[:3]
+
 
 def save_intensities_csv(pdm, filename):
     try:
@@ -339,11 +361,12 @@ def save_intensities_csv(pdm, filename):
     wr.writerows(pdm)
     f.close()
 
-def get_flirt_transformation_matrix(mat_file,src_file,dest_file,from_,to):
-    im_src = fim.Image(src_file,loadData=False)
-    im_dest = fim.Image(dest_file,loadData=False)
+
+def get_flirt_transformation_matrix(mat_file, src_file, dest_file, from_, to):
+    im_src = fim.Image(src_file, loadData=False)
+    im_dest = fim.Image(dest_file, loadData=False)
     forward_transf_fsl = fl.readFlirt(mat_file)
-    return fl.fromFlirt(forward_transf_fsl,im_src,im_dest,from_,to)
+    return fl.fromFlirt(forward_transf_fsl, im_src, im_dest, from_, to)
 
 
 def calculate_intensites_subject(modalities, labels, subject, discretisation, norm_len, mesh_name_end):

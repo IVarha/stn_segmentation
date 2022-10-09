@@ -101,6 +101,7 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             .def( "centes_of_triangles", &pySurface::centresOfTriangles)
             .def( "index_of_intersectedtriangle", &pySurface::rayTriangleIntersectionIndexes)
             .def("distance_to_point", &pySurface::distanceToPoint)
+            .def("get_copy", &pySurface::getCopy)
             .def("compute_meshes",&pySurface::calculate_labels)
             .def_static("compute_mesh", &pySurface::calculate_label).def_static("test_static",[]{std::cout << "static str";});
 

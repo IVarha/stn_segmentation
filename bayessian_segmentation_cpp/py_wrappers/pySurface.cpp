@@ -528,6 +528,7 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
 
     auto maskV = VolumeInt::mask_to_double(mask);
     sphr.shrink_sphere(maskV,center_of_label.to_tuple(), fraction);
+    sphr.shrink_sphere(maskV,sphr.computeFigCenter(),fraction);
 //    sphr.smoothMesh();
 
     for (int i = 0;i < num_iterations;i++) {
@@ -545,5 +546,11 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
 
 
 }
+
+pySurface pySurface::getCopy() {
+    return pySurface(this->mesh);
+}
+
+
 
 

@@ -61,6 +61,12 @@ public:
 
     void smoothMesh(int iter);
 
+    /**
+     * Computes centre of a figure
+     * @return centre of a figure
+     */
+    std::tuple<double,double,double> computeFigCenter();
+
     void saveImage(std::string filename);
 
     std::vector<std::vector<std::vector<double>>> calculate_normals(double mm, int npts);

@@ -95,9 +95,11 @@ class Image:
             res.append(t_pt)
         return res
 
+    def get_vox_to_phys(self):
+        return self._to_phys_mat.copy()
 
     def get_vox_to_world(self):
-        return self._to_phys_mat.copy()
+        return np.linalg.inv(self._world_2_vox)
 
     def get_image_data(self):
         a = nib.load(filename=self._file_name)

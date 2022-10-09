@@ -264,7 +264,8 @@ void Surface::apply_transformation(TransformMatrix& pre_transformation) {
 
     for (int i = 0;i< this->points->GetNumberOfPoints();i++){
         double* pt = this->points->GetPoint(i);
-        double * vox = pre_transformation.apply_transform(pt);
+        double * vox = pre_transformation.apply_transform(pt); //apply transformation to point!
+
         this->points->SetPoint(i,vox);
 
     }
@@ -805,9 +806,9 @@ void Surface::triangle_normalisation(int iterations,double fraction) {
                 pt2 = this->vec_tri[triangle][1];
                 pt3 = this->vec_tri[triangle][2];
 
-                Point pt_1 = Point(this->points->GetPoint(pt1));
-                Point pt_2= Point(this->points->GetPoint(pt2));
-                Point pt_3= Point(this->points->GetPoint(pt3));
+                auto pt_1 = Point(this->points->GetPoint(pt1));
+                auto pt_2= Point(this->points->GetPoint(pt2));
+                auto pt_3= Point(this->points->GetPoint(pt3));
 
                 Point v1 = pt_2 - pt_1;
                 Point v2 = pt_3 - pt_1;
@@ -1335,5 +1336,32 @@ void Surface::shrink_sphere(vector<vector<vector<bool>>> &mask, std::tuple<doubl
                             double threshold) {
     auto vol = VolumeInt::mask_to_double(mask);
     return this->shrink_sphere(vol,center,threshold);
+}
+
+std::tuple<double, double, double> Surface::computeFigCenter() {
+//    double x = 0;double  y = 0;double  z = 0;
+//    for(int i = 0; i < this->points->GetNumberOfPoints(); i++){
+//        auto vox = Point(this->points->GetPoint(i));
+//        x+=vox.getX();
+//        y+=vox.getY();
+//        z+=vox.getZ();
+//
+//    }
+//    x= x / this->points->GetNumberOfPoints();
+//    y= y / this->points->GetNumberOfPoints();
+//    z= z / this->points->GetNumberOfPoints();
+//    return std::tuple<double, double, double>(x,y,z);
+
+    auto polydata = vtkSmartPointer<vtkPolyData>::New();
+    polydata->SetPoints(points);
+
+    auto centerOfMass = vtkSmartPointer<vtkCenterOfMass>::New();
+    centerOfMass->SetInputData(polydata);
+    centerOfMass->SetUseScalarsAsWeights(false);
+    centerOfMass->Update();
+
+    auto G = centerOfMass->GetCenter();
+    std::cout << "Center " << G[0] << " " << G[1] << " " <<G[2] << " " << std::endl;
+    return std::tuple<double, double, double>(G[0],G[1],G[2]);
 }
 

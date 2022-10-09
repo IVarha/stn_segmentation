@@ -176,7 +176,7 @@ void test_interpolation(){
 
 //todo remove after
 void test_image( ){
-    std::string label_file= "kj";
+    std::string label_file= "/home/varga/processing_data/Homolka/processing1/workdir/KOUT_JIRI_9675633_out/labels_t2_se_TRA_resampled.nii.gz";
 
 
 
@@ -226,6 +226,9 @@ void test_image( ){
                                            10,1,
                                            0.3,5
                                            ,5);
+
+    res.saveObj("/home/varga/processing_data/kj_stn.obj");
+    exit(1);
 
 }
 

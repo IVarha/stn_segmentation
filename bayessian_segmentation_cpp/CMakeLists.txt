@@ -1,4 +1,4 @@
- cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.10)
 project(bayessian_segmentation_cpp)
  set(EXEC_NAME bayessian_segmentation_cpp)
  list(APPEND CMAKE_PREFIX_PATH "/home/varga/libs/bay_segm/spdlog/build2/lib/cmake/spdlog")
