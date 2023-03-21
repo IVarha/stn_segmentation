@@ -73,7 +73,7 @@ bool pySurface::self_intersection_test(const std::vector<double>& new_points) {
 //                delete[] U0;
 //                delete[] U1;
 //                delete[] U2;
-                std::cout << "intersected: " << i << " " << j << std::endl;
+                //std::cout << "intersected: " << i << " " << j << std::endl;
                 return true;
 
             }
@@ -114,11 +114,11 @@ void pySurface::apply_transformation(const std::vector<std::vector<double>>& arr
     a(3,2) = arr[3][2];
     a(3,3) = arr[3][3];
     //a.print(std::cout);
-    std::cout << " atarting apply transformation" << std::endl;
+    //std::cout << " atarting apply transformation" << std::endl;
     this->mesh.apply_transformation(a);
 
 
-    std::cout << " transformation finished" << std::endl;
+    //std::cout << " transformation finished" << std::endl;
     this->points = this->mesh.getPoints();
 
 
@@ -521,7 +521,7 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
     //GENERATE SPHERE IN MNI COORDS!!!
 
     tuple<double,double,double> ride = {swap_centre[0],swap_centre[1],swap_centre[2]};
-    auto sphr = Surface::generate_sphere(100,ride,num_subdivisions);
+    auto sphr = Surface::generate_sphere(50,ride,num_subdivisions);
 
     sphr.apply_transformation(inv_transform);
 
@@ -540,7 +540,7 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
     auto a =  pySurface(sphr);
 
     a.apply_transformation(to_mni);
-    std::cout << "transformed" << std::endl;
+   // std::cout << "transformed" << std::endl;
     return a;
 
 
@@ -549,6 +549,16 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
 
 pySurface pySurface::getCopy() {
     return pySurface(this->mesh);
+}
+
+std::vector<double> pySurface::centerOfMesh() {
+    auto [x,y,z] = this->mesh.computeFigCenter();
+    auto re = std::vector<double>();
+
+    re.push_back(x);
+    re.push_back(y);
+    re.push_back(z);
+    return re;
 }
 
 

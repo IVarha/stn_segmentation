@@ -99,10 +99,12 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             .def("is_points_inside",&pySurface::isPointsInside)
             .def("ray_mesh_intersection", &pySurface::rayTriangleIntersection)
             .def( "centes_of_triangles", &pySurface::centresOfTriangles)
-            .def( "index_of_intersectedtriangle", &pySurface::rayTriangleIntersectionIndexes)
+            .def( "index_of_intersectedtriangle", &pySurface::rayTriangleIntersectionIndexes).
+            def( "center_of_mesh", &pySurface::centerOfMesh)
             .def("distance_to_point", &pySurface::distanceToPoint)
             .def("get_copy", &pySurface::getCopy)
             .def("compute_meshes",&pySurface::calculate_labels)
+            .def("oriented_bounding_box", &pySurface::computeOBoundingBox)
             .def_static("compute_mesh", &pySurface::calculate_label).def_static("test_static",[]{std::cout << "static str";});
 
 

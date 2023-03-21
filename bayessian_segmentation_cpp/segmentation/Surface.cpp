@@ -45,6 +45,7 @@
 #include "spdlog/cfg/env.h" // support for loading levels from the environment variable
 #include "spdlog/sinks/rotating_file_sink.h"
 #include <algorithm>
+#include <vtkOBBTree.h>
 
 void Surface::read_volume(const std::string& file_name ) {
     auto reader = vtkSmartPointer<vtkPolyDataReader>::New();
@@ -161,11 +162,11 @@ Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, do
     sphereSource->SetCenter(std::get<0>(center),std::get<1>(center),std::get<2>(center));
     sphereSource->Update();
     auto originalMesh = sphereSource->GetOutput();
-    std::cout << "Before subdivision" << std::endl;
-    std::cout << "    There are " << originalMesh->GetNumberOfPoints()
-              << " points." << std::endl;
-    std::cout << "    There are " << originalMesh->GetNumberOfPolys()
-              << " triangles." << std::endl;
+//    std::cout << "Before subdivision" << std::endl;
+//    std::cout << "    There are " << originalMesh->GetNumberOfPoints()
+//              << " points." << std::endl;
+//    std::cout << "    There are " << originalMesh->GetNumberOfPolys()
+//              << " triangles." << std::endl;
     auto subdivisionFilter = vtkSmartPointer<vtkLinearSubdivisionFilter>::New();
     subdivisionFilter->SetInputData(originalMesh);
     //subdivisionFilter->SetNumberOfSubdivisions(2);
@@ -174,8 +175,8 @@ Surface Surface::generate_sphere(double radius_mm, std::tuple<double, double, do
     auto mesh = subdivisionFilter->GetOutput();
     Surface result = Surface();
     result.points = mesh->GetPoints();
-    std::cout << "    There are " << mesh->GetPoints()->GetNumberOfPoints()
-              << " points." << std::endl;
+//    std::cout << "    There are " << mesh->GetPoints()->GetNumberOfPoints()
+//              << " points." << std::endl;
     result.triangles = mesh->GetPolys();
     result.mesh = mesh;
     result.mesh->Initialize();
@@ -381,19 +382,19 @@ void Surface::read_obj(const string &basicString) {
                                               \
     a = U2[i1] - U1[i1];                      \
     b = -(U2[i0] - U1[i0]);                   \
-    c = -a * U1[i0] - b * U1[i1];             \
-    d1 = a * V0[i0] + b * V0[i1] + c;         \
+    c = -a * (U1)[i0] - b * U1[i1];             \
+    d1 = a * (V0)[i0] + b * V0[i1] + c;         \
                                               \
     a = U0[i1] - U2[i1];                      \
-    b = -(U0[i0] - U2[i0]);                   \
-    c = -a * U2[i0] - b * U2[i1];             \
-    d2 = a * V0[i0] + b * V0[i1] + c;         \
+    b = -((U0)[i0] - (U2)[i0]);                   \
+    c = -a * (U2)[i0] - b * (U2)[i1];             \
+    d2 = a * (V0)[i0] + b * (V0)[i1] + c;         \
     if (d0 * d1 > 0.0) {                      \
       if (d0 * d2 > 0.0) return 1;            \
     }                                         \
   }
 
-int coplanar_tri_tri(double N[3], double V0[3], double V1[3], double V2[3], double U0[3], double U1[3], double U2[3])
+int coplanar_tri_tri(double N[3], const double V0[3], double V1[3], double V2[3], double U0[3], double U1[3], double U2[3])
 {
     double A[3];
     short i0, i1;
@@ -608,7 +609,7 @@ std::vector<std::vector<double>> Surface::getPointsAsVec() {
 }
 
 void Surface::apply_transformation(const arma::mat& pre_transformation) {
-    std::cout << this->mesh->GetPoints()->GetNumberOfPoints() << std::endl;
+    //std::cout << this->mesh->GetPoints()->GetNumberOfPoints() << std::endl;
 
     TransformMatrix matrix = TransformMatrix();
     matrix.setMatrix(pre_transformation);
@@ -1361,7 +1362,66 @@ std::tuple<double, double, double> Surface::computeFigCenter() {
     centerOfMass->Update();
 
     auto G = centerOfMass->GetCenter();
-    std::cout << "Center " << G[0] << " " << G[1] << " " <<G[2] << " " << std::endl;
+    //std::cout << "Center " << G[0] << " " << G[1] << " " <<G[2] << " " << std::endl;
     return std::tuple<double, double, double>(G[0],G[1],G[2]);
+}
+
+std::vector<bool>
+Surface::computeOBoundingBox(std::vector<std::vector<double>>& input_coords) {
+    std::cout << "test";
+    auto obbTree = vtkSmartPointer<vtkOBBTree>::New();
+    obbTree->SetDataSet(this->mesh);
+    obbTree->SetMaxLevel(0);
+    obbTree->BuildLocator();
+    double corner[3] = {0.0, 0.0, 0.0};
+    double max[3] = {0.0, 0.0, 0.0};
+    double mid[3] = {0.0, 0.0, 0.0};
+    double min[3] = {0.0, 0.0, 0.0};
+    double size[3] = {0.0, 0.0, 0.0};
+    obbTree->ComputeOBB(this->mesh, corner, max, mid, min, size);
+    std::cout << "Corner:\t" << corner[0] << ", " << corner[1] << ", "
+              << corner[2] << std::endl
+              << "Max:\t" << max[0] << ", " << max[1] << ", " << max[2]
+              << std::endl
+              << "Mid:\t" << mid[0] << ", " << mid[1] << ", " << mid[2]
+              << std::endl
+              << "Min:\t" << min[0] << ", " << min[1] << ", " << min[2]
+              << std::endl
+              << "Size:\t" << size[0] << ", " << size[1] << ", " << size[2]
+              << std::endl;
+
+    vtkPolyData* tmp = vtkPolyData::New();
+
+    obbTree->GenerateRepresentation(0, tmp);
+    auto encl_points = vtkSmartPointer<vtkSelectEnclosedPoints>::New();
+    encl_points->SetInputData(tmp);
+    encl_points->SetSurfaceData(tmp);
+    encl_points->Update();
+
+    std::cout << "test42" <<std::endl;
+
+    auto res = std::vector<bool>();
+    //tmp->GetPolys()->PrintSelf(std::cout,vtkIndent(0));
+    //tmp->GetPoints()->PrintSelf(std::cout,vtkIndent(0));
+    double arr[3] = {0,0,0};
+    for ( int i = 0; i < input_coords.size();i++){
+        arr[0] = input_coords[i][0];
+        arr[1] = input_coords[i][1];
+        arr[2] = input_coords[i][2];
+
+        if (encl_points->IsInsideSurface(arr)){
+            res.push_back(true);
+
+        }else{ res.push_back(false);
+        }
+
+    }
+    for (int i=0; i < tmp->GetPoints()->GetNumberOfPoints();i++){
+        tmp->GetPoints()->GetPoint(i,arr);
+        std::cout << "pt i " << arr[0] << " " << arr[1] << " " << arr[2] << std::endl;
+    }
+
+    tmp->Delete();
+    return res;
 }
 

@@ -100,6 +100,8 @@ public:
 
     std::vector<std::vector<double>> centresOfTriangles();
 
+    std::vector<double> centerOfMesh();
+
     std::vector<int> rayTriangleIntersectionIndexes( std::vector<std::vector<double>> start_end );
 
     double distanceToPoint(double x, double y, double z){
@@ -147,7 +149,20 @@ public:
                                       vector<vector<double>>& to_mni,
                                int num_iterations, int num_subdivisions, double fraction,
                                unsigned int smooth_numb1, unsigned int smooth_numb2);
+
+
+
+    /**
+    *
+    * @param input_coords input coordinates for which we compute mask
+    * @return oriented bounding box
+    */
+    std::vector<bool> computeOBoundingBox(std::vector<std::vector<double>>& input_coords){
+        return this->mesh.computeOBoundingBox(input_coords);
+    }
+
 };
+
 
 
 

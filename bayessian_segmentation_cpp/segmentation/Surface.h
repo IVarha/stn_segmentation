@@ -33,6 +33,14 @@ class Surface {
     std::vector<std::vector<int>> point_tri;
 
 public:
+
+    /**
+     *
+     * @param input_coords input coordinates for which we compute mask
+     * @return oriented bounding box
+     */
+    std::vector<bool> computeOBoundingBox(std::vector<std::vector<double>>& input_coords);
+
     const vtkSmartPointer<vtkPoints> &getPoints() const;
 
     void setPoints(const vtkSmartPointer<vtkPoints> &points);
@@ -110,6 +118,9 @@ public:
      * */
     Point getPPoint(int id);
     std::vector<std::vector<double>> getTriangleCenters();
+
+
+
 
 private:
 

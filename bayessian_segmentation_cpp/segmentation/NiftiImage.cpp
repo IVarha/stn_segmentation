@@ -205,7 +205,7 @@ void NiftiImage::read_nifti_image(string file) {
     double range[2];
     reader->GetOutput()->GetPointData()->GetScalars()->GetRange(range);
 
-    std::cout << range[0] << ", " << range[1] << std::endl;
+    //std::cout << range[0] << ", " << range[1] << std::endl;
     std::cout << reader->GetDataSpacing()[0] << ", " << reader->GetDataSpacing()[1] << " ," << reader->GetDataSpacing()[2] <<  std::endl;
     std::cout << reader->GetDataSpacing()[0] << ", " << reader->GetDataSpacing()[1] << " ," << reader->GetDataSpacing()[2] <<  std::endl;
 
