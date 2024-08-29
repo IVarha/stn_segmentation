@@ -1,7 +1,9 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+
 #include <pySurface.h>
 //#include <pyNiftiImage.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
@@ -103,9 +105,27 @@ m.def( "is_triangle_intersected",&pySurface::triangles_intersected,R"pbdoc(
             def( "center_of_mesh", &pySurface::centerOfMesh)
             .def("distance_to_point", &pySurface::distanceToPoint)
             .def("get_copy", &pySurface::getCopy)
+
             .def("compute_meshes",&pySurface::calculate_labels)
             .def("oriented_bounding_box", &pySurface::computeOBoundingBox)
-            .def_static("compute_mesh", &pySurface::calculate_label).def_static("test_static",[]{std::cout << "static str";});
+            .def_static("compute_mesh", &pySurface::calculate_label)
+            .def_static("test_static",[]{std::cout << "static str";})
+            .def("test_method", &pySurface::test_a )
+            .def(py::pickle(
+                    [](const pySurface &p){
+                        Surface a = p.getSurface();
+                        return py::make_tuple(a.getPointsAsVec(),a.getTrianglesAsVec());
+                        },
+                    [](py::tuple t){
+                        if (t.size() != 2)
+                            throw std::runtime_error("Invalid state!");
+
+                        /* Create a new C++ instance */
+                        auto vts = t[0].cast<std::vector<std::vector<double>>>();
+                        auto trg = t[1].cast<std::vector<std::vector<int>>>();
+                        return pySurface(Surface::meshFromPoints(vts,trg));
+                    }
+                    ));
 
 
 //    py::class_<pyNiftiImage>(m,"cImage")

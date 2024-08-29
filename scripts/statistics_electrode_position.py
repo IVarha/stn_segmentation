@@ -1,16 +1,15 @@
 """GENERATE NEW IMAGE FROM STATISTICS"""
+import os
 import pickle
+import sys
 
-import bayessian_appearance.utils as util
 import ExtPy
 import numpy as np
-import pandas as pd
-import sys
-import os
-from pandas_ods_reader import read_ods
-import sklearn.covariance as cov
-import matplotlib.pyplot as plt
 import scipy.io as io
+import sklearn.covariance as cov
+from pandas_ods_reader import read_ods
+
+import bayessian_appearance.utils as util
 
 
 def main_proc(inp, outp):
@@ -21,6 +20,10 @@ def main_proc(inp, outp):
 
 
 def calculate_statistics_anatomically(workdir, subjects):
+    """
+    computes intersection of planned line and meshes and build a statistics based on intersection
+    could be use for proposition of
+    """
     mesh_name_1 = "3_1T1.obj"
     mesh_name_2 = "4_1T1.obj"
 

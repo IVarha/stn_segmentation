@@ -512,7 +512,7 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
     auto transf = TransformMatrix();
     transf.setMatrix(to_mni);
 
-    auto inv_transform = transf.get_inverse();//from augmented mni to world
+    auto inv_transform = transf.get_inverse();//from augmented mni to vox
 
     //point of center in mni coordinates
     auto swap_centre = transf.apply_transform(center_of_label.getX()
@@ -543,13 +543,12 @@ pySurface pySurface::calculate_label( vector<vector<vector<bool>>> mask,
    // std::cout << "transformed" << std::endl;
     return a;
 
-
-
 }
 
 pySurface pySurface::getCopy() {
     return pySurface(this->mesh);
 }
+
 
 std::vector<double> pySurface::centerOfMesh() {
     auto [x,y,z] = this->mesh.computeFigCenter();
@@ -560,7 +559,3 @@ std::vector<double> pySurface::centerOfMesh() {
     re.push_back(z);
     return re;
 }
-
-
-
-

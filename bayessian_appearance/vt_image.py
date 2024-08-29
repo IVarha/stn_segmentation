@@ -25,12 +25,20 @@ class Image:
                 for z in range(z_dim):
                     val = self._image_instance.SetScalarComponentFromDouble(x, y, z, 0, im_data[x, y, z])
 
-    def __init__(self, filename):
-        self._file_name = filename
+    @classmethod
+    def readFromFile(cls, filename):
         imr = vtk.vtkNIFTIImageReader()
         imr.SetFileName(filename)
         imr.Update()
-        self._image_instance = imr.GetOutput()
+        nifti_image= imr.GetOutput()
+        return cls(nifti_image)
+
+    def __init__(self, nifti_image):
+        """
+        load image by filename
+        """
+
+        self._image_instance = nifti_image
         tr_mat = self._image_instance.GetIndexToPhysicalMatrix()
 
         self._to_phys_mat = np.zeros((4, 4))
@@ -55,13 +63,14 @@ class Image:
         self._to_phys_mat[3, 2] = tr_mat.GetElement(3, 2)
         self._to_phys_mat[3, 3] = tr_mat.GetElement(3, 3)
 
-        a = nib.load(filename)
-        self._world_2_vox = np.linalg.inv(a.affine)
+#        self._world_2_vox = np.linalg.inv(a.affine)
 
-        if self.test_function():
-            pass
-        else:
-            self._reread_image(filename)
+        # if self.test_function():
+        #     pass
+        # else:
+        #     self._reread_image(filename)
+
+
 
     def setup_bspline(self, num_spl):
         self._interpolation = vtk.vtkImageBSplineCoefficients()

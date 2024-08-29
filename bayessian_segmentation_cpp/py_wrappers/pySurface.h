@@ -52,10 +52,26 @@ public:
      */
     const std::string &getName() const { return name; }
 
+
+    /**
+     *
+     * @return surface instance
+     */
+    const Surface& getSurface() const {
+        return this->mesh;
+    }
+
     /**
      * Modifies instance of Surface by replacing vertices
      *
      * */
+
+    void test_a(){
+        Surface a = this->getSurface();
+        auto b = a.getPointsAsVec();
+        auto c = a.getTrianglesAsVec();
+    }
+
     void modify_points(std::vector<double> points);
 
     bool self_intersection_test(const std::vector<double>& new_points);
@@ -161,6 +177,7 @@ public:
         return this->mesh.computeOBoundingBox(input_coords);
     }
 
+    pySurface getSimilar();
 };
 
 

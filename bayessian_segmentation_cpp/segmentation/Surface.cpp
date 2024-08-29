@@ -9,7 +9,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataMapper.h>
 #include <cstdio>
-
+#include <vtkTriangle.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <sstream>
@@ -41,9 +41,9 @@
 #include <vtkImplicitPolyDataDistance.h>
 #include <vtkIndent.h>
 #include <cmath>
-#include "spdlog/spdlog.h"
-#include "spdlog/cfg/env.h" // support for loading levels from the environment variable
-#include "spdlog/sinks/rotating_file_sink.h"
+//#include "spdlog/spdlog.h"
+//#include "spdlog/cfg/env.h" // support for loading levels from the environment variable
+//#include "spdlog/sinks/rotating_file_sink.h"
 #include <algorithm>
 #include <vtkOBBTree.h>
 
@@ -587,25 +587,19 @@ std::vector<std::vector<int>> Surface::getTrianglesAsVec() {
 }
 
 std::vector<std::vector<double>> Surface::getPointsAsVec() {
-    auto res = std::vector<std::vector<double>>(this->points->GetNumberOfPoints());
-    double x,y,z;
-    for (int i = 0; i < this->points->GetNumberOfPoints();i++){
-        //std::cout << i << std::endl;
-        auto tvec = std::vector<double>(3);
-
-        auto pt = this->points->GetPoint(i);
-        x = pt[0];
-        y = pt[1];
-        z = pt[2];
-        tvec[0] = x;
-        tvec[1] = y;
-        tvec[2] = z;
-
-        res[i]= tvec;
-        delete pt;
-
+    {
+        std::vector<std::vector<double>> vertices;
+        auto pts = this->mesh->GetPoints();
+        if (points)
+        {
+            for (vtkIdType i = 0; i < points->GetNumberOfPoints(); i++)
+            {
+                double* p = points->GetPoint(i);
+                vertices.push_back({p[0], p[1], p[2]});
+            }
+        }
+        return vertices;
     }
-    return res;
 }
 
 void Surface::apply_transformation(const arma::mat& pre_transformation) {
@@ -616,7 +610,7 @@ void Surface::apply_transformation(const arma::mat& pre_transformation) {
     this->apply_transformation(matrix);
 
 }
-std::shared_ptr<spdlog::logger> Surface::_logger=spdlog::rotating_logger_st("file_logger", "logs/mylogfile", 1048576 * 5, 25);
+//std::shared_ptr<spdlog::logger> Surface::_logger=spdlog::rotating_logger_st("file_logger", "logs/mylogfile", 1048576 * 5, 25);
 
 bool Surface::triangle_intersection(const double* V10, const double* V11, const double* V12, const double* V20, const double* V21, const double* V22 )
 {//this is the de
@@ -633,7 +627,7 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
         if (Point::isEqual(V11, V20) || Point::isEqual(V11, V21) || Point::isEqual(V11, V22)) eq++;
         if (Point::isEqual(V12, V20) || Point::isEqual(V12, V21) || Point::isEqual(V12, V22)) eq++;
 
-        if (eq == 1) { Surface::_logger->error("Succesful exit in 1");return false;}
+        //if (eq == 1) { Surface::_logger->error("Succesful exit in 1");return false;}
 
         auto v1 =  Point::substract(V21, V20);
         auto v2 = Point::substract(V22, V20);
@@ -735,7 +729,6 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
 //                Surface::_logger->error("Succesful exit in 4");
                 return false;
             }
-            if ((dist10 == dist12) || (dist11 == dist12) || (dist11 == dist10)) {Surface::_logger->error("pr2"); cout << "problem" << endl; }
             double t11, t12, t21, t22; //intersection parameters
 
             //get triangle 1 interval
@@ -749,7 +742,6 @@ bool Surface::triangle_intersection(const double* V10, const double* V11, const 
                 t11 = p11 - (p11 - p10) * (dist11 / (dist11 - dist10));
                 t12 = p12 - (p12 - p10) * (dist12 / (dist12 - dist10));
             }
-            if ((dist20 == dist21) || (dist20 == dist22) || (dist21 == dist22)) {Surface::_logger->error("pr2"); cout << "problem2" << endl; }
             //get triangle 2 interval
             if (((dist20 >= 0) && (dist21 >= 0)) || ((dist20 <= 0) && (dist21 <= 0))) {
                 t21 = p20 - (p20 - p22) * (dist20 / (dist20 - dist22));
@@ -1423,5 +1415,52 @@ Surface::computeOBoundingBox(std::vector<std::vector<double>>& input_coords) {
 
     tmp->Delete();
     return res;
+}
+
+Surface Surface::meshFromPoints(const std::vector<std::vector<double>>& points,
+                                const std::vector<std::vector<int>>& triangles) {
+    // Create a vtkPolyData object to store the mesh
+    vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
+
+    // Create a vtkPoints object to store the mesh vertices
+    vtkSmartPointer<vtkPoints> vertices = vtkSmartPointer<vtkPoints>::New();
+
+    // Add the points to the vtkPoints object
+    for (const auto& point : points) {
+        double coords[3] = { point[0], point[1], point[2] };
+        vertices->InsertNextPoint(coords);
+    }
+
+    // Set the vtkPoints object as the points of the vtkPolyData object
+    mesh->SetPoints(vertices);
+
+    // Create a vtkCellArray object to store the mesh polygons
+    vtkSmartPointer<vtkCellArray> polygons = vtkSmartPointer<vtkCellArray>::New();
+
+    // Add the triangles to the vtkCellArray object
+    for (const auto& triangle : triangles) {
+        vtkSmartPointer<vtkTriangle> tri = vtkSmartPointer<vtkTriangle>::New();
+        tri->GetPointIds()->SetId(0, triangle[0]);
+        tri->GetPointIds()->SetId(1, triangle[1]);
+        tri->GetPointIds()->SetId(2, triangle[2]);
+        polygons->InsertNextCell(tri);
+    }
+
+    // Set the vtkCellArray object as the polygons of the vtkPolyData object
+    mesh->SetPolys(polygons);
+
+    Surface result = Surface();
+    result.points = mesh->GetPoints();
+
+    result.triangles = mesh->GetPolys();
+    result.mesh = mesh;
+    result.mesh->Initialize();
+    result.mesh->SetPolys(result.triangles);
+    result.mesh->SetPoints(result.points);
+    //renew sphere
+    result.vec_tri = result.getTrianglesAsVec();
+    result.compute_points_neigbours();
+    result.compute_tri_neigbours();
+    return result;
 }
 

@@ -15,6 +15,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d import art3d
 import scipy.optimize as opt
 import matplotlib.tri as mtri
+
+
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
@@ -109,7 +111,7 @@ def train_lognorms(data):
     plt.xlim(min(stns) - 2, max(stns) + 2)
     ax.plot(x, pdf, 'r')
     ax.plot(x, pdf2, 'b')
-    pdf = lambda x : sc_stat.lognorm.pdf(x, shape, loc, scale)
+    pdf = lambda x: sc_stat.lognorm.pdf(x, shape, loc, scale)
     pdf2 = lambda x: sc_stat.lognorm.pdf(x, shape1, loc1, scale1)
     return [pdf, pdf2]
 
@@ -254,9 +256,9 @@ def train_sigmoid(data):
     #                               #,bounds=([-math.inf,0 ],[math.inf,math.inf] )
     #                               )
 
-    #f_res = lambda x: func(x,parameters[0],parameters[1])
+    # f_res = lambda x: func(x,parameters[0],parameters[1])
     f_res = lambda x: sigmoid(x, popt[0], popt[1], popt[2])
-    #f_res = lambda x: func(x, parameters[0][0])
+    # f_res = lambda x: func(x, parameters[0][0])
     min_k = min(res_dists.keys())
     max_k = max(res_dists.keys())
 
@@ -291,12 +293,10 @@ def parse_lengths(subs, trajectories):
 
         right = [coords_re, coords_rt]
         rights.append(right)
-    return {"left" : lefts, "right": rights}
+    return {"left": lefts, "right": rights}
 
 
-def plot_3d_plane(points,points2):
-
-
+def plot_3d_plane(points, points2):
     p0, p1, p2 = points
     x0, y0, z0 = p0
     x1, y1, z1 = p1
@@ -313,17 +313,16 @@ def plot_3d_plane(points,points2):
     d = -point.dot(normal)
     if normal[2] == 0 and normal[2] == 0 and normal[1] != 0:
         xx, z = np.meshgrid(range(100), range(100))
-        yy = xx*0 + (-d)/normal[1]
+        yy = xx * 0 + (-d) / normal[1]
         pass
     else:
         xx, yy = np.meshgrid(range(100), range(100))
-
 
         z = (-normal[0] * xx - normal[1] * yy - d) * 1. / normal[2]
 
     # plot the surface
     plt3d = plt.figure().gca(projection='3d')
-    plt3d.plot_surface(xx, yy, z,alpha=0.2)
+    plt3d.plot_surface(xx, yy, z, alpha=0.2)
 
     p0, p1, p2 = points2
     x0, y0, z0 = p0
@@ -346,33 +345,33 @@ def plot_3d_plane(points,points2):
 
     # plot the surface
     plt3d = plt.gca(projection='3d')
-    plt3d.plot_surface(xx, yy, z,alpha=0.2)
+    plt3d.plot_surface(xx, yy, z, alpha=0.2)
 
     plt.show()
-def pts_plot(toacpc,left,right,el_names_r,el_names_l):
 
+
+def pts_plot(toacpc, left, right, el_names_r, el_names_l):
     toacpc = np.array(toacpc)
     from_acpc = np.linalg.inv(toacpc)
 
-
-    rght = uti.apply_transf_2_pts(right,toacpc)
+    rght = uti.apply_transf_2_pts(right, toacpc)
     lft = uti.apply_transf_2_pts(left, toacpc)
 
-    lft_t = uti.apply_transf_2_pts(lft,from_acpc)
+    lft_t = uti.apply_transf_2_pts(lft, from_acpc)
 
     result_r = {}
     result_l = {}
-    cen_l = [0,0,0]
-    lat_l = [2,0,0]
-    med_l = [2,0,0]
-    ant_l = [0,2,0]
-    pos_l = [0,-2,0]
+    cen_l = [0, 0, 0]
+    lat_l = [2, 0, 0]
+    med_l = [2, 0, 0]
+    ant_l = [0, 2, 0]
+    pos_l = [0, -2, 0]
 
-    cen_l2 = [0,0,-1]
-    lat_l2 = [2,0,-1]
-    med_l2 = [2,0,-1]
-    ant_l2 = [0,2,-1]
-    pos_l2 = [0,-2,-1]
+    cen_l2 = [0, 0, -1]
+    lat_l2 = [2, 0, -1]
+    med_l2 = [2, 0, -1]
+    ant_l2 = [0, 2, -1]
+    pos_l2 = [0, -2, -1]
 
     cen_r = [0, 0, 0]
     lat_r = [-2, 0, 0]
@@ -380,14 +379,14 @@ def pts_plot(toacpc,left,right,el_names_r,el_names_l):
     ant_r = [0, 2, 0]
     pos_r = [0, -2, 0]
 
-    cen_r2 = [0, 0, -1 ]
+    cen_r2 = [0, 0, -1]
     lat_r2 = [-2, 0, -1]
-    med_r2 = [2, 0, -1 ]
-    ant_r2 = [0, 2, -1 ]
+    med_r2 = [2, 0, -1]
+    ant_r2 = [0, 2, -1]
     pos_r2 = [0, -2, -1]
     ##################### LEFT ##########################
 
-    coef= np.linalg.norm(np.array(lft[1]) - np.array(lft[0]))
+    coef = np.linalg.norm(np.array(lft[1]) - np.array(lft[0]))
     cen_l2[2] = cen_l2[2] * coef
     lat_l2[2] = lat_l2[2] * coef
     med_l2[2] = med_l2[2] * coef
@@ -408,24 +407,24 @@ def pts_plot(toacpc,left,right,el_names_r,el_names_l):
     a1 = a1[0:3]
     a2 = a2[0:3]
     a_cross = np.cross(a1, a2)
-    a_cross = a_cross/np.linalg.norm(a_cross)
+    a_cross = a_cross / np.linalg.norm(a_cross)
 
     z1 = np.array(lft[0])
     z2 = np.array(lft[1])
-    z3 = np.array(lft[0]) + np.array([2,0,0])
-    #plot_3d_plane([c1,c2,c3],[z1,z2,z3])
+    z3 = np.array(lft[0]) + np.array([2, 0, 0])
+    # plot_3d_plane([c1,c2,c3],[z1,z2,z3])
 
     mni_a1 = z1 - z2
     mni_a2 = z3 - z2
     mni_across = np.cross(mni_a1, mni_a2)
-    mni_across = mni_across/np.linalg.norm(mni_across)
+    mni_across = mni_across / np.linalg.norm(mni_across)
 
     d1 = -np.dot(a_cross, c1)
     d2 = -np.dot(mni_across, z1)
     res_intr = uti.plane_intersect(list(a_cross) + [d1], list(mni_across) + [d2])
     p = res_intr[0]
     N = (res_intr[1] - res_intr[0]) / np.linalg.norm(res_intr[1] - res_intr[0])
-    #angle between two planes (MNI coords and MNI origin PLANE)
+    # angle between two planes (MNI coords and MNI origin PLANE)
     alpha = np.arccos(np.dot(mni_across, a_cross) / (np.linalg.norm(mni_across) * np.linalg.norm(a_cross)))
     if (alpha > np.pi / 2):
         alpha = 0 - (np.pi - alpha)
@@ -433,43 +432,42 @@ def pts_plot(toacpc,left,right,el_names_r,el_names_l):
 
     rotA = uti.rotate_axis(N, alpha)
 
-    c1,c2,c3 = uti.apply_transf_2_pts([c1.tolist(),c2.tolist(),c3.tolist()],rotA)
-    match_pts = uti.translate_p(np.array(lft[0])-np.array(c1))
-    alpha = np.arccos(np.dot(np.array(c1)-np.array(c2), np.array(z1)-np.array(z2))
-                      / (np.linalg.norm(np.array(c1)-np.array(c2)) * np.linalg.norm(np.array(z1)-np.array(z2))))
+    c1, c2, c3 = uti.apply_transf_2_pts([c1.tolist(), c2.tolist(), c3.tolist()], rotA)
+    match_pts = uti.translate_p(np.array(lft[0]) - np.array(c1))
+    alpha = np.arccos(np.dot(np.array(c1) - np.array(c2), np.array(z1) - np.array(z2))
+                      / (np.linalg.norm(np.array(c1) - np.array(c2)) * np.linalg.norm(np.array(z1) - np.array(z2))))
     rotB = uti.rotate_axis(mni_across, alpha)
     c1, c2, c3 = uti.apply_transf_2_pts([c1, c2, c3], rotB)
     c1, c2, c3 = uti.apply_transf_2_pts([c1, c2, c3], match_pts)
-    [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
-        [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=rotA)
-    [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
-        [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=rotB)
-    [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
-        [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=match_pts)
-    [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
-        [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=from_acpc)
+    [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l] = uti.apply_transf_2_pts(
+        [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l], transf=rotA)
+    [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l] = uti.apply_transf_2_pts(
+        [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l], transf=rotB)
+    [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l] = uti.apply_transf_2_pts(
+        [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l], transf=match_pts)
+    [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l] = uti.apply_transf_2_pts(
+        [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l], transf=from_acpc)
     if 'central' in el_names_l:
-        result_l['central'] = [cen_l,cen_l2]
+        result_l['central'] = [cen_l, cen_l2]
     if 'anterior' in el_names_l:
         result_l['anterior'] = [ant_l, ant_l2]
     if 'posterior' in el_names_l:
-        result_l['posterior'] = [pos_l,pos_l2]
+        result_l['posterior'] = [pos_l, pos_l2]
     if 'lateral' in el_names_l:
-        result_l['lateral'] = [lat_l,lat_l2]
+        result_l['lateral'] = [lat_l, lat_l2]
     if 'medial' in el_names_l:
-        result_l['medial'] = [med_l,med_l2]
-
+        result_l['medial'] = [med_l, med_l2]
 
     ###################################################RIGHT
 
-    coef= np.linalg.norm(np.array(rght[1]) - np.array(rght[0]))
+    coef = np.linalg.norm(np.array(rght[1]) - np.array(rght[0]))
     cen_r2[2] = cen_r2[2] * coef
     lat_r2[2] = lat_r2[2] * coef
     med_r2[2] = med_r2[2] * coef
     ant_r2[2] = ant_r2[2] * coef
     pos_r2[2] = pos_r2[2] * coef
 
-    #match_pts = uti.translate_p(np.array(lft[0]))
+    # match_pts = uti.translate_p(np.array(lft[0]))
 
     # [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
     #     [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=match_pts)
@@ -483,25 +481,25 @@ def pts_plot(toacpc,left,right,el_names_r,el_names_l):
     a1 = a1[0:3]
     a2 = a2[0:3]
     a_cross = np.cross(a1, a2)
-    a_cross = a_cross/np.linalg.norm(a_cross)
+    a_cross = a_cross / np.linalg.norm(a_cross)
 
     z1 = np.array(rght[0])
     z2 = np.array(rght[1])
-    z3 = np.array(rght[0]) + np.array([-2,0,0])
-    #plot_3d_lines([c1, c2, c3],[ z1, z2, z3])
-    #plot_3d_plane([c1, c2, c3], [z1, z2, z3])
+    z3 = np.array(rght[0]) + np.array([-2, 0, 0])
+    # plot_3d_lines([c1, c2, c3],[ z1, z2, z3])
+    # plot_3d_plane([c1, c2, c3], [z1, z2, z3])
 
     mni_a1 = z1 - z2
     mni_a2 = z3 - z2
     mni_across = np.cross(mni_a1, mni_a2)
-    mni_across = mni_across/np.linalg.norm(mni_across)
+    mni_across = mni_across / np.linalg.norm(mni_across)
 
     d1 = -np.dot(a_cross, c1)
     d2 = -np.dot(mni_across, z1)
     res_intr = uti.plane_intersect(list(a_cross) + [d1], list(mni_across) + [d2])
     p = res_intr[0]
     N = (res_intr[1] - res_intr[0]) / np.linalg.norm(res_intr[1] - res_intr[0])
-    #angle between two planes (MNI coords and MNI origin PLANE)
+    # angle between two planes (MNI coords and MNI origin PLANE)
     alpha = np.arccos(np.dot(mni_across, a_cross) / (np.linalg.norm(mni_across) * np.linalg.norm(a_cross)))
     if (alpha > np.pi / 2):
         alpha = 0 - (np.pi - alpha)
@@ -509,90 +507,86 @@ def pts_plot(toacpc,left,right,el_names_r,el_names_l):
 
     rotA = uti.rotate_axis(N, alpha)
 
-    c1,c2,c3 = uti.apply_transf_2_pts([c1.tolist(),c2.tolist(),c3.tolist()],rotA)
-    match_pts = uti.translate_p(np.array(rght[0])-np.array(c1))
-    alpha = np.arccos(np.dot(np.array(c1)-np.array(c2), np.array(z1)-np.array(z2))
-                      / (np.linalg.norm(np.array(c1)-np.array(c2)) * np.linalg.norm(np.array(z1)-np.array(z2))))
+    c1, c2, c3 = uti.apply_transf_2_pts([c1.tolist(), c2.tolist(), c3.tolist()], rotA)
+    match_pts = uti.translate_p(np.array(rght[0]) - np.array(c1))
+    alpha = np.arccos(np.dot(np.array(c1) - np.array(c2), np.array(z1) - np.array(z2))
+                      / (np.linalg.norm(np.array(c1) - np.array(c2)) * np.linalg.norm(np.array(z1) - np.array(z2))))
     rotB = uti.rotate_axis(mni_across, alpha)
     c1, c2, c3 = uti.apply_transf_2_pts([c1, c2, c3], rotB)
     c1, c2, c3 = uti.apply_transf_2_pts([c1, c2, c3], match_pts)
-    #plot_3d_lines(np.array([c1, c2, c3]),np.array([ z1, z2, z3]))
-    #plot_3d_plane([c1, c2, c3], [z1, z2, z3])
+    # plot_3d_lines(np.array([c1, c2, c3]),np.array([ z1, z2, z3]))
+    # plot_3d_plane([c1, c2, c3], [z1, z2, z3])
     # plot_lines_list([[cen_r, cen_r2],
     #                  [lat_r, lat_r2],
     #                  [ant_r, ant_r2],
     #                  [pos_r, pos_r2],
     #                  [med_r, med_r2]])
-    [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r] = uti.apply_transf_2_pts(
-        [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r],transf=rotA)
-    # plot_lines_list([[cen_r, cen_r2],
-    #                  [lat_r, lat_r2],
-    #                  [ant_r, ant_r2],
-    #                  [pos_r, pos_r2],
-    #                  [med_r, med_r2]])
-
-    [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r] = uti.apply_transf_2_pts(
-        [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r],transf=rotB)
+    [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r] = uti.apply_transf_2_pts(
+        [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r], transf=rotA)
     # plot_lines_list([[cen_r, cen_r2],
     #                  [lat_r, lat_r2],
     #                  [ant_r, ant_r2],
     #                  [pos_r, pos_r2],
     #                  [med_r, med_r2]])
 
-    [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r] = uti.apply_transf_2_pts(
-        [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r],transf=match_pts)
+    [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r] = uti.apply_transf_2_pts(
+        [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r], transf=rotB)
     # plot_lines_list([[cen_r, cen_r2],
     #                  [lat_r, lat_r2],
     #                  [ant_r, ant_r2],
     #                  [pos_r, pos_r2],
     #                  [med_r, med_r2]])
 
-    [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r] = uti.apply_transf_2_pts(
-        [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r],transf=from_acpc)
+    [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r] = uti.apply_transf_2_pts(
+        [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r], transf=match_pts)
+    # plot_lines_list([[cen_r, cen_r2],
+    #                  [lat_r, lat_r2],
+    #                  [ant_r, ant_r2],
+    #                  [pos_r, pos_r2],
+    #                  [med_r, med_r2]])
+
+    [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r] = uti.apply_transf_2_pts(
+        [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r], transf=from_acpc)
     if 'central' in el_names_r:
-        result_r['central'] = [cen_r,cen_r2]
+        result_r['central'] = [cen_r, cen_r2]
     if 'anterior' in el_names_r:
         result_r['anterior'] = [ant_r, ant_r2]
     if 'posterior' in el_names_r:
-        result_r['posterior'] = [pos_r,pos_r2]
+        result_r['posterior'] = [pos_r, pos_r2]
     if 'lateral' in el_names_r:
-        result_r['lateral'] = [lat_r,lat_r2]
+        result_r['lateral'] = [lat_r, lat_r2]
     if 'medial' in el_names_r:
-        result_r['medial'] = [med_r,med_r2]
-
+        result_r['medial'] = [med_r, med_r2]
 
     ##ret
-    return {'left': result_l,'right' : result_r}
-    #caclulate intersection of data MNI coords and MNI origin PLANE
-
+    return {'left': result_l, 'right': result_r}
+    # caclulate intersection of data MNI coords and MNI origin PLANE
 
     #################### RR ###########################
 
 
-def generate_lines(toacpc,left,right,el_names_r,el_names_l):
-
+def generate_lines(toacpc, left, right, el_names_r, el_names_l):
     toacpc = np.array(toacpc)
     from_acpc = np.linalg.inv(toacpc)
 
-
-    rght = uti.apply_transf_2_pts(right,toacpc)
+    rght = uti.apply_transf_2_pts(right, toacpc)
     lft = uti.apply_transf_2_pts(left, toacpc)
 
-    lft_t = uti.apply_transf_2_pts(lft,from_acpc)
+    lft_t = uti.apply_transf_2_pts(lft, from_acpc)
 
     result_r = {}
     result_l = {}
-    cen_l = [0,0,0]
-    lat_l = [2,0,0]
-    med_l = [2,0,0]
-    ant_l = [0,2,0]
-    pos_l = [0,-2,0]
+    cen_l = [0, 0, 0]
+    lat_l = [2, 0, 0]
+    med_l = [2, 0, 0]
+    ant_l = [0, 2, 0]
+    pos_l = [0, -2, 0]
 
-    cen_l2 = [0,0,-1]
-    lat_l2 = [2,0,-1]
-    med_l2 = [2,0,-1]
-    ant_l2 = [0,2,-1]
-    pos_l2 = [0,-2,-1]
+    cen_l2 = [0, 0, -1]
+    lat_l2 = [2, 0, -1]
+    med_l2 = [2, 0, -1]
+    ant_l2 = [0, 2, -1]
+    pos_l2 = [0, -2, -1]
 
     cen_r = [0, 0, 0]
     lat_r = [-2, 0, 0]
@@ -600,14 +594,14 @@ def generate_lines(toacpc,left,right,el_names_r,el_names_l):
     ant_r = [0, 2, 0]
     pos_r = [0, -2, 0]
 
-    cen_r2 = [0, 0, -1 ]
+    cen_r2 = [0, 0, -1]
     lat_r2 = [-2, 0, -1]
-    med_r2 = [2, 0, -1 ]
-    ant_r2 = [0, 2, -1 ]
+    med_r2 = [2, 0, -1]
+    ant_r2 = [0, 2, -1]
     pos_r2 = [0, -2, -1]
     ##################### LEFT ##########################
 
-    coef= np.linalg.norm(np.array(lft[1]) - np.array(lft[0]))
+    coef = np.linalg.norm(np.array(lft[1]) - np.array(lft[0]))
     cen_l2[2] = cen_l2[2] * coef
     lat_l2[2] = lat_l2[2] * coef
     med_l2[2] = med_l2[2] * coef
@@ -628,24 +622,24 @@ def generate_lines(toacpc,left,right,el_names_r,el_names_l):
     a1 = a1[0:3]
     a2 = a2[0:3]
     a_cross = np.cross(a1, a2)
-    a_cross = a_cross/np.linalg.norm(a_cross)
+    a_cross = a_cross / np.linalg.norm(a_cross)
 
     z1 = np.array(lft[0])
     z2 = np.array(lft[1])
-    z3 = np.array(lft[0]) + np.array([2,0,0])
-    #plot_3d_plane([c1,c2,c3],[z1,z2,z3])
+    z3 = np.array(lft[0]) + np.array([2, 0, 0])
+    # plot_3d_plane([c1,c2,c3],[z1,z2,z3])
 
     mni_a1 = z1 - z2
     mni_a2 = z3 - z2
     mni_across = np.cross(mni_a1, mni_a2)
-    mni_across = mni_across/np.linalg.norm(mni_across)
+    mni_across = mni_across / np.linalg.norm(mni_across)
 
     d1 = -np.dot(a_cross, c1)
     d2 = -np.dot(mni_across, z1)
     res_intr = uti.plane_intersect(list(a_cross) + [d1], list(mni_across) + [d2])
     p = res_intr[0]
     N = (res_intr[1] - res_intr[0]) / np.linalg.norm(res_intr[1] - res_intr[0])
-    #angle between two planes (MNI coords and MNI origin PLANE)
+    # angle between two planes (MNI coords and MNI origin PLANE)
     alpha = np.arccos(np.dot(mni_across, a_cross) / (np.linalg.norm(mni_across) * np.linalg.norm(a_cross)))
     if (alpha > np.pi / 2):
         alpha = 0 - (np.pi - alpha)
@@ -653,43 +647,42 @@ def generate_lines(toacpc,left,right,el_names_r,el_names_l):
 
     rotA = uti.rotate_axis(N, alpha)
 
-    c1,c2,c3 = uti.apply_transf_2_pts([c1.tolist(),c2.tolist(),c3.tolist()],rotA)
-    match_pts = uti.translate_p(np.array(lft[0])-np.array(c1))
-    alpha = np.arccos(np.dot(np.array(c1)-np.array(c2), np.array(z1)-np.array(z2))
-                      / (np.linalg.norm(np.array(c1)-np.array(c2)) * np.linalg.norm(np.array(z1)-np.array(z2))))
+    c1, c2, c3 = uti.apply_transf_2_pts([c1.tolist(), c2.tolist(), c3.tolist()], rotA)
+    match_pts = uti.translate_p(np.array(lft[0]) - np.array(c1))
+    alpha = np.arccos(np.dot(np.array(c1) - np.array(c2), np.array(z1) - np.array(z2))
+                      / (np.linalg.norm(np.array(c1) - np.array(c2)) * np.linalg.norm(np.array(z1) - np.array(z2))))
     rotB = uti.rotate_axis(mni_across, alpha)
     c1, c2, c3 = uti.apply_transf_2_pts([c1, c2, c3], rotB)
     c1, c2, c3 = uti.apply_transf_2_pts([c1, c2, c3], match_pts)
-    [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
-        [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=rotA)
-    [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
-        [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=rotB)
-    [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
-        [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=match_pts)
-    [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
-        [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=from_acpc)
+    [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l] = uti.apply_transf_2_pts(
+        [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l], transf=rotA)
+    [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l] = uti.apply_transf_2_pts(
+        [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l], transf=rotB)
+    [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l] = uti.apply_transf_2_pts(
+        [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l], transf=match_pts)
+    [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l] = uti.apply_transf_2_pts(
+        [cen_l, cen_l2, lat_l2, med_l2, ant_l2, pos_l2, cen_l, lat_l, med_l, ant_l, pos_l], transf=from_acpc)
     if 'central' in el_names_l:
-        result_l['central'] = [cen_l,cen_l2]
+        result_l['central'] = [cen_l, cen_l2]
     if 'anterior' in el_names_l:
         result_l['anterior'] = [ant_l, ant_l2]
     if 'posterior' in el_names_l:
-        result_l['posterior'] = [pos_l,pos_l2]
+        result_l['posterior'] = [pos_l, pos_l2]
     if 'lateral' in el_names_l:
-        result_l['lateral'] = [lat_l,lat_l2]
+        result_l['lateral'] = [lat_l, lat_l2]
     if 'medial' in el_names_l:
-        result_l['medial'] = [med_l,med_l2]
-
+        result_l['medial'] = [med_l, med_l2]
 
     ###################################################RIGHT
 
-    coef= np.linalg.norm(np.array(rght[1]) - np.array(rght[0]))
+    coef = np.linalg.norm(np.array(rght[1]) - np.array(rght[0]))
     cen_r2[2] = cen_r2[2] * coef
     lat_r2[2] = lat_r2[2] * coef
     med_r2[2] = med_r2[2] * coef
     ant_r2[2] = ant_r2[2] * coef
     pos_r2[2] = pos_r2[2] * coef
 
-    #match_pts = uti.translate_p(np.array(lft[0]))
+    # match_pts = uti.translate_p(np.array(lft[0]))
 
     # [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l] = uti.apply_transf_2_pts(
     #     [cen_l,cen_l2 , lat_l2, med_l2, ant_l2,pos_l2,cen_l,lat_l,med_l,ant_l,pos_l],transf=match_pts)
@@ -703,25 +696,25 @@ def generate_lines(toacpc,left,right,el_names_r,el_names_l):
     a1 = a1[0:3]
     a2 = a2[0:3]
     a_cross = np.cross(a1, a2)
-    a_cross = a_cross/np.linalg.norm(a_cross)
+    a_cross = a_cross / np.linalg.norm(a_cross)
 
     z1 = np.array(rght[0])
     z2 = np.array(rght[1])
-    z3 = np.array(rght[0]) + np.array([-2,0,0])
-    #plot_3d_lines([c1, c2, c3],[ z1, z2, z3])
-    #plot_3d_plane([c1, c2, c3], [z1, z2, z3])
+    z3 = np.array(rght[0]) + np.array([-2, 0, 0])
+    # plot_3d_lines([c1, c2, c3],[ z1, z2, z3])
+    # plot_3d_plane([c1, c2, c3], [z1, z2, z3])
 
     mni_a1 = z1 - z2
     mni_a2 = z3 - z2
     mni_across = np.cross(mni_a1, mni_a2)
-    mni_across = mni_across/np.linalg.norm(mni_across)
+    mni_across = mni_across / np.linalg.norm(mni_across)
 
     d1 = -np.dot(a_cross, c1)
     d2 = -np.dot(mni_across, z1)
     res_intr = uti.plane_intersect(list(a_cross) + [d1], list(mni_across) + [d2])
     p = res_intr[0]
     N = (res_intr[1] - res_intr[0]) / np.linalg.norm(res_intr[1] - res_intr[0])
-    #angle between two planes (MNI coords and MNI origin PLANE)
+    # angle between two planes (MNI coords and MNI origin PLANE)
     alpha = np.arccos(np.dot(mni_across, a_cross) / (np.linalg.norm(mni_across) * np.linalg.norm(a_cross)))
     if (alpha > np.pi / 2):
         alpha = 0 - (np.pi - alpha)
@@ -729,86 +722,85 @@ def generate_lines(toacpc,left,right,el_names_r,el_names_l):
 
     rotA = uti.rotate_axis(N, alpha)
 
-    c1,c2,c3 = uti.apply_transf_2_pts([c1.tolist(),c2.tolist(),c3.tolist()],rotA)
-    match_pts = uti.translate_p(np.array(rght[0])-np.array(c1))
-    alpha = np.arccos(np.dot(np.array(c1)-np.array(c2), np.array(z1)-np.array(z2))
-                      / (np.linalg.norm(np.array(c1)-np.array(c2)) * np.linalg.norm(np.array(z1)-np.array(z2))))
+    c1, c2, c3 = uti.apply_transf_2_pts([c1.tolist(), c2.tolist(), c3.tolist()], rotA)
+    match_pts = uti.translate_p(np.array(rght[0]) - np.array(c1))
+    alpha = np.arccos(np.dot(np.array(c1) - np.array(c2), np.array(z1) - np.array(z2))
+                      / (np.linalg.norm(np.array(c1) - np.array(c2)) * np.linalg.norm(np.array(z1) - np.array(z2))))
     rotB = uti.rotate_axis(mni_across, alpha)
     c1, c2, c3 = uti.apply_transf_2_pts([c1, c2, c3], rotB)
     c1, c2, c3 = uti.apply_transf_2_pts([c1, c2, c3], match_pts)
-    #plot_3d_lines(np.array([c1, c2, c3]),np.array([ z1, z2, z3]))
-    #plot_3d_plane([c1, c2, c3], [z1, z2, z3])
+    # plot_3d_lines(np.array([c1, c2, c3]),np.array([ z1, z2, z3]))
+    # plot_3d_plane([c1, c2, c3], [z1, z2, z3])
     # plot_lines_list([[cen_r, cen_r2],
     #                  [lat_r, lat_r2],
     #                  [ant_r, ant_r2],
     #                  [pos_r, pos_r2],
     #                  [med_r, med_r2]])
-    [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r] = uti.apply_transf_2_pts(
-        [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r],transf=rotA)
-    # plot_lines_list([[cen_r, cen_r2],
-    #                  [lat_r, lat_r2],
-    #                  [ant_r, ant_r2],
-    #                  [pos_r, pos_r2],
-    #                  [med_r, med_r2]])
-
-    [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r] = uti.apply_transf_2_pts(
-        [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r],transf=rotB)
+    [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r] = uti.apply_transf_2_pts(
+        [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r], transf=rotA)
     # plot_lines_list([[cen_r, cen_r2],
     #                  [lat_r, lat_r2],
     #                  [ant_r, ant_r2],
     #                  [pos_r, pos_r2],
     #                  [med_r, med_r2]])
 
-    [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r] = uti.apply_transf_2_pts(
-        [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r],transf=match_pts)
+    [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r] = uti.apply_transf_2_pts(
+        [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r], transf=rotB)
     # plot_lines_list([[cen_r, cen_r2],
     #                  [lat_r, lat_r2],
     #                  [ant_r, ant_r2],
     #                  [pos_r, pos_r2],
     #                  [med_r, med_r2]])
 
-    [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r] = uti.apply_transf_2_pts(
-        [cen_r,cen_r2 , lat_r2, med_r2, ant_r2,pos_r2,cen_r,lat_r,med_r,ant_r,pos_r],transf=from_acpc)
+    [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r] = uti.apply_transf_2_pts(
+        [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r], transf=match_pts)
+    # plot_lines_list([[cen_r, cen_r2],
+    #                  [lat_r, lat_r2],
+    #                  [ant_r, ant_r2],
+    #                  [pos_r, pos_r2],
+    #                  [med_r, med_r2]])
+
+    [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r] = uti.apply_transf_2_pts(
+        [cen_r, cen_r2, lat_r2, med_r2, ant_r2, pos_r2, cen_r, lat_r, med_r, ant_r, pos_r], transf=from_acpc)
     if 'central' in el_names_r:
-        result_r['central'] = [cen_r,cen_r2]
+        result_r['central'] = [cen_r, cen_r2]
     if 'anterior' in el_names_r:
         result_r['anterior'] = [ant_r, ant_r2]
     if 'posterior' in el_names_r:
-        result_r['posterior'] = [pos_r,pos_r2]
+        result_r['posterior'] = [pos_r, pos_r2]
     if 'lateral' in el_names_r:
-        result_r['lateral'] = [lat_r,lat_r2]
+        result_r['lateral'] = [lat_r, lat_r2]
     if 'medial' in el_names_r:
-        result_r['medial'] = [med_r,med_r2]
-
+        result_r['medial'] = [med_r, med_r2]
 
     ##ret
-    return {'left': result_l,'right' : result_r}
-    #caclulate intersection of data MNI coords and MNI origin PLANE
-
+    return {'left': result_l, 'right': result_r}
+    # caclulate intersection of data MNI coords and MNI origin PLANE
 
     #################### RR ###########################
 
-def plot_3d_lines(tringle1,triangle2):
+
+def plot_3d_lines(tringle1, triangle2):
     plt3d = plt.figure().gca(projection='3d')
 
-    ln1 = np.array([tringle1[0].tolist(),tringle1[1].tolist()])
-    plt3d.plot(ln1[:,0],ln1[:,1],ln1[:,2])
-    ln1 = np.array([tringle1[0].tolist(),tringle1[2].tolist()])
-    plt3d.plot(ln1[:,0],ln1[:,1],ln1[:,2])
-    ln1 = np.array([tringle1[1].tolist(),tringle1[2].tolist()])
-    plt3d.plot(ln1[:,0],ln1[:,1],ln1[:,2])
+    ln1 = np.array([tringle1[0].tolist(), tringle1[1].tolist()])
+    plt3d.plot(ln1[:, 0], ln1[:, 1], ln1[:, 2])
+    ln1 = np.array([tringle1[0].tolist(), tringle1[2].tolist()])
+    plt3d.plot(ln1[:, 0], ln1[:, 1], ln1[:, 2])
+    ln1 = np.array([tringle1[1].tolist(), tringle1[2].tolist()])
+    plt3d.plot(ln1[:, 0], ln1[:, 1], ln1[:, 2])
 
-    ln1 = np.array([triangle2[0].tolist(),triangle2[1].tolist()])
-    plt3d.plot(ln1[:,0],ln1[:,1],ln1[:,2])
-    ln1 = np.array([triangle2[0].tolist(),triangle2[2].tolist()])
-    plt3d.plot(ln1[:,0],ln1[:,1],ln1[:,2])
-    ln1 = np.array([triangle2[1].tolist(),triangle2[2].tolist()])
-    plt3d.plot(ln1[:,0],ln1[:,1],ln1[:,2])
+    ln1 = np.array([triangle2[0].tolist(), triangle2[1].tolist()])
+    plt3d.plot(ln1[:, 0], ln1[:, 1], ln1[:, 2])
+    ln1 = np.array([triangle2[0].tolist(), triangle2[2].tolist()])
+    plt3d.plot(ln1[:, 0], ln1[:, 1], ln1[:, 2])
+    ln1 = np.array([triangle2[1].tolist(), triangle2[2].tolist()])
+    plt3d.plot(ln1[:, 0], ln1[:, 1], ln1[:, 2])
 
     plt.show()
 
 
-def plot_electrodes(initialised,meshes):
+def plot_electrodes(initialised, meshes):
     plt3d = plt.figure().gca(projection='3d')
 
     for mesh in meshes:
@@ -817,17 +809,16 @@ def plot_electrodes(initialised,meshes):
         v = np.array(v)
         v = v.reshape((int(v.shape[0] / 3), 3))
         # cluster to set
-        plt3d.scatter3D(v[0][0],v[0][1],v[0][2])
-        plt3d.plot_trisurf(v[:,0], v[:,1], v[:,2], triangles=fc)
+        plt3d.scatter3D(v[0][0], v[0][1], v[0][2])
+        plt3d.plot_trisurf(v[:, 0], v[:, 1], v[:, 2], triangles=fc)
 
-       # plt3d.add_collection3d(pc)
+    # plt3d.add_collection3d(pc)
     for key in initialised.keys():
 
         for k2 in initialised[key].keys():
             pts = np.array(initialised[key][k2])
-            plt3d.plot(pts[:,0],pts[:,1],pts[:,2])
+            plt3d.plot(pts[:, 0], pts[:, 1], pts[:, 2])
     plt.show()
-
 
 
 def plot_lines_list(lines):
@@ -844,45 +835,41 @@ def plot_lines_list(lines):
     #     plt3d.add_collection3d(pc)
     for key in lines:
         pts = np.array(key)
-        plt3d.plot(pts[:,0],pts[:,1],pts[:,2])
+        plt3d.plot(pts[:, 0], pts[:, 1], pts[:, 2])
     # for key in initialised[1].keys():
     #     pts = np.array(initialised[1][key])
     #     plt3d.plot(pts[:,0],pts[:,1],pts[:,2])
     plt.show()
 
 
-
-def compute_lognorm(distance,nrms,pdfs,sigmoid):
-
+def compute_lognorm(distance, nrms, pdfs, sigmoid):
     distance = -distance
     psig = sigmoid(distance)
-    return 100 * (- math.log10( (1- psig)*pdfs[1](nrms) + psig*pdfs[0](nrms)))
+    return 100 * (- math.log10((1 - psig) * pdfs[1](nrms) + psig * pdfs[0](nrms)))
 
-def compute_position_for_line(line,distances):
+
+def compute_position_for_line(line, distances):
     dir_vect = np.array(line[0]) - np.array(line[1])
-    dir_vect = dir_vect/np.linalg.norm(dir_vect)
+    dir_vect = dir_vect / np.linalg.norm(dir_vect)
 
     p0 = np.array(line[1])
 
-    return np.array( [ p0 + t*(-dir_vect) for t in distances])
+    return np.array([p0 + t * (-dir_vect) for t in distances])
 
 
-
-def displace_points_along_electrodes(el_name,distances,lines):
-    res_lines = [ ]
+def displace_points_along_electrodes(el_name, distances, lines):
+    res_lines = []
     for key in el_name:
         line = lines[key]
-        t_dist = compute_position_for_line(line,distances)
+        t_dist = compute_position_for_line(line, distances)
         res_lines.append(t_dist)
     return res_lines
 
 
-def fit_side(displaced_electrodes,subdata, mesh, sigmoid,pdf):
+def fit_side(displaced_electrodes, subdata, mesh, sigmoid, pdf):
+    def functional(displaced_electrodes, subdata, mesh, sigmoid, pdf, transformation):
 
-
-    def functional(displaced_electrodes,subdata,mesh,sigmoid,pdf,transformation ):
-
-        tfm = uti.translate_p(transformation)#compute only translations
+        tfm = uti.translate_p(transformation)  # compute only translations
         mesh.apply_transform(tfm)
         r_side_vals = []
         for i in range(subdata.shape[0]):
@@ -897,27 +884,28 @@ def fit_side(displaced_electrodes,subdata, mesh, sigmoid,pdf):
 
         return logn_value
 
-    fc = lambda x: functional(displaced_electrodes,subdata,mesh,sigmoid,pdf,x)
+    fc = lambda x: functional(displaced_electrodes, subdata, mesh, sigmoid, pdf, x)
 
-    fm  = opt.minimize(fc, x0=np.array([0,0,0]),method="Powell")
+    fm = opt.minimize(fc, x0=np.array([0, 0, 0]), method="Powell")
     fm = opt.minimize(fc, x0=fm.x)
-    fm = opt.minimize(fc, x0=fm.x,method="Powell")
+    fm = opt.minimize(fc, x0=fm.x, method="Powell")
     tfm = uti.translate_p(fm.x)
     mesh.apply_transform(tfm)
     return mesh
 
-def _calculate_metrics(mesh,mask,electrodes_dists):
-    labels= []
+
+def _calculate_metrics(mesh, mask, electrodes_dists):
+    labels = []
     for i in range(len(mask)):
         labels += mask[i].tolist()
     labels = np.array(labels)
     masks = []
-    electrodes_dists = [x.tolist() for x in electrodes_dists ]
+    electrodes_dists = [x.tolist() for x in electrodes_dists]
 
     for i in range(len(electrodes_dists)):
         for j in range(len(electrodes_dists[i])):
-            d1 = mesh.distance_to_point(electrodes_dists[i][j][0],electrodes_dists[i][j][1],electrodes_dists[i][j][2])
-            if d1 <0:
+            d1 = mesh.distance_to_point(electrodes_dists[i][j][0], electrodes_dists[i][j][1], electrodes_dists[i][j][2])
+            if d1 < 0:
                 masks.append(True)
             else:
                 masks.append(False)
@@ -925,31 +913,26 @@ def _calculate_metrics(mesh,mask,electrodes_dists):
             # masks+= tmask
     masks = np.array(masks)
 
-    TP = sum(masks&labels)
-    TN = sum ((~ masks)&(~ labels))
+    TP = sum(masks & labels)
+    TN = sum((~ masks) & (~ labels))
 
-    FP = sum( (~ labels)& ( masks))
-    FN = sum ((labels) & (~ masks) )
+    FP = sum((~ labels) & (masks))
+    FN = sum((labels) & (~ masks))
 
     ####accuracy
-    acc = (TP + TN)/(TP + TN + FP + FN)
+    acc = (TP + TN) / (TP + TN + FP + FN)
 
     ####specificity
 
-    TPR = TP/(TP + FN)
+    TPR = TP / (TP + FN)
 
     ####sensitivity
-    TNR = TN/(TN+FP)
+    TNR = TN / (TN + FP)
 
-    return [acc,TPR,TNR]
-
-
+    return [acc, TPR, TNR]
 
 
-
-
-
-def plot_electrode_as_pts(displace_along_els,subdata,mesh,mask):
+def plot_electrode_as_pts(displace_along_els, subdata, mesh, mask):
     plt3d = plt.figure().gca(projection='3d')
 
     metrics = _calculate_metrics(mesh=mesh, mask=mask, electrodes_dists=displace_along_els)
@@ -958,20 +941,20 @@ def plot_electrode_as_pts(displace_along_els,subdata,mesh,mask):
     v = np.array(v)
     v = v.reshape((int(v.shape[0] / 3), 3))
     # cluster to set
-    plt3d.scatter3D(v[0][0],v[0][1],v[0][2])
-    plt3d.plot_trisurf(v[:,0], v[:,1], v[:,2], triangles=fc,alpha=0.1, linewidth=0.2,edgecolors='blue')
+    plt3d.scatter3D(v[0][0], v[0][1], v[0][2])
+    plt3d.plot_trisurf(v[:, 0], v[:, 1], v[:, 2], triangles=fc, alpha=0.1, linewidth=0.2, edgecolors='blue')
     for i in range(subdata.shape[0]):
         sbd = subdata[i]
         r_msk = mask[i]
-        sbd = 5*((sbd - min(sbd) )/(max(sbd)- min(sbd))) + 1
+        sbd = 5 * ((sbd - min(sbd)) / (max(sbd) - min(sbd))) + 1
         plt3d.scatter(displace_along_els[i][r_msk, 0]
                       , displace_along_els[i][r_msk, 1],
-                      displace_along_els[i][r_msk, 2], s=sbd[r_msk],c='g')
+                      displace_along_els[i][r_msk, 2], s=sbd[r_msk], c='g')
 
-        plt3d.scatter(displace_along_els[i][~r_msk,0]
-                      ,displace_along_els[i][~r_msk,1],
-                      displace_along_els[i][~r_msk,2],s=sbd[~r_msk],c='r')
-       # plt3d.add_collection3d(pc)
+        plt3d.scatter(displace_along_els[i][~r_msk, 0]
+                      , displace_along_els[i][~r_msk, 1],
+                      displace_along_els[i][~r_msk, 2], s=sbd[~r_msk], c='r')
+    # plt3d.add_collection3d(pc)
     # for key in initialised.keys():
     #
     #     for k2 in initialised[key].keys():
@@ -983,39 +966,30 @@ def plot_electrode_as_pts(displace_along_els,subdata,mesh,mask):
     plt.show()
 
 
-
-
-
-
-
-def fit_subject(subdata,lines, mesh_r,mesh_l, sigmoid, pdf):
+def fit_subject(subdata, lines, mesh_r, mesh_l, sigmoid, pdf):
     """fits subject meshes"""
     ###right
     se_r = subdata['right_el_names']
     sd_r = subdata['right']
-    displaced_els = displace_points_along_electrodes(el_name=se_r,distances=subdata['right_distances'],lines=lines['right'])
-    plot_electrode_as_pts(displaced_els,sd_r,mesh_r,mask=subdata['right_masks'])
-    res_mesh = fit_side(displaced_els,sd_r,mesh_r,sigmoid,pdf)
-    plot_electrode_as_pts(displaced_els, sd_r, res_mesh,mask=subdata['right_masks'])
+    displaced_els = displace_points_along_electrodes(el_name=se_r, distances=subdata['right_distances'],
+                                                     lines=lines['right'])
+    plot_electrode_as_pts(displaced_els, sd_r, mesh_r, mask=subdata['right_masks'])
+    res_mesh = fit_side(displaced_els, sd_r, mesh_r, sigmoid, pdf)
+    plot_electrode_as_pts(displaced_els, sd_r, res_mesh, mask=subdata['right_masks'])
     ###left
     se_l = subdata['left_el_names']
     sd_l = subdata['left']
     displaced_els = displace_points_along_electrodes(el_name=se_l,
-                                                     distances=subdata['left_distances'],lines=lines['left'])
+                                                     distances=subdata['left_distances'], lines=lines['left'])
 
-    res_mesh2 = fit_side(displaced_els,sd_l,mesh_l,sigmoid,pdf)
+    res_mesh2 = fit_side(displaced_els, sd_l, mesh_l, sigmoid, pdf)
 
-    return [res_mesh,res_mesh2]
-
-
-
-
-
+    return [res_mesh, res_mesh2]
 
     pass
 
-def fit_subjects(comb_data,entry_target,el_names,sigmoid,pdf):
 
+def fit_subjects(comb_data, entry_target, el_names, sigmoid, pdf):
     cnt = 0
     for sub_i in range(len(safe_subjects)):
         sub = safe_subjects[sub_i]
@@ -1024,38 +998,30 @@ def fit_subjects(comb_data,entry_target,el_names,sigmoid,pdf):
             st_sub = "0" + str(sub)
         else:
             st_sub = str(sub)
-        fl = open("/home/varga/processing_data/new_data_sorted/sub-P" + st_sub + "/transformACPC","rb")
+        fl = open("/home/varga/processing_data/new_data_sorted/sub-P" + st_sub + "/transformACPC", "rb")
         to_acpc = pickle.load(fl)
 
-
-        initialised = generate_lines(toacpc=to_acpc,right=entry_target["right"][cnt]
-                                     ,left=entry_target["left"][cnt],
-                                     el_names_r=el_names["right"][cnt],el_names_l=el_names["left"][cnt])
+        initialised = generate_lines(toacpc=to_acpc, right=entry_target["right"][cnt]
+                                     , left=entry_target["left"][cnt],
+                                     el_names_r=el_names["right"][cnt], el_names_l=el_names["left"][cnt])
 
         mesh1 = ExtPy.cMesh("/home/varga/processing_data/new_data_sorted/sub-P" + st_sub + "/" + "3_1T1.obj")
         mesh2 = ExtPy.cMesh("/home/varga/processing_data/new_data_sorted/sub-P" + st_sub + "/" + "4_1T1.obj")
-        a = mesh1.distance_to_point(1,1,1)
-        plot_electrodes(initialised,[mesh2,mesh1])
-
+        a = mesh1.distance_to_point(1, 1, 1)
+        plot_electrodes(initialised, [mesh2, mesh1])
 
         t_dict = {}
         for key in comb_data.keys():
             t_dict[key] = comb_data[key][sub_i]
 
-        meshes = fit_subject(subdata=t_dict,lines=initialised,mesh_r = mesh2,mesh_l=mesh1,sigmoid=sigmoid,pdf=pdfs)
+        meshes = fit_subject(subdata=t_dict, lines=initialised, mesh_r=mesh2, mesh_l=mesh1, sigmoid=sigmoid, pdf=pdfs)
 
         plot_electrodes(initialised, meshes)
 
-        cnt+=1
+        cnt += 1
 
 
-
-#def cut_lines()
-
-
-
-
-
+# def cut_lines()
 
 
 # Press the green button in the gutter to run the script.
@@ -1072,11 +1038,9 @@ if __name__ == '__main__':
     subj_names, ent_targ = read_edf_entry_target("/home/varga/processing_data/participants-ED2.xlsx.ods")
     lenghts = parse_lengths(subj_names, ent_targ)
 
-
-    fit_subjects(preprocessed_data,lenghts,el_names={"right": preprocessed_data["right_el_names"],"left":preprocessed_data["left_el_names"]}
-                 ,sigmoid=sigmoid,pdf=pdfs)
-
-
+    fit_subjects(preprocessed_data, lenghts,
+                 el_names={"right": preprocessed_data["right_el_names"], "left": preprocessed_data["left_el_names"]}
+                 , sigmoid=sigmoid, pdf=pdfs)
 
     # a.get_anat_landmarks()
     # #a.rescale_signals()

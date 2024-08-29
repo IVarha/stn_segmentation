@@ -12,9 +12,9 @@
 #include <vtkPolyData.h>
 #include "vtkSmartPointer.h"
 #include <NiftiImage.h>
-#include "spdlog/spdlog.h"
-#include "spdlog/logger.h"
-#include "spdlog/sinks/rotating_file_sink.h"
+//#include "spdlog/spdlog.h"
+//#include "spdlog/logger.h"
+//#include "spdlog/sinks/rotating_file_sink.h"
 #include <set>
 
 class Surface {
@@ -24,7 +24,7 @@ class Surface {
     vtkSmartPointer<vtkPoints> points;
     vtkSmartPointer<vtkCellArray> triangles;
     vtkSmartPointer<vtkPolyData> mesh;
-    static std::shared_ptr<spdlog::logger> _logger;
+    //static std::shared_ptr<spdlog::logger> _logger;
     //vector of triangles
     std::vector<std::vector<int>> vec_tri;
     //neighbours of triangles;
@@ -108,6 +108,14 @@ public:
      * @return Sphere
      */
     static Surface generate_sphere( double radius_mm, std::tuple<double, double, double> centre, int num_of_divisions);
+    /**
+     *
+     * @param points
+     * @param triangles
+     * @return
+     */
+    static Surface meshFromPoints( const std::vector<std::vector<double>>& points,
+                                   const std::vector<std::vector<int>>& triangles);
 
     std::vector<std::vector<double>> rayMeshIntersection(std::vector<std::vector<double>> start_end);
 

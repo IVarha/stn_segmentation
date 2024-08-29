@@ -36,7 +36,7 @@ Point Point::move_point(VolumeDouble &image, Point &direction, double reach_valu
         curr_pt[1] = curr_pt[1] +  curr_step*cur_dir*direction.getY();
         curr_pt[2] = curr_pt[2] +  curr_step*cur_dir*direction.getZ();
 
-        if (((val1> reach_value) and (val_pre < reach_value)) or ((val1< reach_value) and (val_pre > reach_value))){
+        if (((val1> reach_value) && (val_pre < reach_value)) || ((val1< reach_value) && (val_pre > reach_value))){
             curr_step = curr_step/2;
             cur_dir = cur_dir * (-1);
 
@@ -106,7 +106,7 @@ Point Point::move_point_with_stop(VolumeDouble &image, Point &direction, Point &
         curr_pt[1] = curr_pt[1] +  curr_step*cur_dir*direction.getY();
         curr_pt[2] = curr_pt[2] +  curr_step*cur_dir*direction.getZ();
 
-        if (((val1> reach_value) and (val_pre < reach_value)) or ((val1< reach_value) and (val_pre > reach_value))){
+        if (((val1> reach_value) && (val_pre < reach_value)) || ((val1< reach_value) && (val_pre > reach_value))){
             curr_step = curr_step/2;
             cur_dir = cur_dir * (-1);
 

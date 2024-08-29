@@ -21,7 +21,10 @@ class CMakeExtension(Extension):
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
-        self.sourcedir = os.path.abspath(sourcedir)
+        if platform.system() == "Windows":
+            self.sourcedir = r"C:\Users\h492884\PycharmProjects\stn_segmentation"
+        else:
+            self.sourcedir = os.path.abspath(sourcedir)
 
 
 class CMakeBuild(build_ext):
@@ -68,6 +71,11 @@ class CMakeBuild(build_ext):
             self.distribution.get_version())
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
+        print("Env ",env)
+        print("cmake args ", cmake_args)
+        if sys.platform.startswith("win"):
+            cmake_args.append(r"-DCMAKE_TOOLCHAIN_FILE=C:\Users\h492884\vcpkg\scripts\buildsystems\vcpkg.cmake")
+
         subprocess.check_call(['cmake', ext.sourcedir + os.sep + "bayessian_segmentation_cpp"] + cmake_args,
                               cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
@@ -83,13 +91,13 @@ ext_modules = [
 setup(
     name='py_stn_segmentation',
     version='1.1.1',
-    packages=['bayessian_appearance','cppcode'],
+    packages=find_packages() ,#+ ['cppcode'],
     url='',
     license='',
     author='ivarh',
     author_email='ivarhauzh@gmail.com',
     description='',
-    package_dir={ 'cppcode': 'bayessian_segmentation_cpp' },
+    package_dir={ 'cppcode': 'bayessian_segmentation_cpp'},
     install_requires=[
         'fslpy'
     ],

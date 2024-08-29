@@ -293,7 +293,7 @@ void* NiftiImage::returnImage() {
                         uint16_t * pix = static_cast<uint16_t*>(this->niimg->GetScalarPointer(i,j,k));
                         res->operator()(i,j,k)= (int)*pix;
                         auto cel = this->niimg->GetCell(i,j,k);
-                        if ((*pix == 6) and (cel)) {
+                        if ((*pix == 6) && (cel)) {
                             ca++;
                             //cout << i << " " << j << " " << k << endl;
                         }
@@ -643,14 +643,14 @@ TransformMatrix TransformMatrix::get_mirror_mri() {
 
 double VolumeDouble::interpolate_value_vox(double x, double y, double z, const string& method) {
     if (method == "linear"){//linear
-        if (not this->has_slab_mask){
+        if (! this->has_slab_mask){
             double x1 = floor(x);
             double y1 = floor(y);
             double z1 = floor(z);
             double xd = x - x1;
             double yd = y - y1;
             double zd = z - z1;
-            if (((x + 1) >  this->v.n_rows) or ((y+1)> this->v.n_cols) or ((z+1)> this->v.n_slices) or (x < 0) or (y<0) or (z<0) ) return 0;
+            if (((x + 1) >  this->v.n_rows) || ((y+1)> this->v.n_cols) || ((z+1)> this->v.n_slices) || (x < 0) || (y<0) || (z<0) ) return 0;
             double c000 = this->v((int)(x1),(int)(y1),(int)(z1));
             double c001 = this->v(int(x1),int(y1),int(z1 + 1));
             double c010 = this->v(int(x1),int(y1+1),int(z1));

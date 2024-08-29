@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 project(bayessian_segmentation_cpp)
  set(EXEC_NAME bayessian_segmentation_cpp)
- list(APPEND CMAKE_PREFIX_PATH "/home/varga/libs/bay_segm/spdlog/build2/lib/cmake/spdlog")
+ #list(APPEND CMAKE_PREFIX_PATH "/home/varga/libs/bay_segm/spdlog/build2/lib/cmake/spdlog")
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options("-fPIC")
- set(VTK_DIR "/home/varga/VTK-9.0.1/build" CACHE PATH "VTK directory override" FORCE )
+# set(VTK_DIR "/home/igorv/Slicer-5.4.0-linux-amd64/lib/" CACHE PATH "VTK directory override" FORCE )
  find_package(spdlog REQUIRED)
  find_package(VTK COMPONENTS
          vtkCommonCore
@@ -25,16 +25,14 @@ add_compile_options("-fPIC")
          vtkRenderingCore
          vtkRenderingFreeType
          vtkRenderingFreeType
-         vtkRenderingGL2PSOpenGL2
-         vtkRenderingOpenGL2
-         vtkRenderingVolumeOpenGL2
 
-         QUIET)
+
+         REQUIRED)
  find_package(ZLIB REQUIRED)
  find_package(Armadillo REQUIRED)
-
-
- add_subdirectory(external/pybind11-2.6)
+    find_package(Python COMPONENTS Interpreter Development)
+    find_package(pybind11 CONFIG)
+#  add_subdirectory(external/pybind11-2.11.1)
 include_directories(pybind11_INCLUDE_DIRS)
 
  if (NOT VTK_FOUND)
